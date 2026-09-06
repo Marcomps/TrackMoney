@@ -1,0 +1,38 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+
+## Visual Studio / Rider
+.vs/
+.idea/
+*.userosscache
+*.sln.docstates
+
+## MAUI / mobile build output
+*.apk
+*.aab
+*.ipa
+*.dSYM/
+
+## Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+## Local databases (SQLite)
+*.db
+*.db3
+*.db-shm
+*.db-wal
+*.db3-shm
+*.db3-wal
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Claude Code local settings
+.claude/settings.local.json
