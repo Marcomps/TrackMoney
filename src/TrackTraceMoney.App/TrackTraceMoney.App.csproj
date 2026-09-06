@@ -77,4 +77,16 @@
 	  <ProjectReference Include="..\TrackTraceMoney.Domain\TrackTraceMoney.Domain.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <!-- Generates a strongly-typed AppResources class from the build itself (no Visual Studio
+	       "Custom Tool" step required), so `dotnet build` alone produces AppResources.KeyName. -->
+	  <EmbeddedResource Update="Resources\Strings\AppResources.resx">
+	    <Generator>MSBuild:Compile</Generator>
+	    <StronglyTypedFileName>$(IntermediateOutputPath)AppResources.Designer.cs</StronglyTypedFileName>
+	    <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+	    <StronglyTypedNamespace>TrackTraceMoney.App.Resources.Strings</StronglyTypedNamespace>
+	    <StronglyTypedClassName>AppResources</StronglyTypedClassName>
+	  </EmbeddedResource>
+	</ItemGroup>
+
 </Project>

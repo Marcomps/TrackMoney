@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Accounts_Title" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Accounts_Empty" xml:space="preserve">
+    <value>You don't have any accounts yet. Add your first one to get started.</value>
+  </data>
+  <data name="Accounts_AddButton" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="AccountKind_Cash" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="AccountKind_Bank" xml:space="preserve">
+    <value>Bank account</value>
+  </data>
+  <data name="AccountKind_Savings" xml:space="preserve">
+    <value>Savings account</value>
+  </data>
+  <data name="AddAccount_Title" xml:space="preserve">
+    <value>New account</value>
+  </data>
+  <data name="AddAccount_NameLabel" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="AddAccount_NamePlaceholder" xml:space="preserve">
+    <value>e.g. Main Bank</value>
+  </data>
+  <data name="AddAccount_KindLabel" xml:space="preserve">
+    <value>Account type</value>
+  </data>
+  <data name="AddAccount_CurrencyLabel" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="AddAccount_OpeningBalanceLabel" xml:space="preserve">
+    <value>Opening balance</value>
+  </data>
+  <data name="AddAccount_BankNameLabel" xml:space="preserve">
+    <value>Bank</value>
+  </data>
+  <data name="AddAccount_BankNamePlaceholder" xml:space="preserve">
+    <value>e.g. BAC</value>
+  </data>
+  <data name="AddAccount_AccountNumberLast4Label" xml:space="preserve">
+    <value>Last 4 digits</value>
+  </data>
+  <data name="AddAccount_GoalAmountLabel" xml:space="preserve">
+    <value>Savings goal (optional)</value>
+  </data>
+  <data name="AddAccount_NotesLabel" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="AddAccount_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="AddAccount_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddAccount_ValidationNameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="AddAccount_ValidationBalanceInvalid" xml:space="preserve">
+    <value>Opening balance must be a valid number.</value>
+  </data>
+  <data name="AddAccount_ValidationGoalInvalid" xml:space="preserve">
+    <value>The goal must be a valid, non-negative number.</value>
+  </data>
+</root>

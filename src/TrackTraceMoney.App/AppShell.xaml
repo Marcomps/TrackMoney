@@ -3,12 +3,13 @@
     x:Class="TrackTraceMoney.App.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:TrackTraceMoney.App"
+    xmlns:views="clr-namespace:TrackTraceMoney.App.Views"
+    xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
     Title="TrackTraceMoney.App">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Title="{x:Static resources:AppResources.Accounts_Title}"
+        ContentTemplate="{DataTemplate views:AccountsListPage}"
+        Route="AccountsList" />
 
 </Shell>

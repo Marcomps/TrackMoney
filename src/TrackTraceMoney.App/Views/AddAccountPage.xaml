@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.AddAccountPage"
+             x:DataType="viewModels:AddAccountViewModel"
+             Title="{x:Static resources:AppResources.AddAccount_Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="{x:Static resources:AppResources.AddAccount_NameLabel}" />
+            <Entry Text="{Binding Name}"
+                   Placeholder="{x:Static resources:AppResources.AddAccount_NamePlaceholder}" />
+
+            <Label Text="{x:Static resources:AppResources.AddAccount_KindLabel}" />
+            <Picker ItemsSource="{Binding AvailableKinds}"
+                    SelectedItem="{Binding SelectedKind}">
+                <Picker.ItemDisplayBinding>
+                    <Binding Path="." Converter="{StaticResource AccountKindToLabelConverter}" />
+                </Picker.ItemDisplayBinding>
+            </Picker>
+
+            <Label Text="{x:Static resources:AppResources.AddAccount_CurrencyLabel}" />
+            <Picker ItemsSource="{Binding AvailableCurrencies}"
+                    SelectedItem="{Binding SelectedCurrency}" />
+
+            <Label Text="{x:Static resources:AppResources.AddAccount_OpeningBalanceLabel}" />
+            <Entry Text="{Binding OpeningBalanceText}" Keyboard="Numeric" />
+
+            <VerticalStackLayout IsVisible="{Binding IsBankKind}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddAccount_BankNameLabel}" />
+                <Entry Text="{Binding BankName}"
+                       Placeholder="{x:Static resources:AppResources.AddAccount_BankNamePlaceholder}" />
+
+                <Label Text="{x:Static resources:AppResources.AddAccount_AccountNumberLast4Label}" />
+                <Entry Text="{Binding AccountNumberLast4}" Keyboard="Numeric" MaxLength="4" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding IsSavingsKind}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddAccount_GoalAmountLabel}" />
+                <Entry Text="{Binding GoalAmountText}" Keyboard="Numeric" />
+            </VerticalStackLayout>
+
+            <Label Text="{x:Static resources:AppResources.AddAccount_NotesLabel}" />
+            <Editor Text="{Binding Notes}" HeightRequest="80" />
+
+            <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+            <Button Text="{x:Static resources:AppResources.AddAccount_SaveButton}"
+                    Command="{Binding SaveCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.AddAccount_CancelButton}"
+                    Command="{Binding CancelCommand}"
+                    HorizontalOptions="Fill" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
