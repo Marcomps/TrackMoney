@@ -1,104 +1,106 @@
 # TrackTrace Money
 
+**English | [Español](README.es.md)**
+
 > **Track. Trace. Control.**
-> Aplicación móvil para el control, seguimiento y análisis de las finanzas personales.
+> A mobile app for tracking, monitoring, and analyzing personal finances.
 
 ---
 
-## 1. Descripción general
+## 1. Overview
 
-**TrackTrace Money** será una aplicación móvil desarrollada con **.NET MAUI**, orientada al control integral de las finanzas personales.
+**TrackTrace Money** will be a mobile app built with **.NET MAUI**, focused on comprehensive personal finance management.
 
-La aplicación permitirá registrar y analizar:
+The app will let users record and analyze:
 
-* Ingresos
-* Gastos
-* Transferencias
-* Cuentas bancarias
-* Ahorros
-* Tarjetas de crédito
-* Préstamos y créditos
-* Depósitos a plazo
-* Fondos de inversión
-* Presupuestos
-* Deudas
-* Patrimonio
-* Gastos médicos
-* Gastos de terceros
-* Seguros y reembolsos
-* Pagos recurrentes
-* Recordatorios
-* Reportes financieros
+* Income
+* Expenses
+* Transfers
+* Bank accounts
+* Savings
+* Credit cards
+* Loans and credit
+* Term deposits
+* Investment funds
+* Budgets
+* Debts
+* Net worth
+* Medical expenses
+* Expenses for others
+* Insurance and reimbursements
+* Recurring payments
+* Reminders
+* Financial reports
 
-El objetivo principal no será solamente registrar gastos, sino **permitir al usuario conocer el recorrido de su dinero**:
+The main goal won't just be tracking expenses, but **letting the user understand the journey of their money**:
 
-> **De dónde viene → dónde está → en qué se utiliza → qué debe → qué está ahorrando → qué está invirtiendo → cuánto realmente posee.**
+> **Where it comes from → where it sits → what it's used for → what's owed → what's being saved → what's being invested → what's really left.**
 
 ---
 
-# 2. Principios del sistema
+# 2. System principles
 
 ## 2.1 Offline First
 
-La aplicación deberá funcionar principalmente **sin conexión a Internet**.
+The app must work primarily **without an Internet connection**.
 
-Todas las operaciones principales deberán funcionar offline:
+All core operations must work offline:
 
-* Crear movimientos
-* Editar movimientos
-* Eliminar movimientos
-* Consultar historial
-* Consultar cuentas
-* Registrar gastos
-* Registrar ingresos
-* Registrar pagos
-* Consultar deudas
-* Calcular presupuestos
-* Generar reportes locales
-* Mostrar dashboards
-* Crear recordatorios locales
+* Create transactions
+* Edit transactions
+* Delete transactions
+* View history
+* View accounts
+* Record expenses
+* Record income
+* Record payments
+* View debts
+* Calculate budgets
+* Generate local reports
+* Show dashboards
+* Create local reminders
 
-La conexión a Internet **no será requisito para utilizar la aplicación**.
-
----
-
-## 2.2 Base de datos local
-
-La base de datos principal será **SQLite**.
-
-SQLite será la fuente de verdad del dispositivo y no simplemente una caché.
-
-Se deberá contemplar:
-
-* Migraciones
-* Seeds iniciales
-* Integridad referencial
-* Transacciones
-* Índices
-* Backup local
-* Restauración
+An Internet connection **will not be required to use the app**.
 
 ---
 
-## 2.3 Nube opcional
+## 2.2 Local database
 
-La nube será una capacidad posterior y opcional.
+The main database will be **SQLite**.
 
-Su propósito será:
+SQLite will be the on-device source of truth, not just a cache.
+
+The following must be accounted for:
+
+* Migrations
+* Initial seeds
+* Referential integrity
+* Transactions
+* Indexes
+* Local backup
+* Restore
+
+---
+
+## 2.3 Optional cloud
+
+The cloud will be a later, optional capability.
+
+Its purpose will be:
 
 * Backup
-* Restauración
-* Sincronización
-* Consulta desde múltiples dispositivos
-* Posible aplicación web futura
+* Restore
+* Synchronization
+* Access from multiple devices
+* A possible future web app
 
-La aplicación deberá seguir funcionando aunque el usuario nunca active servicios en la nube.
+The app must keep working even if the user never enables cloud services.
 
 ---
 
-# 3. Plataforma y arquitectura
+# 3. Platform and architecture
 
-## 3.1 Tecnología
+## 3.1 Technology
 
 ### Frontend
 
@@ -109,23 +111,23 @@ La aplicación deberá seguir funcionando aunque el usuario nunca active servici
 * CommunityToolkit.Mvvm
 * CommunityToolkit.Maui
 
-### Persistencia
+### Persistence
 
 * SQLite
 * Entity Framework Core
 * EF Core SQLite
 
-### Futuro backend
+### Future backend
 
 * ASP.NET Core Web API
 * PostgreSQL
 * Docker
-* Autenticación
-* Servicio de sincronización
+* Authentication
+* Synchronization service
 
 ---
 
-# 4. Arquitectura propuesta
+# 4. Proposed architecture
 
 ```text
 TrackTrace Money
@@ -155,7 +157,7 @@ TrackTrace Money
 │   ├── Migrations
 │   └── Local Notifications
 │
-└── TrackTraceMoney.Api       # Futuro
+└── TrackTraceMoney.Api       # Future
     ├── Controllers
     ├── Authentication
     ├── Synchronization
@@ -164,18 +166,18 @@ TrackTrace Money
 
 ---
 
-# 5. Idiomas
+# 5. Languages
 
-La aplicación deberá soportar inicialmente:
+The app must initially support:
 
-* 🇪🇸 Español
-* 🇺🇸 Inglés
+* 🇪🇸 Spanish
+* 🇺🇸 English
 
-La localización deberá implementarse desde el comienzo.
+Localization must be implemented from the start.
 
-No se deberán colocar textos directamente en las vistas cuando sean textos de interfaz.
+UI text must never be hardcoded directly in the views.
 
-Se utilizarán recursos localizados, por ejemplo:
+Localized resources will be used, for example:
 
 ```text
 Resources/
@@ -183,15 +185,15 @@ Resources/
 └── AppResources.en.resx
 ```
 
-El usuario podrá cambiar el idioma desde configuración.
+The user will be able to change the language from settings.
 
 ---
 
-# 6. Moneda
+# 6. Currency
 
-El sistema deberá permitir seleccionar la moneda principal.
+The system must allow selecting a primary currency.
 
-Ejemplos:
+Examples:
 
 * USD
 * EUR
@@ -202,60 +204,60 @@ Ejemplos:
 * NIO
 * PAB
 
-La moneda deberá almacenarse explícitamente en las cuentas y operaciones cuando corresponda.
+Currency must be stored explicitly on accounts and operations where relevant.
 
 ---
 
-# 7. Personas
+# 7. People
 
-El sistema deberá permitir registrar personas relacionadas con gastos.
+The system must allow registering people related to expenses.
 
-Ejemplo:
+Example:
 
 ```text
-Persona
-├── Nombre
-├── Relación
-└── Notas
+Person
+├── Name
+├── Relationship
+└── Notes
 ```
 
-Relaciones predefinidas:
+Predefined relationships:
 
-* Yo
-* Pareja
-* Hijo/a
-* Padre/madre
-* Familiar
-* Otro
+* Me
+* Partner
+* Child
+* Parent
+* Family member
+* Other
 
-También se podrán crear relaciones personalizadas.
+Custom relationships can also be created.
 
-Esto permitirá diferenciar:
+This will make it possible to distinguish:
 
-> **Quién pagó** de **para quién fue el gasto**.
+> **Who paid** from **who the expense was for**.
 
 ---
 
-# 8. Cuentas financieras
+# 8. Financial accounts
 
-La aplicación deberá distinguir los diferentes tipos de productos financieros.
+The app must distinguish between different types of financial products.
 
-## 8.1 Cuentas de activos
+## 8.1 Asset accounts
 
-* Efectivo
-* Cuenta bancaria
-* Cuenta corriente
-* Cuenta de ahorro
-* Depósito a plazo
-* Fondo de inversión
+* Cash
+* Bank account
+* Checking account
+* Savings account
+* Term deposit
+* Investment fund
 
-## 8.2 Cuentas de pasivos
+## 8.2 Liability accounts
 
-* Tarjeta de crédito
-* Préstamo
-* Crédito bancario
+* Credit card
+* Loan
+* Bank credit
 
-Conceptualmente:
+Conceptually:
 
 ```text
 FinancialAccount
@@ -274,9 +276,9 @@ CreditAccount
 
 ---
 
-# 9. Movimientos
+# 9. Transactions
 
-El sistema deberá permitir registrar diferentes tipos de movimientos.
+The system must allow recording different kinds of transactions.
 
 ```text
 Income
@@ -291,391 +293,391 @@ InterestIncome
 Reimbursement
 ```
 
-## 9.1 Regla fundamental
+## 9.1 Fundamental rule
 
-No todos los movimientos representan un gasto.
+Not every transaction represents an expense.
 
-Ejemplo:
+Example:
 
 ```text
-Banco A → Tarjeta de crédito
+Bank A → Credit card
 $300
 ```
 
-Esto representa un **pago de deuda/transferencia**, no un nuevo gasto.
+This represents a **debt payment/transfer**, not a new expense.
 
-La compra original sí fue un gasto.
+The original purchase *was* the expense.
 
-Esto evitará duplicar gastos.
+This avoids double-counting expenses.
 
 ---
 
-# 10. Ingresos
+# 10. Income
 
-El usuario podrá registrar:
+The user will be able to record:
 
-* Salario
-* Bonificaciones
-* Comisiones
-* Freelance
-* Intereses
-* Dividendos
-* Reembolsos
-* Otros ingresos
+* Salary
+* Bonuses
+* Commissions
+* Freelance income
+* Interest
+* Dividends
+* Reimbursements
+* Other income
 
-Campos:
+Fields:
 
 ```text
-Monto
-Descripción
-Categoría
-Fecha
-Cuenta destino
-Persona
-Notas
+Amount
+Description
+Category
+Date
+Destination account
+Person
+Notes
 ```
 
 ---
 
-# 11. Gastos
+# 11. Expenses
 
-El usuario podrá registrar:
+The user will be able to record:
 
 ```text
-Monto
-Descripción
-Categoría
-Fecha
-Método de pago
-Cuenta
-Persona beneficiaria
-Notas
+Amount
+Description
+Category
+Date
+Payment method
+Account
+Beneficiary person
+Notes
 ```
 
-Métodos de pago:
+Payment methods:
 
-* Efectivo
-* Cuenta bancaria
-* Cuenta de ahorro
-* Tarjeta de crédito
+* Cash
+* Bank account
+* Savings account
+* Credit card
 
-Ejemplo:
+Example:
 
 ```text
 $75.50
-Supermercado
-04/09/2026
-Tarjeta BAC
+Supermarket
+09/04/2026
+BAC Card
 ```
 
 ---
 
-# 12. Categorías
+# 12. Categories
 
-El usuario podrá administrar categorías.
+The user will be able to manage categories.
 
-Categorías iniciales:
+Initial categories:
 
-* Alimentación
-* Vivienda
-* Transporte
-* Salud
-* Educación
-* Entretenimiento
-* Compras
-* Servicios
-* Suscripciones
-* Deudas
-* Seguros
-* Inversiones
-* Ahorro
-* Otros
+* Food
+* Housing
+* Transportation
+* Health
+* Education
+* Entertainment
+* Shopping
+* Utilities/Services
+* Subscriptions
+* Debts
+* Insurance
+* Investments
+* Savings
+* Other
 
-Las categorías deberán poder personalizarse.
+Categories must be customizable.
 
 ---
 
-# 13. Transferencias
+# 13. Transfers
 
-Se podrán transferir fondos entre cuentas.
+Funds can be transferred between accounts.
 
-Ejemplo:
+Example:
 
 ```text
-Banco A
+Bank A
    ↓
 $500
    ↓
-Cuenta de ahorro
+Savings account
 ```
 
-Una transferencia:
+A transfer:
 
-* Reduce el saldo de la cuenta origen.
-* Incrementa el saldo de la cuenta destino.
-* No se contabiliza como gasto.
+* Reduces the source account's balance.
+* Increases the destination account's balance.
+* Is not counted as an expense.
 
 ---
 
-# 14. Tarjetas de crédito
+# 14. Credit cards
 
-Cada tarjeta deberá almacenar:
+Each card must store:
 
 ```text
-Banco / emisor
-Nombre
-Últimos 4 dígitos
-Límite de crédito
-Saldo utilizado
-Saldo disponible
-Tasa anual
-Tasa mensual
-Fecha de corte
-Fecha límite de pago
-Pago mínimo
-Pago para evitar intereses
-Último estado de cuenta
-Estado
+Bank / issuer
+Name
+Last 4 digits
+Credit limit
+Balance used
+Available balance
+Annual rate
+Monthly rate
+Statement/cutoff date
+Payment due date
+Minimum payment
+Pay-in-full amount
+Latest statement
+Status
 ```
 
-Ejemplo:
+Example:
 
 ```text
-💳 Tarjeta BAC
+💳 BAC Card
 
-Límite:              $2,000
-Utilizado:             $650
-Disponible:          $1,350
+Limit:                 $2,000
+Used:                    $650
+Available:             $1,350
 
-Corte:                    25
-Pago límite:              10
+Cutoff:                     25
+Payment due:                10
 
-Pago mínimo:             $50
-Pago para no intereses: $500
+Minimum payment:           $50
+Pay-in-full amount:       $500
 ```
 
 ---
 
-# 15. Ciclos y estados de cuenta
+# 15. Cycles and statements
 
-Las tarjetas deberán manejar ciclos de facturación.
+Cards must handle billing cycles.
 
-Ejemplo:
+Example:
 
 ```text
-Fecha de corte: 25
+Cutoff date: 25
 
-26 agosto
+August 26
      ↓
-25 septiembre
+September 25
      ↓
-Estado de cuenta
+Statement
      ↓
-10 octubre
-Fecha límite de pago
+October 10
+Payment due date
 ```
 
-Se deberá poder identificar qué compras pertenecen a cada estado de cuenta.
+It must be possible to identify which purchases belong to each statement.
 
 ---
 
-# 16. Pago de tarjeta
+# 16. Card payment
 
-Deberá existir una operación específica:
+There must be a specific operation:
 
 ```text
-Pago de tarjeta
+Card payment
 
-Tarjeta:
+Card:
 BAC
 
-Cuenta utilizada:
-Banco principal
+Account used:
+Main bank
 
-Monto:
+Amount:
 $300
 
-Fecha:
-10/09/2026
+Date:
+09/10/2026
 ```
 
-Resultado:
+Result:
 
 ```text
-Banco
+Bank
 -$300
 
-Tarjeta
--$300 de deuda
+Card
+-$300 of debt
 ```
 
-No deberá aumentar los gastos del período.
+This must not increase the period's expenses.
 
 ---
 
-# 17. Análisis "Comprado vs Pagado"
+# 17. "Purchased vs. Paid" analysis
 
-La aplicación deberá comparar:
+The app must compare:
 
 ```text
-Compras de tarjeta
+Card purchases
 vs
-Pagos realizados
+Payments made
 ```
 
-Ejemplo:
+Example:
 
 ```text
-Compras:     $650
-Pagos:       $400
+Purchases:   $650
+Payments:    $400
 ----------------
-Diferencia: +$250
+Difference: +$250
 ```
 
-Indicador:
+Indicator:
 
-🟠 **Estás comprando más de lo que estás pagando.**
+🟠 **You're spending more than you're paying off.**
 
-Si:
+If:
 
 ```text
-Compras:     $650
-Pagos:       $800
+Purchases:   $650
+Payments:    $800
 ```
 
-Mostrar:
+Show:
 
-🟢 **Estás pagando $150 más de lo que estás comprando.**
+🟢 **You're paying $150 more than you're spending.**
 
-El análisis podrá realizarse por:
+The analysis can be run by:
 
-* Mes
-* Ciclo
-* 3 meses
-* 6 meses
-* Año
+* Month
+* Cycle
+* 3 months
+* 6 months
+* Year
 
 ---
 
-# 18. Semáforo de tarjetas
+# 18. Card traffic light (semáforo)
 
-Las tarjetas deberán mostrar un indicador visual.
+Cards must show a visual indicator.
 
-### 🟢 Verde
+### 🟢 Green
 
-Situación saludable.
+Healthy situation.
 
-Ejemplo:
+Example:
 
-* Pago para evitar intereses cubierto.
-* No existen pagos vencidos.
+* Pay-in-full amount covered.
+* No overdue payments.
 
-### 🟡 Amarillo
+### 🟡 Yellow
 
-Atención.
+Attention needed.
 
-Ejemplo:
+Example:
 
-* Se aproxima la fecha límite.
-* El pago para evitar intereses aún no está completo.
+* The due date is approaching.
+* The pay-in-full amount hasn't been covered yet.
 
-### 🟠 Naranja
+### 🟠 Orange
 
-Situación de riesgo.
+At-risk situation.
 
-Ejemplo:
+Example:
 
-* Pago parcial.
-* Alto porcentaje del límite utilizado.
+* Partial payment.
+* High percentage of the limit used.
 
-### 🔴 Rojo
+### 🔴 Red
 
-Situación crítica.
+Critical situation.
 
-Ejemplo:
+Example:
 
-* Pago vencido.
-* Obligación pendiente después de la fecha límite.
+* Overdue payment.
+* Obligation still pending after the due date.
 
-La aplicación deberá diferenciar:
-
-```text
-Pago mínimo
-```
-
-de:
+The app must distinguish between:
 
 ```text
-Pago para evitar intereses
+Minimum payment
 ```
 
-No deberá asumir automáticamente las reglas específicas de intereses de cada banco.
+and:
 
-El valor de **"pago para evitar intereses"** será introducido por el usuario a partir del estado de cuenta.
+```text
+Pay-in-full amount
+```
+
+It must never assume each bank's specific interest rules automatically.
+
+The **"pay-in-full amount"** value will be entered by the user from the statement.
 
 ---
 
-# 19. Préstamos y créditos
+# 19. Loans and credit
 
-Se podrán registrar:
+The following can be registered:
 
-* Crédito personal
-* Crédito vehicular
-* Hipoteca
-* Crédito bancario
-* Compra a cuotas
-* Otro préstamo
+* Personal loan
+* Auto loan
+* Mortgage
+* Bank credit
+* Installment purchase
+* Other loan
 
-Campos:
+Fields:
 
 ```text
-Institución
-Nombre
-Monto original
-Saldo actual
-Tasa de interés
-Tipo de tasa
-Cuota mensual
-Fecha de próximo pago
-Pagos restantes
-Pago requerido
-Comisiones
-Notas
+Institution
+Name
+Original amount
+Current balance
+Interest rate
+Rate type
+Monthly installment
+Next payment date
+Remaining payments
+Required payment
+Fees
+Notes
 ```
 
-Ejemplo:
+Example:
 
 ```text
-🏦 Crédito personal
+🏦 Personal loan
 
-Original:        $5,000
-Saldo:           $3,250
-Tasa:               12%
-Cuota:             $150
-Próximo pago: 15/09/2026
-Restantes:          24
+Original:          $5,000
+Balance:           $3,250
+Rate:                  12%
+Installment:         $150
+Next payment:  09/15/2026
+Remaining:              24
 ```
 
 ---
 
-# 20. Bola de Nieve
+# 20. Snowball (Bola de Nieve)
 
-La aplicación deberá incluir una estrategia de pago de deudas basada en **Bola de Nieve**.
+The app must include a debt payoff strategy based on the **Snowball** method.
 
-Primero se deberán cubrir los pagos mínimos/obligatorios.
+Minimum/obligatory payments must be covered first.
 
-Después, el dinero adicional se dirigirá a la deuda con menor saldo.
+Any extra money is then directed to the debt with the smallest balance.
 
-Ejemplo:
+Example:
 
 ```text
-Tarjeta A       $250
-Tarjeta B       $800
-Tarjeta C     $2,500
-Préstamo      $5,000
+Card A          $250
+Card B          $800
+Card C        $2,500
+Loan          $5,000
 ```
 
-Orden:
+Order:
 
 ```text
 1. $250
@@ -684,53 +686,53 @@ Orden:
 4. $5,000
 ```
 
-Cuando una deuda sea eliminada:
+Once a debt is paid off:
 
 ```text
-Pago liberado
+Freed-up payment
       ↓
-Siguiente deuda
+Next debt
 ```
 
-El sistema deberá mostrar:
+The system must show:
 
 ```text
-⭐ OBJETIVO ACTUAL
+⭐ CURRENT TARGET
 
-Tarjeta A
+Card A
 
-Saldo:       $250
-Mínimo:       $25
-Extra sugerido: $150
+Balance:       $250
+Minimum:        $25
+Suggested extra: $150
 ```
 
-La Bola de Nieve será una estrategia configurable y no deberá imponerse al usuario.
+The Snowball strategy will be configurable and must never be forced on the user.
 
-Como futura mejora podrá incorporarse también:
+As a future enhancement, the following could also be added:
 
-* Avalancha
-* Pago personalizado
+* Avalanche
+* Custom payment
 
 ---
 
-# 21. Ahorros
+# 21. Savings
 
-Se podrán registrar cuentas destinadas al ahorro.
+Accounts dedicated to savings can be registered.
 
-Ejemplo:
+Example:
 
 ```text
-Cuenta:
-Fondo de emergencia
+Account:
+Emergency fund
 
-Saldo:
+Balance:
 $2,500
 
-Objetivo:
+Goal:
 $5,000
 ```
 
-Se podrá mostrar:
+It can be displayed as:
 
 ```text
 $2,500 / $5,000
@@ -740,228 +742,228 @@ $2,500 / $5,000
 
 ---
 
-# 22. Depósitos a plazo
+# 22. Term deposits
 
-Se deberán poder registrar depósitos a plazo.
+Term deposits must be registrable.
 
-Campos:
+Fields:
 
 ```text
-Institución
-Nombre
-Capital inicial
-Tasa
-Tipo de tasa
-Fecha de inicio
-Fecha de vencimiento
-Periodicidad de intereses
-Capitalización
-Interés estimado
-Interés recibido
-Renovación automática
-Moneda
-Notas
+Institution
+Name
+Initial principal
+Rate
+Rate type
+Start date
+Maturity date
+Interest frequency
+Compounding
+Estimated interest
+Interest received
+Auto-renewal
+Currency
+Notes
 ```
 
-La aplicación podrá generar recordatorios antes del vencimiento.
+The app can generate reminders before maturity.
 
 ---
 
-# 23. Fondos de inversión
+# 23. Investment funds
 
-Se podrán registrar inversiones.
+Investments can be registered.
 
-Campos:
-
-```text
-Fondo
-Institución
-Fecha de inversión
-Aportes
-Retiros
-Valor actual
-Rendimiento
-Comisiones
-Moneda
-Notas
-```
-
-Ejemplo:
+Fields:
 
 ```text
-Inversión inicial: $2,000
-Valor actual:      $2,084.50
-
-Ganancia:             $84.50
-Rendimiento:           4.23%
+Fund
+Institution
+Investment date
+Contributions
+Withdrawals
+Current value
+Return
+Fees
+Currency
+Notes
 ```
 
-Se podrá almacenar un historial del valor de la inversión para generar gráficos.
+Example:
+
+```text
+Initial investment: $2,000
+Current value:      $2,084.50
+
+Gain:                  $84.50
+Return:                 4.23%
+```
+
+A history of the investment's value can be stored to generate charts.
 
 ---
 
-# 24. Patrimonio neto
+# 24. Net worth
 
-El sistema deberá calcular el patrimonio neto.
+The system must calculate net worth.
 
-### Activos
+### Assets
 
 ```text
-Efectivo
-+ Bancos
-+ Ahorros
-+ Depósitos a plazo
-+ Inversiones
+Cash
++ Banks
++ Savings
++ Term deposits
++ Investments
 ```
 
-### Pasivos
+### Liabilities
 
 ```text
-Tarjetas
-+ Préstamos
-+ Créditos
+Cards
++ Loans
++ Credit
 ```
 
-### Fórmula
+### Formula
 
 ```text
-Patrimonio Neto =
-Activos - Pasivos
+Net Worth =
+Assets - Liabilities
 ```
 
-Ejemplo:
+Example:
 
 ```text
-Activos:       $8,784
-Deudas:        $3,850
+Assets:       $8,784
+Debts:        $3,850
 ---------------------
-Patrimonio:    $4,934
+Net worth:    $4,934
 ```
 
-Se deberá poder visualizar la evolución del patrimonio a través del tiempo.
+It must be possible to view net worth's evolution over time.
 
 ---
 
-# 25. Gastos médicos
+# 25. Medical expenses
 
-La aplicación deberá permitir registrar gastos relacionados con:
+The app must allow recording expenses related to:
 
-* Médico
-* Dentista
-* Medicamentos
+* Doctor
+* Dentist
+* Medications
 * Hospital
-* Laboratorio
-* Terapias
-* Otros servicios médicos
+* Laboratory
+* Therapy
+* Other medical services
 
-El gasto deberá permitir indicar:
+The expense must allow specifying:
 
 ```text
-Proveedor
-Paciente / beneficiario
-Monto
-Fecha
-Cuenta utilizada
-Método de pago
-Seguro utilizado
-Monto cubierto
-Monto reembolsable
-Monto esperado
-Estado
-Notas
+Provider
+Patient / beneficiary
+Amount
+Date
+Account used
+Payment method
+Insurance used
+Amount covered
+Reimbursable amount
+Expected amount
+Status
+Notes
 ```
 
 ---
 
-# 26. Gastos médicos de terceros
+# 26. Medical expenses for others
 
-Se deberá poder indicar para quién se realizó el gasto.
+It must be possible to indicate who the expense was made for.
 
-Ejemplo:
+Example:
 
 ```text
-Paciente:
-Hijo
+Patient:
+Child
 
-Proveedor:
-Dentista
+Provider:
+Dentist
 
-Costo:
+Cost:
 $150
 
-Pagado por:
-Usuario
+Paid by:
+User
 
-Método:
-Tarjeta de crédito
+Method:
+Credit card
 ```
 
-Esto permite separar:
+This makes it possible to separate:
 
 ```text
-Quién pagó
+Who paid
 ```
 
-de:
+from:
 
 ```text
-Para quién fue el gasto
+Who the expense was for
 ```
 
 ---
 
-# 27. Seguros y reembolsos
+# 27. Insurance and reimbursements
 
-Los gastos podrán indicar si fueron cubiertos parcialmente por un seguro.
+Expenses can indicate whether they were partially covered by insurance.
 
-Ejemplo:
+Example:
 
 ```text
-Costo médico:          $150
-Seguro:                $100
-Costo final:            $50
+Medical cost:          $150
+Insurance:             $100
+Final cost:             $50
 ```
 
-Estados:
+Statuses:
 
-🟡 Reembolso pendiente
-🟢 Reembolsado
-🔴 Rechazado
+🟡 Reimbursement pending
+🟢 Reimbursed
+🔴 Rejected
 
 ---
 
-# 28. Reembolsos
+# 28. Reimbursements
 
-Un reembolso recibido deberá registrarse como un **ingreso/recovery relacionado con el gasto**, no como un gasto negativo.
+A reimbursement received must be recorded as **income/recovery linked to the expense**, not as a negative expense.
 
-Ejemplo:
+Example:
 
 ```text
-Gasto médico:
+Medical expense:
 $150
 
-Reembolso recibido:
+Reimbursement received:
 $100
 
-Costo real:
+Real cost:
 $50
 ```
 
-Un reembolso esperado no deberá considerarse dinero disponible hasta que realmente sea recibido.
+An expected reimbursement must not be considered available money until it's actually received.
 
 ---
 
-# 29. Seguro pagando directamente
+# 29. Insurance paying directly
 
-También deberá contemplarse:
+The following must also be handled:
 
 ```text
-Servicio médico:       $200
-Seguro paga:           $150
-Usuario paga:           $50
+Medical service:      $200
+Insurance pays:        $150
+User pays:              $50
 ```
 
-En este caso, el impacto real para el usuario será:
+In this case, the real impact on the user will be:
 
 ```text
 $50
@@ -969,439 +971,439 @@ $50
 
 ---
 
-# 30. Dashboard principal
+# 30. Main dashboard
 
-La pantalla principal deberá ser **simple y visual**.
+The main screen must be **simple and visual**.
 
-No deberá estar saturada de números.
+It must not be cluttered with numbers.
 
-Debe responder rápidamente:
+It must quickly answer:
 
-1. ¿Cuánto tengo?
-2. ¿Cuánto estoy gastando?
-3. ¿Dónde estoy gastando demasiado?
-4. ¿Qué debo pagar?
-5. ¿Tengo excedente?
-6. ¿Mi deuda está aumentando o disminuyendo?
-7. ¿Mi patrimonio está creciendo?
+1. How much do I have?
+2. How much am I spending?
+3. Where am I overspending?
+4. What do I need to pay?
+5. Do I have a surplus?
+6. Is my debt growing or shrinking?
+7. Is my net worth growing?
 
 ---
 
-# 31. Salud financiera
+# 31. Financial health
 
-El dashboard deberá mostrar un indicador general:
+The dashboard must show an overall indicator:
 
 ```text
-MI SALUD FINANCIERA 🟡
+MY FINANCIAL HEALTH 🟡
 ```
 
-Estados:
+States:
 
-🟢 Saludable
-🟡 Atención
-🟠 Riesgo
-🔴 Crítico
-🔵 Oportunidad
+🟢 Healthy
+🟡 Attention
+🟠 At risk
+🔴 Critical
+🔵 Opportunity
 
 ---
 
-# 32. Ingresos y gastos
+# 32. Income and expenses
 
-Ejemplo:
+Example:
 
 ```text
-INGRESOS
+INCOME
 $1,800
 
-GASTOS
+EXPENSES
 $1,050
 
-DISPONIBLE
+AVAILABLE
 $750
 ```
 
 ---
 
-# 33. Detección de sobrepresupuesto
+# 33. Over-budget detection
 
-El sistema deberá comparar el gasto con el presupuesto.
+The system must compare spending against the budget.
 
-Ejemplo:
+Example:
 
 ```text
-Comida
+Food
 
-Gastado:      $420
-Presupuesto:  $300
+Spent:        $420
+Budget:       $300
 
 🔴 +$120
 ```
 
-También podrá mostrar el porcentaje respecto al ingreso:
+It can also show the percentage relative to income:
 
 ```text
 $420
-23.3% de tus ingresos
+23.3% of your income
 ```
 
 ---
 
-# 34. Presupuestos
+# 34. Budgets
 
-El usuario podrá establecer presupuestos por:
+The user will be able to set budgets by:
 
-* Categoría
-* Mes
-* Periodicidad
+* Category
+* Month
+* Frequency
 
-Ejemplo:
+Example:
 
 ```text
-Comida       $300
-Transporte   $200
-Entreten.    $100
+Food         $300
+Transport    $200
+Entertain.   $100
 ```
 
-Estados:
+States:
 
-🟢 Dentro del presupuesto
-🟡 Cerca del límite
-🔴 Sobrepasado
+🟢 Within budget
+🟡 Near the limit
+🔴 Over budget
 
 ---
 
-# 35. Sobrante real
+# 35. Real surplus (sobrante real)
 
-La aplicación deberá diferenciar:
+The app must distinguish between:
 
 ```text
-Saldo disponible
+Available balance
 ```
 
-de:
+and:
 
 ```text
-Sobrante real
+Real surplus
 ```
 
-Ejemplo:
+Example:
 
 ```text
-Saldo actual:          $1,000
+Current balance:       $1,000
 
-Gastos próximos:       -$200
-Pagos de deuda:        -$250
+Upcoming expenses:      -$200
+Debt payments:          -$250
 --------------------------------
-Sobrante real:           $550
+Real surplus:            $550
 ```
 
-El sobrante real será el dinero que queda después de considerar las obligaciones conocidas.
+The real surplus is the money left over after accounting for known obligations.
 
 ---
 
-# 36. Recomendaciones sobre el sobrante
+# 36. Recommendations for the surplus
 
-Cuando exista sobrante, la aplicación podrá sugerir:
+When a surplus exists, the app can suggest:
 
 ```text
-¿Qué hacer con tu excedente?
+What should you do with your surplus?
 
-⛄ Bola de nieve
-🛟 Fondo de emergencia
-💰 Ahorro
-📈 Inversión
-⚖️ Distribuir
+⛄ Snowball
+🛟 Emergency fund
+💰 Savings
+📈 Investment
+⚖️ Distribute
 ```
 
-Si el usuario utiliza Bola de Nieve, podrá mostrar:
+If the user uses the Snowball strategy, it can show:
 
 ```text
-⭐ Puedes destinar $300 adicionales
-a tu deuda objetivo.
+⭐ You can put an extra $300
+toward your target debt.
 ```
 
 ---
 
-# 37. Recordatorios
+# 37. Reminders
 
-La aplicación deberá utilizar notificaciones locales.
+The app must use local notifications.
 
-Ejemplos:
+Examples:
 
 ```text
-🔔 Tarjeta BAC
+🔔 BAC Card
 
-Faltan 7 días para el pago.
+7 days left until payment.
 ```
 
 ```text
-🔔 Tarjeta BAC
+🔔 BAC Card
 
-Faltan 3 días.
-Pago para evitar intereses:
+3 days left.
+Pay-in-full amount:
 $500
 ```
 
 ```text
-🔴 Tarjeta BAC
+🔴 BAC Card
 
-El pago vence hoy.
+Payment is due today.
 ```
 
-También:
+Also:
 
-* Pagos de préstamos
-* Gastos recurrentes
-* Reembolsos pendientes
-* Vencimiento de depósitos a plazo
-* Otros compromisos
+* Loan payments
+* Recurring expenses
+* Pending reimbursements
+* Term deposit maturities
+* Other commitments
 
-Todo esto deberá funcionar offline mediante notificaciones locales.
+All of this must work offline via local notifications.
 
 ---
 
-# 38. Gastos recurrentes
+# 38. Recurring expenses
 
-El sistema deberá permitir configurar movimientos recurrentes:
+The system must allow configuring recurring transactions:
 
-* Alquiler
+* Rent
 * Internet
 * Netflix
-* Seguros
-* Colegiatura
-* Suscripciones
-* Servicios
-* Otros
+* Insurance
+* Tuition
+* Subscriptions
+* Utilities
+* Other
 
-Configuración:
+Configuration:
 
 ```text
-Monto
-Categoría
-Cuenta
-Periodicidad
-Fecha inicial
-Fecha final
+Amount
+Category
+Account
+Frequency
+Start date
+End date
 ```
 
 ---
 
-# 39. Historial
+# 39. History
 
-Se deberá poder consultar todos los movimientos.
+It must be possible to browse all transactions.
 
-Filtros:
+Filters:
 
-* Fecha
-* Categoría
-* Cuenta
-* Tarjeta
-* Persona
-* Tipo de movimiento
-* Rango de monto
-* Estado
+* Date
+* Category
+* Account
+* Card
+* Person
+* Transaction type
+* Amount range
+* Status
 
-Ejemplo:
+Example:
 
 ```text
-04 Sep
+Sep 04
 
-🛒 Supermercado
+🛒 Supermarket
 -$75.50
-Tarjeta BAC
+BAC Card
 
-03 Sep
+Sep 03
 
-💰 Salario
+💰 Salary
 +$1,800
-Banco principal
+Main bank
 ```
 
 ---
 
-# 40. Reportes
+# 40. Reports
 
-Se deberán incluir reportes visuales y fáciles de interpretar.
+Visual, easy-to-read reports must be included.
 
-### Reportes principales
+### Main reports
 
-* Gastos por categoría
-* Gastos diarios
-* Gastos semanales
-* Gastos mensuales
-* Ingresos vs gastos
-* Presupuesto vs gasto
-* Compras vs pagos de tarjetas
-* Evolución de deudas
-* Bola de nieve
-* Patrimonio neto
-* Gastos médicos
-* Gastos por persona
-* Gastos cubiertos por seguros
-* Reembolsos pendientes
-* Reembolsos recibidos
-* Rendimiento de inversiones
-* Evolución del sobrante
+* Expenses by category
+* Daily expenses
+* Weekly expenses
+* Monthly expenses
+* Income vs. expenses
+* Budget vs. spending
+* Card purchases vs. payments
+* Debt evolution
+* Snowball
+* Net worth
+* Medical expenses
+* Expenses by person
+* Insurance-covered expenses
+* Pending reimbursements
+* Reimbursements received
+* Investment returns
+* Surplus evolution
 
 ---
 
-# 41. Exportación
+# 41. Export
 
-Se deberá poder exportar información.
+It must be possible to export data.
 
-Formatos previstos:
+Planned formats:
 
 * CSV
 * Excel
 * PDF
 
-La exportación podrá realizarse por:
+Export can be filtered by:
 
-* Período
-* Cuenta
-* Categoría
-* Tipo de movimiento
-* Reporte
-
----
-
-# 42. Backup local
-
-La aplicación deberá permitir realizar backups locales.
-
-El backup deberá incluir:
-
-* Configuración
-* Categorías
-* Personas
-* Cuentas
-* Movimientos
-* Tarjetas
-* Estados de cuenta
-* Préstamos
-* Inversiones
-* Presupuestos
-* Recordatorios
-
-Idealmente se deberá contemplar cifrado del backup.
+* Period
+* Account
+* Category
+* Transaction type
+* Report
 
 ---
 
-# 43. Seguridad
+# 42. Local backup
 
-Opcionalmente se podrá proteger la aplicación mediante:
+The app must allow creating local backups.
+
+The backup must include:
+
+* Settings
+* Categories
+* People
+* Accounts
+* Transactions
+* Cards
+* Statements
+* Loans
+* Investments
+* Budgets
+* Reminders
+
+Backup encryption should ideally be considered.
+
+---
+
+# 43. Security
+
+The app can optionally be protected using:
 
 * PIN
-* Biometría
-* Bloqueo automático
+* Biometrics
+* Automatic lock
 
-Los datos locales deberán almacenarse de forma segura cuando sea técnicamente posible.
+Local data must be stored securely whenever technically possible.
 
 ---
 
-# 44. Navegación
+# 44. Navigation
 
-La navegación principal propuesta:
+Proposed main navigation:
 
 ```text
-🏠 Inicio
+🏠 Home
 
-💸 Movimientos
+💸 Transactions
 
-🏦 Mis cuentas
-   ├── Bancos
-   ├── Ahorros
-   ├── Depósitos a plazo
-   └── Fondos de inversión
+🏦 My accounts
+   ├── Banks
+   ├── Savings
+   ├── Term deposits
+   └── Investment funds
 
-💳 Créditos
-   ├── Tarjetas
-   └── Préstamos
+💳 Credit
+   ├── Cards
+   └── Loans
 
-📊 Reportes
+📊 Reports
 
-🎯 Presupuestos
+🎯 Budgets
 
-🔔 Recordatorios
+🔔 Reminders
 
-⚙️ Configuración
-   ├── Idioma
-   ├── Moneda
-   ├── Seguridad
+⚙️ Settings
+   ├── Language
+   ├── Currency
+   ├── Security
    └── Backup
 ```
 
 ---
 
-# 45. Botón de acción rápida
+# 45. Quick action button
 
-La aplicación deberá tener un botón `+`.
+The app must have a `+` button.
 
-Opciones:
+Options:
 
 ```text
 +
-├── + Ingreso
-├── - Gasto
-├── ⇄ Transferencia
-├── 💳 Pago de tarjeta
-├── 🏦 Pago de préstamo
-├── 📈 Aporte a inversión
-├── 💰 Retiro de inversión
-└── 🔄 Reembolso
+├── + Income
+├── - Expense
+├── ⇄ Transfer
+├── 💳 Card payment
+├── 🏦 Loan payment
+├── 📈 Investment contribution
+├── 💰 Investment withdrawal
+└── 🔄 Reimbursement
 ```
 
 ---
 
-# 46. Reglas contables principales
+# 46. Core accounting rules
 
-El sistema deberá respetar estas reglas:
+The system must respect these rules:
 
-### Compra con tarjeta
+### Card purchase
 
 ```text
-Gasto + incremento de deuda
+Expense + debt increase
 ```
 
-### Pago de tarjeta
+### Card payment
 
 ```text
-Reducción de banco
+Bank decrease
 +
-Reducción de deuda
+Debt decrease
 ```
 
-No es un gasto nuevo.
+It is not a new expense.
 
-### Transferencia
+### Transfer
 
 ```text
-Cuenta A -
-Cuenta B +
+Account A -
+Account B +
 ```
 
-No es gasto.
+Not an expense.
 
-### Inversión
+### Investment
 
 ```text
-Dinero disponible -
-Activo de inversión +
+Available money -
+Investment asset +
 ```
 
-No debe considerarse automáticamente como gasto.
+Must not be automatically treated as an expense.
 
-### Reembolso
+### Reimbursement
 
 ```text
-Ingreso/recovery +
+Income/recovery +
 ```
 
-No debe eliminar físicamente el gasto original.
+Must not physically delete the original expense.
 
 ---
 
-# 47. Modelo conceptual de datos
+# 47. Conceptual data model
 
 ```text
 User
@@ -1436,36 +1438,36 @@ User
 
 ---
 
-# 48. Futuro: sincronización
+# 48. Future: synchronization
 
-En una segunda etapa se podrá implementar:
+In a second stage, the following could be implemented:
 
 ```text
-Móvil
+Mobile
   ↓
 API
   ↓
 PostgreSQL
 ```
 
-La sincronización deberá considerar:
+Synchronization must account for:
 
-* Identificadores únicos
-* Versionado
-* Timestamp
-* Resolución de conflictos
-* Operaciones pendientes
-* Estado de sincronización
-* Eliminaciones
-* Reintentos
+* Unique identifiers
+* Versioning
+* Timestamps
+* Conflict resolution
+* Pending operations
+* Sync status
+* Deletions
+* Retries
 
-El sistema deberá poder seguir funcionando offline y sincronizar posteriormente.
+The system must be able to keep working offline and sync later.
 
 ---
 
-# 49. Futuro: aplicación web
+# 49. Future: web application
 
-Se podrá desarrollar posteriormente un dashboard web.
+A web dashboard could be developed later.
 
 ```text
 TrackTrace Money Mobile
@@ -1479,127 +1481,127 @@ TrackTrace Money Mobile
 TrackTrace Money Web
 ```
 
-La aplicación web podría enfocarse principalmente en:
+The web app could focus mainly on:
 
-* Reportes
+* Reports
 * Dashboards
-* Análisis
-* Administración
-* Consulta histórica
+* Analysis
+* Administration
+* Historical queries
 
 ---
 
-# 50. Futuro: inteligencia artificial
+# 50. Future: artificial intelligence
 
-Como una etapa posterior, se podrá incorporar IA para análisis financiero.
+As a later stage, AI could be added for financial analysis.
 
-Ejemplos:
+Examples:
 
-> "Este mes gastaste 18% más en alimentación."
+> "You spent 18% more on food this month."
 
-> "Tu deuda de tarjetas aumentó durante los últimos tres meses."
+> "Your card debt has grown over the last three months."
 
-> "Tienes un excedente estimado de $450 después de tus obligaciones."
+> "You have an estimated surplus of $450 after your obligations."
 
-> "Según tu estrategia de Bola de Nieve, la deuda de $250 debería ser tu siguiente objetivo."
+> "Based on your Snowball strategy, the $250 debt should be your next target."
 
-La IA deberá funcionar sobre los datos del usuario respetando privacidad y seguridad.
+The AI must operate on the user's data while respecting privacy and security.
 
 ---
 
 # 51. Roadmap
 
-## Fase 1 — MVP
+## Phase 1 — MVP
 
 * .NET MAUI
 * SQLite
-* Arquitectura MVVM
-* Español/Inglés
-* Cuentas
-* Ingresos
-* Gastos
-* Transferencias
-* Categorías
-* Historial
+* MVVM architecture
+* Spanish/English
+* Accounts
+* Income
+* Expenses
+* Transfers
+* Categories
+* History
 * Dashboard
-* Presupuestos
-* Sobrante real
-* Notificaciones locales
-* Backup local
+* Budgets
+* Real surplus
+* Local notifications
+* Local backup
 
-## Fase 2 — Crédito
+## Phase 2 — Credit
 
-* Tarjetas
-* Ciclos
-* Estados de cuenta
-* Fechas de corte
-* Fechas de pago
-* Pago mínimo
-* Pago para evitar intereses
-* Compras vs pagos
-* Semáforo
-* Préstamos
-* Bola de Nieve
+* Cards
+* Cycles
+* Statements
+* Cutoff dates
+* Payment dates
+* Minimum payment
+* Pay-in-full amount
+* Purchases vs. payments
+* Traffic light (semáforo)
+* Loans
+* Snowball
 
-## Fase 3 — Patrimonio
+## Phase 3 — Net worth
 
-* Ahorros
-* Depósitos a plazo
-* Fondos de inversión
-* Patrimonio neto
-* Evolución patrimonial
-* Reportes avanzados
-* Gastos médicos
-* Seguros
-* Reembolsos
+* Savings
+* Term deposits
+* Investment funds
+* Net worth
+* Net worth evolution
+* Advanced reports
+* Medical expenses
+* Insurance
+* Reimbursements
 
-## Fase 4 — Cloud
+## Phase 4 — Cloud
 
-* Cuenta de usuario
+* User account
 * API
 * PostgreSQL
-* Backup en nube
-* Restauración
-* Sincronización
+* Cloud backup
+* Restore
+* Synchronization
 
-## Fase 5 — Ecosistema
+## Phase 5 — Ecosystem
 
-* Multi-dispositivo
-* Dashboard web
-* IA financiera
-* Análisis predictivo
-* Recomendaciones personalizadas
+* Multi-device
+* Web dashboard
+* Financial AI
+* Predictive analysis
+* Personalized recommendations
 
 ---
 
-# 52. Objetivo final
+# 52. Final goal
 
-TrackTrace Money no deberá ser simplemente:
+TrackTrace Money must not simply be:
 
-> **"Una aplicación para anotar gastos."**
+> **"An app for jotting down expenses."**
 
-Deberá convertirse en:
+It must become:
 
-> **"Una herramienta para entender el recorrido completo de tu dinero y tomar mejores decisiones financieras."**
+> **"A tool for understanding the full journey of your money and making better financial decisions."**
 
-El concepto central de la aplicación será:
+The app's central concept will be:
 
 ```text
 TRACK
 ↓
-Registrar y monitorear
+Record and monitor
 
 TRACE
 ↓
-Seguir el recorrido del dinero
+Follow the money's journey
 
 CONTROL
 ↓
-Tomar decisiones
+Make decisions
 
 GROW
 ↓
-Mejorar la situación financiera
+Improve your financial situation
 ```
 
 ### TrackTrace Money

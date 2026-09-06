@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-The solution base is scaffolded and builds clean (`dotnet build`, 0 warnings/0 errors as of this writing). No domain logic, entities, or UI screens exist yet beyond the MAUI template defaults — only project structure, references, and packages.
+The solution builds clean (`dotnet build`, 0 warnings/0 errors as of this writing). Phase 1 domain/application/infrastructure code exists (accounts, transactions, budgets, categories, people; repositories and EF Core configurations; an initial migration) and is wired into the MAUI app's DI via `MauiProgram.cs`. The App project's Views/ViewModels are still MAUI template defaults — no real screens have been built yet, and no tests exist despite the three xUnit projects being scaffolded.
 
-Read `README.md` before implementing anything; it is the authoritative spec (52 sections covering domain model, business rules, UX, and roadmap). Do not restate its contents here — this file only captures what a future Claude instance needs that isn't obvious from re-reading that spec once code exists.
+Read `README.md` before implementing anything; it is the authoritative spec (52 sections covering domain model, business rules, UX, and roadmap), and it is the **English** version — `README.es.md` is a parallel Spanish translation. Keep both in sync when the spec changes; do not edit one without mirroring the change in the other. Do not restate the spec's contents here — this file only captures what a future Claude instance needs that isn't obvious from re-reading that spec once code exists.
 
 ## Tech stack
 
