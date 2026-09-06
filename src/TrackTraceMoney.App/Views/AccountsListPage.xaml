@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.AccountsListPage"
+             x:DataType="viewModels:AccountsListViewModel"
+             Title="{x:Static resources:AppResources.Accounts_Title}">
+
+    <Grid RowDefinitions="*,Auto" Padding="16">
+
+        <RefreshView Grid.Row="0"
+                     IsRefreshing="{Binding IsBusy}"
+                     Command="{Binding LoadAccountsCommand}">
+            <CollectionView ItemsSource="{Binding Accounts}"
+                             SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
+                        <Label Text="{x:Static resources:AppResources.Accounts_Empty}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:AccountListItem">
+                        <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="16" />
+                            <Label Grid.Row="1" Grid.Column="0"
+                                   Text="{Binding Kind, Converter={StaticResource AccountKindToLabelConverter}}"
+                                   FontSize="12" Opacity="0.7" />
+                            <Label Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                                   VerticalOptions="Center"
+                                   Text="{Binding Balance, StringFormat='{0:N2}'}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <Button Grid.Row="1"
+                Text="{x:Static resources:AppResources.Accounts_AddButton}"
+                Command="{Binding AddAccountCommand}"
+                HorizontalOptions="Fill"
+                Margin="0,12,0,0" />
+
+    </Grid>
+
+</ContentPage>

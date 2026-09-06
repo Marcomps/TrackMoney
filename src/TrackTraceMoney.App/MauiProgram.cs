@@ -2,8 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TrackTraceMoney.App.ViewModels;
+using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Infrastructure;
 using TrackTraceMoney.Infrastructure.Persistence;
+using TrackTraceMoney.Infrastructure.Seeding;
 
 namespace TrackTraceMoney.App;
 
@@ -24,6 +27,11 @@ public static class MauiProgram
 		var dbPath = Path.Combine(FileSystem.AppDataDirectory, "tracktracemoney.db3");
 		builder.Services.AddTrackTraceMoneyInfrastructure($"Data Source={dbPath}");
 
+		builder.Services.AddTransient<AccountsListViewModel>();
+		builder.Services.AddTransient<AccountsListPage>();
+		builder.Services.AddTransient<AddAccountViewModel>();
+		builder.Services.AddTransient<AddAccountPage>();
+
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif
@@ -32,7 +40,9 @@ public static class MauiProgram
 
 		using (var scope = app.Services.CreateScope())
 		{
-			scope.ServiceProvider.GetRequiredService<TrackTraceMoneyDbContext>().Database.Migrate();
+			var dbContext = scope.ServiceProvider.GetRequiredService<TrackTraceMoneyDbContext>();
+			dbContext.Database.Migrate();
+			CategorySeeder.SeedDefaultCategoriesAsync(dbContext).GetAwaiter().GetResult();
 		}
 
 		return app;
