@@ -124,4 +124,85 @@
   <data name="AddAccount_ValidationGoalInvalid" xml:space="preserve">
     <value>La meta debe ser un número válido y no negativo.</value>
   </data>
+  <data name="Transactions_Title" xml:space="preserve">
+    <value>Movimientos</value>
+  </data>
+  <data name="Transactions_Empty" xml:space="preserve">
+    <value>Aún no tienes movimientos. Agrega el primero para comenzar.</value>
+  </data>
+  <data name="Transactions_AddButton" xml:space="preserve">
+    <value>Agregar movimiento</value>
+  </data>
+  <data name="TransactionType_Expense" xml:space="preserve">
+    <value>Gasto</value>
+  </data>
+  <data name="TransactionType_Income" xml:space="preserve">
+    <value>Ingreso</value>
+  </data>
+  <data name="TransactionType_Transfer" xml:space="preserve">
+    <value>Transferencia</value>
+  </data>
+  <data name="AddTransaction_Title" xml:space="preserve">
+    <value>Nuevo movimiento</value>
+  </data>
+  <data name="AddTransaction_TypeLabel" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="AddTransaction_DateLabel" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="AddTransaction_AmountLabel" xml:space="preserve">
+    <value>Monto</value>
+  </data>
+  <data name="AddTransaction_AccountLabel" xml:space="preserve">
+    <value>Cuenta</value>
+  </data>
+  <data name="AddTransaction_DestinationAccountLabel" xml:space="preserve">
+    <value>Cuenta destino</value>
+  </data>
+  <data name="AddTransaction_SourceAccountLabel" xml:space="preserve">
+    <value>Cuenta origen</value>
+  </data>
+  <data name="AddTransaction_CategoryLabel" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="AddTransaction_PayerLabel" xml:space="preserve">
+    <value>Quién pagó (opcional)</value>
+  </data>
+  <data name="AddTransaction_BeneficiaryLabel" xml:space="preserve">
+    <value>Para quién fue (opcional)</value>
+  </data>
+  <data name="AddTransaction_PersonLabel" xml:space="preserve">
+    <value>Persona (opcional)</value>
+  </data>
+  <data name="AddTransaction_DescriptionLabel" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="AddTransaction_NotesLabel" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="AddTransaction_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="AddTransaction_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddTransaction_ValidationAmountInvalid" xml:space="preserve">
+    <value>El monto debe ser un número válido mayor que cero.</value>
+  </data>
+  <data name="AddTransaction_ValidationAccountRequired" xml:space="preserve">
+    <value>Debes seleccionar una cuenta.</value>
+  </data>
+  <data name="AddTransaction_ValidationCategoryRequired" xml:space="preserve">
+    <value>Debes seleccionar una categoría.</value>
+  </data>
+  <data name="AddTransaction_ValidationSameAccount" xml:space="preserve">
+    <value>La cuenta origen y destino deben ser diferentes.</value>
+  </data>
+  <data name="AddTransaction_ValidationCurrencyMismatch" xml:space="preserve">
+    <value>La cuenta origen y destino deben tener la misma moneda.</value>
+  </data>
+  <data name="AddTransaction_NoneOption" xml:space="preserve">
+    <value>Ninguna</value>
+  </data>
 </root>

@@ -124,4 +124,85 @@
   <data name="AddAccount_ValidationGoalInvalid" xml:space="preserve">
     <value>The goal must be a valid, non-negative number.</value>
   </data>
+  <data name="Transactions_Title" xml:space="preserve">
+    <value>Transactions</value>
+  </data>
+  <data name="Transactions_Empty" xml:space="preserve">
+    <value>You don't have any transactions yet. Add your first one to get started.</value>
+  </data>
+  <data name="Transactions_AddButton" xml:space="preserve">
+    <value>Add transaction</value>
+  </data>
+  <data name="TransactionType_Expense" xml:space="preserve">
+    <value>Expense</value>
+  </data>
+  <data name="TransactionType_Income" xml:space="preserve">
+    <value>Income</value>
+  </data>
+  <data name="TransactionType_Transfer" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="AddTransaction_Title" xml:space="preserve">
+    <value>New transaction</value>
+  </data>
+  <data name="AddTransaction_TypeLabel" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="AddTransaction_DateLabel" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="AddTransaction_AmountLabel" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="AddTransaction_AccountLabel" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="AddTransaction_DestinationAccountLabel" xml:space="preserve">
+    <value>Destination account</value>
+  </data>
+  <data name="AddTransaction_SourceAccountLabel" xml:space="preserve">
+    <value>Source account</value>
+  </data>
+  <data name="AddTransaction_CategoryLabel" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="AddTransaction_PayerLabel" xml:space="preserve">
+    <value>Who paid (optional)</value>
+  </data>
+  <data name="AddTransaction_BeneficiaryLabel" xml:space="preserve">
+    <value>Who it was for (optional)</value>
+  </data>
+  <data name="AddTransaction_PersonLabel" xml:space="preserve">
+    <value>Person (optional)</value>
+  </data>
+  <data name="AddTransaction_DescriptionLabel" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="AddTransaction_NotesLabel" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="AddTransaction_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="AddTransaction_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddTransaction_ValidationAmountInvalid" xml:space="preserve">
+    <value>Amount must be a valid number greater than zero.</value>
+  </data>
+  <data name="AddTransaction_ValidationAccountRequired" xml:space="preserve">
+    <value>You must select an account.</value>
+  </data>
+  <data name="AddTransaction_ValidationCategoryRequired" xml:space="preserve">
+    <value>You must select a category.</value>
+  </data>
+  <data name="AddTransaction_ValidationSameAccount" xml:space="preserve">
+    <value>Source and destination accounts must be different.</value>
+  </data>
+  <data name="AddTransaction_ValidationCurrencyMismatch" xml:space="preserve">
+    <value>Source and destination accounts must use the same currency.</value>
+  </data>
+  <data name="AddTransaction_NoneOption" xml:space="preserve">
+    <value>None</value>
+  </data>
 </root>

@@ -12,6 +12,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <converters:AccountKindToLabelConverter x:Key="AccountKindToLabelConverter" />
+            <converters:TransactionTypeToLabelConverter x:Key="TransactionTypeToLabelConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

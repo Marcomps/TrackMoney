@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TrackTraceMoney.App.ViewModels;
 using TrackTraceMoney.App.Views;
+using TrackTraceMoney.Application.Transactions;
 using TrackTraceMoney.Infrastructure;
 using TrackTraceMoney.Infrastructure.Persistence;
 using TrackTraceMoney.Infrastructure.Seeding;
@@ -31,6 +32,12 @@ public static class MauiProgram
 		builder.Services.AddTransient<AccountsListPage>();
 		builder.Services.AddTransient<AddAccountViewModel>();
 		builder.Services.AddTransient<AddAccountPage>();
+
+		builder.Services.AddScoped<ITransactionEntryService, TransactionEntryService>();
+		builder.Services.AddTransient<TransactionsListViewModel>();
+		builder.Services.AddTransient<TransactionsListPage>();
+		builder.Services.AddTransient<AddTransactionViewModel>();
+		builder.Services.AddTransient<AddTransactionPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();
