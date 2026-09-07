@@ -30,6 +30,10 @@ public static class MauiProgram
 		var dbPath = Path.Combine(FileSystem.AppDataDirectory, "tracktracemoney.db3");
 		builder.Services.AddTrackTraceMoneyInfrastructure($"Data Source={dbPath}");
 
+		builder.Services.AddSingleton<IIncomeCalculator, IncomeCalculator>();
+		builder.Services.AddTransient<DashboardViewModel>();
+		builder.Services.AddTransient<DashboardPage>();
+
 		builder.Services.AddTransient<AccountsListViewModel>();
 		builder.Services.AddTransient<AccountsListPage>();
 		builder.Services.AddTransient<AddAccountViewModel>();

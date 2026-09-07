@@ -8,6 +8,12 @@
     Title="TrackTraceMoney.App">
 
     <TabBar>
+        <Tab Title="{x:Static resources:AppResources.Dashboard_Title}">
+            <ShellContent
+                Title="{x:Static resources:AppResources.Dashboard_Title}"
+                ContentTemplate="{DataTemplate views:DashboardPage}"
+                Route="Dashboard" />
+        </Tab>
         <Tab Title="{x:Static resources:AppResources.Accounts_Title}">
             <ShellContent
                 Title="{x:Static resources:AppResources.Accounts_Title}"

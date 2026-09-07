@@ -9,6 +9,8 @@ public sealed class Income : Transaction
 
     public Guid? PersonId { get; private set; }
 
+    public override bool CountsAsIncome => true;
+
     private Income()
     {
     }

@@ -307,4 +307,34 @@
   <data name="AddBudget_ValidationAmountInvalid" xml:space="preserve">
     <value>Amount must be a valid number greater than zero.</value>
   </data>
+  <data name="Dashboard_Title" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Dashboard_BalanceSectionTitle" xml:space="preserve">
+    <value>Available balance</value>
+  </data>
+  <data name="Dashboard_IncomeLabel" xml:space="preserve">
+    <value>Income this month</value>
+  </data>
+  <data name="Dashboard_ExpensesLabel" xml:space="preserve">
+    <value>Expenses this month</value>
+  </data>
+  <data name="Dashboard_AvailableLabel" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="Dashboard_OverBudgetSectionTitle" xml:space="preserve">
+    <value>Over-budget categories</value>
+  </data>
+  <data name="Dashboard_OverBudgetEmpty" xml:space="preserve">
+    <value>All your categories are within budget this month.</value>
+  </data>
+  <data name="Dashboard_Health_Critical" xml:space="preserve">
+    <value>Critical: at least one account has a negative balance.</value>
+  </data>
+  <data name="Dashboard_Health_AtRisk" xml:space="preserve">
+    <value>At risk: you have categories over budget this month.</value>
+  </data>
+  <data name="Dashboard_Health_Healthy" xml:space="preserve">
+    <value>Healthy: your accounts and budgets are in good shape.</value>
+  </data>
 </root>

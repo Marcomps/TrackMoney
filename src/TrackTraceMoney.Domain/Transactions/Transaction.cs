@@ -22,6 +22,9 @@ public abstract class Transaction : Entity
     /// <summary>Whether this transaction counts as spend for reports/budgets/dashboards.</summary>
     public virtual bool CountsAsExpense => false;
 
+    /// <summary>Whether this transaction counts as income for reports/dashboards.</summary>
+    public virtual bool CountsAsIncome => false;
+
     /// <summary>The category this transaction's spend should be attributed to, if any.</summary>
     public virtual Guid? SpendCategoryId => null;
 

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.DashboardPage"
+             x:DataType="viewModels:DashboardViewModel"
+             Title="{x:Static resources:AppResources.Dashboard_Title}">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}"
+                 Command="{Binding LoadDashboardCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="24">
+
+                <!-- Tile 4: financial health indicator -->
+                <VerticalStackLayout Spacing="4">
+                    <Label FontSize="32" HorizontalOptions="Center" Text="{Binding HealthEmoji}" />
+                    <Label FontSize="16" HorizontalOptions="Center" Text="{Binding HealthLabel}" />
+                </VerticalStackLayout>
+
+                <!-- Tile 1: available balance per currency -->
+                <VerticalStackLayout Spacing="8">
+                    <Label FontSize="18" FontAttributes="Bold"
+                           Text="{x:Static resources:AppResources.Dashboard_BalanceSectionTitle}" />
+                    <CollectionView ItemsSource="{Binding Balances}" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:CurrencyBalance">
+                                <Grid ColumnDefinitions="Auto,*" Padding="0,4">
+                                    <Label Grid.Column="0" Text="{Binding Currency}" FontSize="16" />
+                                    <Label Grid.Column="1" HorizontalOptions="End"
+                                           Text="{Binding Total, StringFormat='{0:N2}'}" FontSize="16" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Tile 2: income / expenses / available this month -->
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_IncomeLabel}" FontSize="16" />
+                        <Label Grid.Column="1" Text="{Binding Income, StringFormat='{0:N2}'}" FontSize="16" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_ExpensesLabel}" FontSize="16" />
+                        <Label Grid.Column="1" Text="{Binding Expenses, StringFormat='{0:N2}'}" FontSize="16" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AvailableLabel}" FontSize="16" FontAttributes="Bold" />
+                        <Label Grid.Column="1" Text="{Binding Available, StringFormat='{0:N2}'}" FontSize="16" FontAttributes="Bold" />
+                    </Grid>
+                </VerticalStackLayout>
+
+                <!-- Tile 3: over-budget categories this month -->
+                <VerticalStackLayout Spacing="8">
+                    <Label FontSize="18" FontAttributes="Bold"
+                           Text="{x:Static resources:AppResources.Dashboard_OverBudgetSectionTitle}" />
+                    <Label Text="{x:Static resources:AppResources.Dashboard_OverBudgetEmpty}"
+                           IsVisible="{Binding ShowOverBudgetEmpty}" />
+                    <CollectionView ItemsSource="{Binding OverBudgetCategories}" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:BudgetListItem">
+                                <Grid Padding="0,4" ColumnDefinitions="Auto,*,Auto">
+                                    <Label Grid.Column="0" Text="{Binding SemaforoEmoji}" FontSize="16" VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding CategoryName}" FontSize="16"
+                                           Margin="8,0,0,0" VerticalOptions="Center" />
+                                    <Label Grid.Column="2" VerticalOptions="Center">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding Spent, StringFormat='{0:N2}'}" />
+                                                <Span Text=" / " />
+                                                <Span Text="{Binding BudgetAmount, StringFormat='{0:N2}'}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>
