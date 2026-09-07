@@ -72,4 +72,10 @@ public sealed partial class TransactionsListViewModel : ObservableObject
     {
         await Shell.Current.GoToAsync(nameof(AddTransactionPage));
     }
+
+    [RelayCommand]
+    private static async Task ViewHistoryAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(HistoryPage));
+    }
 }

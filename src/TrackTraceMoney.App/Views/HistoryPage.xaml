@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.HistoryPage"
+             x:DataType="viewModels:HistoryViewModel"
+             Title="{x:Static resources:AppResources.History_Title}">
+
+    <Grid RowDefinitions="Auto,*" Padding="16">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="8">
+
+                <Label Text="{x:Static resources:AppResources.History_AccountFilterLabel}" />
+                <Picker ItemsSource="{Binding AccountOptions}" SelectedItem="{Binding SelectedAccountFilter}" />
+
+                <Label Text="{x:Static resources:AppResources.History_CategoryFilterLabel}" />
+                <Picker ItemsSource="{Binding CategoryOptions}" SelectedItem="{Binding SelectedCategoryFilter}" />
+
+                <Label Text="{x:Static resources:AppResources.History_PersonFilterLabel}" />
+                <Picker ItemsSource="{Binding PersonOptions}" SelectedItem="{Binding SelectedPersonFilter}" />
+
+                <Label Text="{x:Static resources:AppResources.History_TypeFilterLabel}" />
+                <Picker ItemsSource="{Binding TypeOptions}" SelectedItem="{Binding SelectedTypeFilter}">
+                    <Picker.ItemDisplayBinding>
+                        <Binding Path="Label" />
+                    </Picker.ItemDisplayBinding>
+                </Picker>
+
+                <Label Text="{x:Static resources:AppResources.History_FromDateLabel}" />
+                <DatePicker Date="{Binding FromDate}" />
+
+                <Label Text="{x:Static resources:AppResources.History_ToDateLabel}" />
+                <DatePicker Date="{Binding ToDate}" />
+
+                <Label Text="{x:Static resources:AppResources.History_MinAmountLabel}" />
+                <Entry Text="{Binding MinAmountText}" Keyboard="Numeric" />
+
+                <Label Text="{x:Static resources:AppResources.History_MaxAmountLabel}" />
+                <Entry Text="{Binding MaxAmountText}" Keyboard="Numeric" />
+
+                <Button Text="{x:Static resources:AppResources.History_ClearFiltersButton}"
+                        Command="{Binding ClearFiltersCommand}"
+                        HorizontalOptions="Fill"
+                        Margin="0,4,0,0" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <RefreshView Grid.Row="1"
+                     IsRefreshing="{Binding IsBusy}"
+                     Command="{Binding LoadHistoryCommand}"
+                     Margin="0,12,0,0">
+            <CollectionView ItemsSource="{Binding GroupedEntries}"
+                             IsGrouped="True"
+                             SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
+                        <Label Text="{x:Static resources:AppResources.History_Empty}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.GroupHeaderTemplate>
+                    <DataTemplate x:DataType="models:HistoryDateGroup">
+                        <Label Text="{Binding Header}"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               Margin="0,12,0,4" />
+                    </DataTemplate>
+                </CollectionView.GroupHeaderTemplate>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:HistoryEntryItem">
+                        <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding AccountLabel}" FontSize="16" />
+                            <Label Grid.Row="1" Grid.Column="0"
+                                   Text="{Binding Description}"
+                                   FontSize="12" Opacity="0.7" />
+                            <Label Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                                   VerticalOptions="Center"
+                                   Text="{Binding Amount, StringFormat='{0:N2}'}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+
+</ContentPage>

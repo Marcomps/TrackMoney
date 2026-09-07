@@ -337,4 +337,52 @@
   <data name="Dashboard_Health_Healthy" xml:space="preserve">
     <value>Healthy: your accounts and budgets are in good shape.</value>
   </data>
+  <data name="Transactions_ViewHistoryButton" xml:space="preserve">
+    <value>View history</value>
+  </data>
+  <data name="History_Title" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="History_Empty" xml:space="preserve">
+    <value>No transactions match the selected filters.</value>
+  </data>
+  <data name="History_AllAccountsOption" xml:space="preserve">
+    <value>All accounts</value>
+  </data>
+  <data name="History_AllCategoriesOption" xml:space="preserve">
+    <value>All categories</value>
+  </data>
+  <data name="History_AllPeopleOption" xml:space="preserve">
+    <value>All people</value>
+  </data>
+  <data name="History_AllTypesOption" xml:space="preserve">
+    <value>All types</value>
+  </data>
+  <data name="History_AccountFilterLabel" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="History_CategoryFilterLabel" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="History_PersonFilterLabel" xml:space="preserve">
+    <value>Person</value>
+  </data>
+  <data name="History_TypeFilterLabel" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="History_FromDateLabel" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="History_ToDateLabel" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="History_MinAmountLabel" xml:space="preserve">
+    <value>Minimum amount</value>
+  </data>
+  <data name="History_MaxAmountLabel" xml:space="preserve">
+    <value>Maximum amount</value>
+  </data>
+  <data name="History_ClearFiltersButton" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
 </root>
