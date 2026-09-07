@@ -421,4 +421,16 @@
   <data name="Settings_RestoreError" xml:space="preserve">
     <value>No se pudo restaurar el respaldo. Verifica que el archivo sea un respaldo válido de TrackTrace Money.</value>
   </data>
+  <data name="Notification_BudgetExceeded_ChannelName" xml:space="preserve">
+    <value>Alertas de presupuesto</value>
+  </data>
+  <data name="Notification_BudgetExceeded_ChannelDescription" xml:space="preserve">
+    <value>Avisos cuando un gasto hace que superes el presupuesto de una categoría.</value>
+  </data>
+  <data name="Notification_BudgetExceeded_Title" xml:space="preserve">
+    <value>Presupuesto superado: {0}</value>
+  </data>
+  <data name="Notification_BudgetExceeded_Body" xml:space="preserve">
+    <value>Superaste el presupuesto de {0} por {1} (límite: {2}).</value>
+  </data>
 </root>

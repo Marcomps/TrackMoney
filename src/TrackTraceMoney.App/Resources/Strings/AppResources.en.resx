@@ -421,4 +421,16 @@
   <data name="Settings_RestoreError" xml:space="preserve">
     <value>The backup could not be restored. Make sure the file is a valid TrackTrace Money backup.</value>
   </data>
+  <data name="Notification_BudgetExceeded_ChannelName" xml:space="preserve">
+    <value>Budget alerts</value>
+  </data>
+  <data name="Notification_BudgetExceeded_ChannelDescription" xml:space="preserve">
+    <value>Alerts when an expense pushes a category over its budget.</value>
+  </data>
+  <data name="Notification_BudgetExceeded_Title" xml:space="preserve">
+    <value>Budget exceeded: {0}</value>
+  </data>
+  <data name="Notification_BudgetExceeded_Body" xml:space="preserve">
+    <value>You went over your {0} budget by {1} (limit: {2}).</value>
+  </data>
 </root>

@@ -2,8 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TrackTraceMoney.App.Services;
 using TrackTraceMoney.App.ViewModels;
 using TrackTraceMoney.App.Views;
+using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Budgets;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Application.Transactions;
@@ -39,6 +41,7 @@ public static class MauiProgram
 		builder.Services.AddTransient<AddAccountViewModel>();
 		builder.Services.AddTransient<AddAccountPage>();
 
+		builder.Services.AddSingleton<ILocalNotifier, AndroidLocalNotifier>();
 		builder.Services.AddScoped<ITransactionEntryService, TransactionEntryService>();
 		builder.Services.AddTransient<TransactionsListViewModel>();
 		builder.Services.AddTransient<TransactionsListPage>();

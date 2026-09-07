@@ -1526,6 +1526,7 @@ The AI must operate on the user's data while respecting privacy and security.
 * Dashboard
 * Budgets
 * Real surplus
+* Recurring expenses
 * Local notifications
 * Local backup
 

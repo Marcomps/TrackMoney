@@ -1,4 +1,5 @@
 using TrackTraceMoney.Application.Abstractions;
+using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.Application.Transactions;
@@ -7,11 +8,25 @@ public sealed class TransactionEntryService : ITransactionEntryService
 {
     private readonly ITransactionRepository _transactionRepository;
     private readonly IFinancialAccountRepository _accountRepository;
+    private readonly IBudgetRepository _budgetRepository;
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly ISpendingCalculator _spendingCalculator;
+    private readonly ILocalNotifier _localNotifier;
 
-    public TransactionEntryService(ITransactionRepository transactionRepository, IFinancialAccountRepository accountRepository)
+    public TransactionEntryService(
+        ITransactionRepository transactionRepository,
+        IFinancialAccountRepository accountRepository,
+        IBudgetRepository budgetRepository,
+        ICategoryRepository categoryRepository,
+        ISpendingCalculator spendingCalculator,
+        ILocalNotifier localNotifier)
     {
         _transactionRepository = transactionRepository;
         _accountRepository = accountRepository;
+        _budgetRepository = budgetRepository;
+        _categoryRepository = categoryRepository;
+        _spendingCalculator = spendingCalculator;
+        _localNotifier = localNotifier;
     }
 
     public async Task RecordExpenseAsync(
@@ -28,12 +43,41 @@ public sealed class TransactionEntryService : ITransactionEntryService
         var account = await _accountRepository.GetByIdAsync(accountId, ct)
             ?? throw new InvalidOperationException($"Account '{accountId}' was not found.");
 
+        // README §34/§37: figure out, before saving, whether this expense is the one that pushes the
+        // category's monthly budget over its limit — only that crossing transition should notify, not
+        // every subsequent expense once already over. Computed arithmetically from spend-before-this
+        // expense rather than re-querying after save, so there's no risk of double-counting this
+        // expense against itself.
+        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, ct);
+        decimal spentBefore = 0m;
+        if (budget is not null)
+        {
+            var startOfMonth = new DateOnly(date.Year, date.Month, 1);
+            var monthTransactions = await _transactionRepository.GetByDateRangeAsync(startOfMonth, date, ct);
+            var summary = _spendingCalculator.Calculate(monthTransactions);
+            spentBefore = summary.SpentByCategory.GetValueOrDefault(categoryId);
+        }
+
         var expense = new Expense(date, amount, accountId, categoryId, beneficiaryPersonId, payerPersonId, description, notes);
 
         account.Debit(amount);
 
         await _transactionRepository.AddAsync(expense, ct);
         await _transactionRepository.SaveChangesAsync(ct);
+
+        if (budget is not null)
+        {
+            var wasOverBudget = spentBefore > budget.Amount;
+            var newSpent = spentBefore + amount;
+            var isOverBudget = newSpent > budget.Amount;
+
+            if (!wasOverBudget && isOverBudget)
+            {
+                var category = await _categoryRepository.GetByIdAsync(categoryId, ct);
+                if (category is not null)
+                    await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
+            }
+        }
     }
 
     public async Task RecordIncomeAsync(

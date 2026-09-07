@@ -1526,6 +1526,7 @@ La IA deberá funcionar sobre los datos del usuario respetando privacidad y segu
 * Dashboard
 * Presupuestos
 * Sobrante real
+* Gastos recurrentes
 * Notificaciones locales
 * Backup local
 

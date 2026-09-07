@@ -21,10 +21,12 @@ Read `README.md` before implementing anything; it is the authoritative spec (52 
 ```
 TrackTraceMoney.slnx               # .NET 10's XML solution format — not a classic .sln
 src/
-  TrackTraceMoney.App/             # MAUI Views, ViewModels, Resources, Navigation, Styles — net10.0-android
+  TrackTraceMoney.App/             # MAUI Views, ViewModels, Resources, Navigation, Styles — net10.0-android. Also the only project
+                                    #   that can host Android-specific code (e.g. local notifications via NotificationCompat),
+                                    #   since Infrastructure is net10.0-only and has no Android SDK reference.
   TrackTraceMoney.Domain/          # Entities, Enums, business rules — net10.0, no dependencies
   TrackTraceMoney.Application/     # Services, Interfaces, DTOs, Use Cases — net10.0, refs Domain
-  TrackTraceMoney.Infrastructure/  # SQLite, EF Core, Repositories, Migrations, Local Notifications — net10.0, refs Application + Domain
+  TrackTraceMoney.Infrastructure/  # SQLite, EF Core, Repositories, Migrations — net10.0, refs Application + Domain
 tests/
   TrackTraceMoney.Domain.Tests/         # xUnit, refs Domain
   TrackTraceMoney.Application.Tests/    # xUnit, refs Application + Domain
@@ -69,7 +71,7 @@ These are the accounting semantics from README sections 9, 16, 20, 24, 28, 46 th
 
 Per README §51 — respect these boundaries when deciding what a change should include:
 
-- **Phase 1 (MVP)**: MAUI + SQLite + MVVM, ES/EN, accounts, income/expense/transfers, categories, history, dashboard, budgets, real surplus, local notifications, local backup.
+- **Phase 1 (MVP)**: MAUI + SQLite + MVVM, ES/EN, accounts, income/expense/transfers, categories, history, dashboard, budgets, real surplus, recurring expenses, local notifications, local backup.
 - **Phase 2**: Credit cards, billing cycles/statements, min-payment vs. pay-in-full, purchased-vs-paid analysis, card semáforo, loans, snowball.
 - **Phase 3**: Savings, term deposits, investment funds, net worth, medical expenses, insurance, reimbursements.
 - **Phase 4**: Cloud (user accounts, API, PostgreSQL, cloud backup/restore, sync) — do not add cloud/sync code before this phase is actually scoped.

@@ -1,6 +1,9 @@
 using TrackTraceMoney.Application.Abstractions;
+using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Application.Transactions;
 using TrackTraceMoney.Domain.Accounts;
+using TrackTraceMoney.Domain.Budgets;
+using TrackTraceMoney.Domain.Categories;
 using TrackTraceMoney.Domain.Common;
 using TrackTraceMoney.Domain.Enums;
 using TrackTraceMoney.Domain.Transactions;
@@ -14,18 +17,27 @@ namespace TrackTraceMoney.Application.Tests.Transactions;
 /// </summary>
 public sealed class TransactionEntryServiceTests
 {
-    private static (TransactionEntryService Service, InMemoryAccountRepository Accounts, InMemoryTransactionRepository Transactions) CreateSut()
+    private static (
+        TransactionEntryService Service,
+        InMemoryAccountRepository Accounts,
+        InMemoryTransactionRepository Transactions,
+        InMemoryBudgetRepository Budgets,
+        InMemoryCategoryRepository Categories,
+        FakeLocalNotifier Notifier) CreateSut()
     {
         var accounts = new InMemoryAccountRepository();
         var transactions = new InMemoryTransactionRepository();
-        var service = new TransactionEntryService(transactions, accounts);
-        return (service, accounts, transactions);
+        var budgets = new InMemoryBudgetRepository();
+        var categories = new InMemoryCategoryRepository();
+        var notifier = new FakeLocalNotifier();
+        var service = new TransactionEntryService(transactions, accounts, budgets, categories, new SpendingCalculator(), notifier);
+        return (service, accounts, transactions, budgets, categories, notifier);
     }
 
     [Fact]
     public async Task RecordExpenseAsync_DebitsAccountExactlyOnce_AndCountsAsSpend()
     {
-        var (service, accounts, transactions) = CreateSut();
+        var (service, accounts, transactions, _, _, _) = CreateSut();
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
         var categoryId = Guid.NewGuid();
 
@@ -40,7 +52,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordIncomeAsync_CreditsAccountExactlyOnce_AndDoesNotCountAsSpend()
     {
-        var (service, accounts, transactions) = CreateSut();
+        var (service, accounts, transactions, _, _, _) = CreateSut();
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
         var categoryId = Guid.NewGuid();
 
@@ -54,7 +66,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordTransferAsync_MovesFundsExactlyOnceEachSide_AndNeverCountsAsSpend()
     {
-        var (service, accounts, transactions) = CreateSut();
+        var (service, accounts, transactions, _, _, _) = CreateSut();
         var source = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 200m));
         var destination = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
 
@@ -73,7 +85,7 @@ public sealed class TransactionEntryServiceTests
         // README §6/§10: currency is explicit per account; nothing may assume a single global
         // currency. Without conversion support, applying the same numeric amount to both a USD and
         // a MXN account would silently corrupt both balances by a large real-world factor.
-        var (service, accounts, transactions) = CreateSut();
+        var (service, accounts, transactions, _, _, _) = CreateSut();
         var usdSource = accounts.Add(new CashAccount("USD Wallet", CurrencyCode.USD, openingBalance: 100m));
         var mxnDestination = accounts.Add(new BankAccount("MXN Checking", CurrencyCode.MXN, openingBalance: 0m));
 
@@ -92,7 +104,7 @@ public sealed class TransactionEntryServiceTests
         // Regression guard for the #1 risk called out in CLAUDE.md: booking an expense against an
         // account and then moving money via a Transfer (standing in for a later "payment" leg, e.g.
         // paying off a card in a later phase) must leave exactly one CountsAsExpense=true record.
-        var (service, accounts, transactions) = CreateSut();
+        var (service, accounts, transactions, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 500m));
         var savings = accounts.Add(new BankAccount("Savings", CurrencyCode.USD, openingBalance: 0m));
         var categoryId = Guid.NewGuid();
@@ -102,6 +114,59 @@ public sealed class TransactionEntryServiceTests
 
         var spendTotal = transactions.All.Where(t => t.CountsAsExpense).Sum(t => t.Amount);
         Assert.Equal(40m, spendTotal);
+    }
+
+    [Fact]
+    public async Task RecordExpenseAsync_CrossingBudgetLimit_TriggersExactlyOneNotification()
+    {
+        // README §34/§37: the notification is a reactive trigger fired on the crossing transition —
+        // an expense that stays at/below the budget must not notify at all.
+        var (service, accounts, transactions, budgets, categories, notifier) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var category = categories.Add(Category.CreateUserDefined("Dining"));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month));
+
+        await service.RecordExpenseAsync(today, 80m, account.Id, category.Id, null, null, "Lunch", null);
+        Assert.Empty(notifier.Calls);
+
+        await service.RecordExpenseAsync(today, 50m, account.Id, category.Id, null, null, "Dinner", null);
+
+        var call = Assert.Single(notifier.Calls);
+        Assert.Equal(category.Id, call.Category.Id);
+        Assert.Equal(100m, call.BudgetAmount);
+        Assert.Equal(30m, call.AmountOver);
+    }
+
+    [Fact]
+    public async Task RecordExpenseAsync_WhenAlreadyOverBudget_DoesNotNotifyAgain()
+    {
+        // Only the crossing transition notifies — a second expense in an already-over-budget category
+        // must not fire a second notification.
+        var (service, accounts, transactions, budgets, categories, notifier) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 1000m));
+        var category = categories.Add(Category.CreateUserDefined("Dining"));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month));
+
+        await service.RecordExpenseAsync(today, 150m, account.Id, category.Id, null, null, "Big dinner", null);
+        Assert.Single(notifier.Calls);
+
+        await service.RecordExpenseAsync(today, 20m, account.Id, category.Id, null, null, "Another expense", null);
+
+        Assert.Single(notifier.Calls);
+    }
+
+    [Fact]
+    public async Task RecordExpenseAsync_WithNoBudgetForCategoryAndMonth_NeverAttemptsNotification()
+    {
+        var (service, accounts, transactions, budgets, categories, notifier) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var categoryId = Guid.NewGuid();
+
+        await service.RecordExpenseAsync(DateOnly.FromDateTime(DateTime.Today), 999m, account.Id, categoryId, null, null, "Big spend", null);
+
+        Assert.Empty(notifier.Calls);
     }
 
     private sealed class InMemoryAccountRepository : IFinancialAccountRepository
@@ -158,5 +223,77 @@ public sealed class TransactionEntryServiceTests
         public void Remove(Transaction entity) => _transactions.Remove(entity);
 
         public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class InMemoryBudgetRepository : IBudgetRepository
+    {
+        private readonly Dictionary<Guid, Budget> _budgets = new();
+
+        public Budget Add(Budget budget)
+        {
+            _budgets[budget.Id] = budget;
+            return budget;
+        }
+
+        public Task<Budget?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+            Task.FromResult(_budgets.GetValueOrDefault(id));
+
+        public Task<IReadOnlyList<Budget>> GetAllAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Budget>>(_budgets.Values.ToList());
+
+        public Task<Budget?> GetForCategoryAndMonthAsync(Guid categoryId, int year, int month, CancellationToken ct = default) =>
+            Task.FromResult(_budgets.Values.FirstOrDefault(b => b.CategoryId == categoryId && b.Year == year && b.Month == month));
+
+        public Task<IReadOnlyList<Budget>> GetForMonthAsync(int year, int month, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Budget>>(_budgets.Values.Where(b => b.Year == year && b.Month == month).ToList());
+
+        public Task AddAsync(Budget entity, CancellationToken ct = default)
+        {
+            _budgets[entity.Id] = entity;
+            return Task.CompletedTask;
+        }
+
+        public void Remove(Budget entity) => _budgets.Remove(entity.Id);
+
+        public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class InMemoryCategoryRepository : ICategoryRepository
+    {
+        private readonly Dictionary<Guid, Category> _categories = new();
+
+        public Category Add(Category category)
+        {
+            _categories[category.Id] = category;
+            return category;
+        }
+
+        public Task<Category?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+            Task.FromResult(_categories.GetValueOrDefault(id));
+
+        public Task<IReadOnlyList<Category>> GetAllAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Category>>(_categories.Values.ToList());
+
+        public Task AddAsync(Category entity, CancellationToken ct = default)
+        {
+            _categories[entity.Id] = entity;
+            return Task.CompletedTask;
+        }
+
+        public void Remove(Category entity) => _categories.Remove(entity.Id);
+
+        public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    /// <summary>Records every call so tests can assert on the crossing-transition-only firing behavior.</summary>
+    private sealed class FakeLocalNotifier : ILocalNotifier
+    {
+        public List<(Category Category, decimal BudgetAmount, decimal AmountOver)> Calls { get; } = [];
+
+        public Task NotifyBudgetExceededAsync(Category category, decimal budgetAmount, decimal amountOver, CancellationToken ct = default)
+        {
+            Calls.Add((category, budgetAmount, amountOver));
+            return Task.CompletedTask;
+        }
     }
 }
