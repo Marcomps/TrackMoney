@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
@@ -100,7 +101,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 
         Categories.Clear();
         foreach (var category in categories)
-            Categories.Add(new NamedOption(category.Id, category.Name));
+            Categories.Add(new NamedOption(category.Id, SystemCategoryKeyToLabelConverter.GetDisplayName(category)));
 
         People.Clear();
         People.Add(new NamedOption(Guid.Empty, AppResources.AddTransaction_NoneOption));

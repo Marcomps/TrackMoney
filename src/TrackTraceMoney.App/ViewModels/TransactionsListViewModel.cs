@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
@@ -47,7 +48,7 @@ public sealed partial class TransactionsListViewModel : ObservableObject
             var categories = await _categoryRepository.GetAllAsync();
 
             var accountNames = accounts.ToDictionary(a => a.Id, a => a.Name);
-            var categoryNames = categories.ToDictionary(c => c.Id, c => c.Name);
+            var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
 
             var today = DateOnly.FromDateTime(DateTime.Today);
             var startOfMonth = new DateOnly(today.Year, today.Month, 1);

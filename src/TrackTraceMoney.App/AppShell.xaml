@@ -20,6 +20,12 @@
                 ContentTemplate="{DataTemplate views:TransactionsListPage}"
                 Route="TransactionsList" />
         </Tab>
+        <Tab Title="{x:Static resources:AppResources.Categories_Title}">
+            <ShellContent
+                Title="{x:Static resources:AppResources.Categories_Title}"
+                ContentTemplate="{DataTemplate views:CategoriesListPage}"
+                Route="CategoriesList" />
+        </Tab>
     </TabBar>
 
 </Shell>

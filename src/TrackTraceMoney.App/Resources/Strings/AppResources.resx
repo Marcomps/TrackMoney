@@ -205,4 +205,76 @@
   <data name="AddTransaction_NoneOption" xml:space="preserve">
     <value>Ninguna</value>
   </data>
+  <data name="Categories_Title" xml:space="preserve">
+    <value>Categorías</value>
+  </data>
+  <data name="Categories_Empty" xml:space="preserve">
+    <value>Aún no tienes categorías. Agrega la primera para comenzar.</value>
+  </data>
+  <data name="Categories_AddButton" xml:space="preserve">
+    <value>Agregar categoría</value>
+  </data>
+  <data name="Category_SystemLabel" xml:space="preserve">
+    <value>Del sistema</value>
+  </data>
+  <data name="Category_Food" xml:space="preserve">
+    <value>Alimentación</value>
+  </data>
+  <data name="Category_Housing" xml:space="preserve">
+    <value>Vivienda</value>
+  </data>
+  <data name="Category_Transportation" xml:space="preserve">
+    <value>Transporte</value>
+  </data>
+  <data name="Category_Health" xml:space="preserve">
+    <value>Salud</value>
+  </data>
+  <data name="Category_Education" xml:space="preserve">
+    <value>Educación</value>
+  </data>
+  <data name="Category_Entertainment" xml:space="preserve">
+    <value>Entretenimiento</value>
+  </data>
+  <data name="Category_Shopping" xml:space="preserve">
+    <value>Compras</value>
+  </data>
+  <data name="Category_Utilities" xml:space="preserve">
+    <value>Servicios</value>
+  </data>
+  <data name="Category_Subscriptions" xml:space="preserve">
+    <value>Suscripciones</value>
+  </data>
+  <data name="Category_Debts" xml:space="preserve">
+    <value>Deudas</value>
+  </data>
+  <data name="Category_Insurance" xml:space="preserve">
+    <value>Seguros</value>
+  </data>
+  <data name="Category_Investments" xml:space="preserve">
+    <value>Inversiones</value>
+  </data>
+  <data name="Category_Savings" xml:space="preserve">
+    <value>Ahorro</value>
+  </data>
+  <data name="Category_Other" xml:space="preserve">
+    <value>Otros</value>
+  </data>
+  <data name="AddCategory_Title" xml:space="preserve">
+    <value>Nueva categoría</value>
+  </data>
+  <data name="AddCategory_NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="AddCategory_NamePlaceholder" xml:space="preserve">
+    <value>p. ej. Mascotas</value>
+  </data>
+  <data name="AddCategory_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="AddCategory_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddCategory_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
 </root>
