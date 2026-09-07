@@ -59,6 +59,9 @@ public static class MauiProgram
 		builder.Services.AddTransient<AddBudgetViewModel>();
 		builder.Services.AddTransient<AddBudgetPage>();
 
+		builder.Services.AddTransient<SettingsViewModel>();
+		builder.Services.AddTransient<SettingsPage>();
+
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif

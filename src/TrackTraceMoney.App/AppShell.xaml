@@ -38,6 +38,12 @@
                 ContentTemplate="{DataTemplate views:BudgetsListPage}"
                 Route="BudgetsList" />
         </Tab>
+        <Tab Title="{x:Static resources:AppResources.Settings_Title}">
+            <ShellContent
+                Title="{x:Static resources:AppResources.Settings_Title}"
+                ContentTemplate="{DataTemplate views:SettingsPage}"
+                Route="Settings" />
+        </Tab>
     </TabBar>
 
 </Shell>

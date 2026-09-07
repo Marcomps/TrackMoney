@@ -385,4 +385,40 @@
   <data name="History_ClearFiltersButton" xml:space="preserve">
     <value>Limpiar filtros</value>
   </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Ajustes</value>
+  </data>
+  <data name="Settings_BackupSectionTitle" xml:space="preserve">
+    <value>Respaldo local</value>
+  </data>
+  <data name="Settings_ExportButton" xml:space="preserve">
+    <value>Exportar respaldo</value>
+  </data>
+  <data name="Settings_RestoreButton" xml:space="preserve">
+    <value>Restaurar respaldo</value>
+  </data>
+  <data name="Settings_RestoreConfirmTitle" xml:space="preserve">
+    <value>Restaurar respaldo</value>
+  </data>
+  <data name="Settings_RestoreConfirmMessage" xml:space="preserve">
+    <value>Esta acción reemplazará todos los datos actuales de la app con los del archivo seleccionado. Esta operación no se puede deshacer. ¿Deseas continuar?</value>
+  </data>
+  <data name="Settings_RestoreConfirmAccept" xml:space="preserve">
+    <value>Restaurar</value>
+  </data>
+  <data name="Settings_RestoreConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Settings_ExportSuccess" xml:space="preserve">
+    <value>Respaldo exportado correctamente.</value>
+  </data>
+  <data name="Settings_RestoreSuccess" xml:space="preserve">
+    <value>Respaldo restaurado. Cierra y vuelve a abrir la app para que los datos restaurados surtan efecto.</value>
+  </data>
+  <data name="Settings_ExportError" xml:space="preserve">
+    <value>No se pudo exportar el respaldo. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Settings_RestoreError" xml:space="preserve">
+    <value>No se pudo restaurar el respaldo. Verifica que el archivo sea un respaldo válido de TrackTrace Money.</value>
+  </data>
 </root>
