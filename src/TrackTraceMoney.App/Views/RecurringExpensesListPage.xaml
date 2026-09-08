@@ -9,9 +9,14 @@
              x:Name="Root"
              Title="{x:Static resources:AppResources.RecurringExpenses_Title}">
 
-    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="16">
 
-        <VerticalStackLayout Grid.Row="0"
+        <Label Grid.Row="0"
+               Text="{Binding ErrorMessage}"
+               TextColor="Red"
+               Margin="0,0,0,8" />
+
+        <VerticalStackLayout Grid.Row="1"
                               IsVisible="{Binding HasDueRecurringExpenses}"
                               Spacing="8"
                               Margin="0,0,0,16">
@@ -50,7 +55,7 @@
             </VerticalStackLayout>
         </VerticalStackLayout>
 
-        <RefreshView Grid.Row="1"
+        <RefreshView Grid.Row="2"
                      IsRefreshing="{Binding IsBusy}"
                      Command="{Binding LoadRecurringExpensesCommand}">
             <CollectionView ItemsSource="{Binding RecurringExpenses}"
@@ -99,7 +104,7 @@
             </CollectionView>
         </RefreshView>
 
-        <Button Grid.Row="2"
+        <Button Grid.Row="3"
                 Text="{x:Static resources:AppResources.RecurringExpenses_AddButton}"
                 Command="{Binding AddRecurringExpenseCommand}"
                 HorizontalOptions="Fill"

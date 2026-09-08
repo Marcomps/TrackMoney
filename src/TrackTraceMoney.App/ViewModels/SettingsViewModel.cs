@@ -35,11 +35,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             var fileName = $"tracktracemoney-backup-{DateTime.Now:yyyyMMdd-HHmmss}.db3";
             var exportPath = Path.Combine(FileSystem.CacheDirectory, fileName);
 
-            await using (var backupStream = await _backupService.ExportAsync())
-            await using (var fileStream = File.Create(exportPath))
-            {
-                await backupStream.CopyToAsync(fileStream);
-            }
+            await _backupService.ExportAsync(exportPath);
 
             // Stock .NET MAUI (Microsoft.Maui.Essentials, already referenced by this app — no new
             // package needed) does not include a native "Save As" dialog; that's

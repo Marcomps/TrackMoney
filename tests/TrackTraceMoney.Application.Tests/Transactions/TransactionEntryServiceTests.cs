@@ -125,7 +125,7 @@ public sealed class TransactionEntryServiceTests
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
         var today = DateOnly.FromDateTime(DateTime.Today);
-        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month));
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
 
         await service.RecordExpenseAsync(today, 80m, account.Id, category.Id, null, null, "Lunch", null);
         Assert.Empty(notifier.Calls);
@@ -147,7 +147,7 @@ public sealed class TransactionEntryServiceTests
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 1000m));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
         var today = DateOnly.FromDateTime(DateTime.Today);
-        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month));
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
 
         await service.RecordExpenseAsync(today, 150m, account.Id, category.Id, null, null, "Big dinner", null);
         Assert.Single(notifier.Calls);
@@ -155,6 +155,32 @@ public sealed class TransactionEntryServiceTests
         await service.RecordExpenseAsync(today, 20m, account.Id, category.Id, null, null, "Another expense", null);
 
         Assert.Single(notifier.Calls);
+    }
+
+    [Fact]
+    public async Task RecordExpenseAsync_DoesNotBlendSpendAcrossDifferentCurrencyAccounts_WhenEvaluatingBudget()
+    {
+        // QA-confirmed bug: a $90 MXN expense must never be summed together with USD spend when
+        // evaluating a budget denominated in USD — only same-currency spend may ever cross a budget's
+        // limit (CLAUDE.md: currency is explicit per account/transaction, never blended).
+        var (service, accounts, transactions, budgets, categories, notifier) = CreateSut();
+        var usdAccount = accounts.Add(new CashAccount("USD Wallet", CurrencyCode.USD, openingBalance: 1000m));
+        var mxnAccount = accounts.Add(new CashAccount("MXN Wallet", CurrencyCode.MXN, openingBalance: 5000m));
+        var category = categories.Add(Category.CreateUserDefined("Food"));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
+
+        // A large MXN expense in the same category. With the bug (no Currency on Budget/Transaction,
+        // spend summed as a currency-blind decimal), this would silently count toward the USD budget.
+        await service.RecordExpenseAsync(today, 90m, mxnAccount.Id, category.Id, null, null, "Groceries MXN", null);
+        Assert.Empty(notifier.Calls);
+
+        // A USD expense that, on its own, stays comfortably under the $100 USD budget. Blended with
+        // the $90 MXN expense above, the (incorrect) total would be 140 > 100 and would wrongly fire
+        // the over-budget notification.
+        await service.RecordExpenseAsync(today, 50m, usdAccount.Id, category.Id, null, null, "Groceries USD", null);
+
+        Assert.Empty(notifier.Calls);
     }
 
     [Fact]
@@ -214,6 +240,11 @@ public sealed class TransactionEntryServiceTests
         public Task<IReadOnlyList<Transaction>> GetByDateRangeAsync(DateOnly from, DateOnly to, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Transaction>>(_transactions.Where(t => t.Date >= from && t.Date <= to).ToList());
 
+        public Task<IReadOnlyList<Transaction>> GetByDateRangeAndCategoryAsync(DateOnly from, DateOnly to, Guid categoryId, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Transaction>>(_transactions
+                .Where(t => t.Date >= from && t.Date <= to && t.SpendCategoryId == categoryId)
+                .ToList());
+
         public Task AddAsync(Transaction entity, CancellationToken ct = default)
         {
             _transactions.Add(entity);
@@ -241,8 +272,8 @@ public sealed class TransactionEntryServiceTests
         public Task<IReadOnlyList<Budget>> GetAllAsync(CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Budget>>(_budgets.Values.ToList());
 
-        public Task<Budget?> GetForCategoryAndMonthAsync(Guid categoryId, int year, int month, CancellationToken ct = default) =>
-            Task.FromResult(_budgets.Values.FirstOrDefault(b => b.CategoryId == categoryId && b.Year == year && b.Month == month));
+        public Task<Budget?> GetForCategoryAndMonthAsync(Guid categoryId, int year, int month, CurrencyCode currency, CancellationToken ct = default) =>
+            Task.FromResult(_budgets.Values.FirstOrDefault(b => b.CategoryId == categoryId && b.Year == year && b.Month == month && b.Currency == currency));
 
         public Task<IReadOnlyList<Budget>> GetForMonthAsync(int year, int month, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Budget>>(_budgets.Values.Where(b => b.Year == year && b.Month == month).ToList());

@@ -7,12 +7,17 @@ namespace TrackTraceMoney.Infrastructure.Repositories;
 
 internal sealed class TransactionRepository : RepositoryBase<Transaction>, ITransactionRepository
 {
-    public TransactionRepository(TrackTraceMoneyDbContext context) : base(context)
+    public TransactionRepository(TrackTraceMoneyDbContext context, IDbAccessGate gate) : base(context, gate)
     {
     }
 
-    public async Task<IReadOnlyList<Transaction>> GetByDateRangeAsync(DateOnly from, DateOnly to, CancellationToken ct = default) =>
-        await Context.Set<Transaction>()
+    public Task<IReadOnlyList<Transaction>> GetByDateRangeAsync(DateOnly from, DateOnly to, CancellationToken ct = default) =>
+        GuardedAsync<IReadOnlyList<Transaction>>(async () => await Context.Set<Transaction>()
             .Where(t => t.Date >= from && t.Date <= to)
-            .ToListAsync(ct);
+            .ToListAsync(ct), ct);
+
+    public Task<IReadOnlyList<Transaction>> GetByDateRangeAndCategoryAsync(DateOnly from, DateOnly to, Guid categoryId, CancellationToken ct = default) =>
+        GuardedAsync<IReadOnlyList<Transaction>>(async () => (await Context.Set<Expense>()
+            .Where(e => e.Date >= from && e.Date <= to && e.CategoryId == categoryId)
+            .ToListAsync(ct)).Cast<Transaction>().ToList(), ct);
 }

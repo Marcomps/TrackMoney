@@ -11,6 +11,8 @@ public sealed class Income : Transaction
 
     public override bool CountsAsIncome => true;
 
+    public override Guid? IncomeAccountId => DestinationAccountId;
+
     private Income()
     {
     }

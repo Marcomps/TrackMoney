@@ -15,8 +15,7 @@ public sealed record TransactionListItem(
         IReadOnlyDictionary<Guid, string> accountNames,
         IReadOnlyDictionary<Guid, string> categoryNames)
     {
-        static string NameOf(IReadOnlyDictionary<Guid, string> names, Guid id) =>
-            names.TryGetValue(id, out var name) ? name : "?";
+        var accountLabel = TransactionLabelFormatter.BuildLabel(transaction, accountNames, categoryNames);
 
         return transaction switch
         {
@@ -26,21 +25,21 @@ public sealed record TransactionListItem(
                 expense.Amount,
                 TransactionType.Expense,
                 expense.Description,
-                $"{NameOf(accountNames, expense.AccountId)} → {NameOf(categoryNames, expense.CategoryId)}"),
+                accountLabel),
             Income income => new TransactionListItem(
                 income.Id,
                 income.Date,
                 income.Amount,
                 TransactionType.Income,
                 income.Description,
-                $"{NameOf(categoryNames, income.CategoryId)} → {NameOf(accountNames, income.DestinationAccountId)}"),
+                accountLabel),
             Transfer transfer => new TransactionListItem(
                 transfer.Id,
                 transfer.Date,
                 transfer.Amount,
                 TransactionType.Transfer,
                 transfer.Description,
-                $"{NameOf(accountNames, transfer.SourceAccountId)} → {NameOf(accountNames, transfer.DestinationAccountId)}"),
+                accountLabel),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

@@ -14,8 +14,10 @@ public sealed class BudgetConfiguration : IEntityTypeConfiguration<Budget>
         builder.Property(b => b.Amount).IsRequired();
         builder.Property(b => b.Year).IsRequired();
         builder.Property(b => b.Month).IsRequired();
+        builder.Property(b => b.Currency).HasConversion<string>().IsRequired();
 
-        // One budget per category per month (README §34).
-        builder.HasIndex(b => new { b.CategoryId, b.Year, b.Month }).IsUnique();
+        // One budget per category per month per currency (README §34) — a category can have separate
+        // budgets in different currencies if it's spent from accounts in more than one currency.
+        builder.HasIndex(b => new { b.CategoryId, b.Year, b.Month, b.Currency }).IsUnique();
     }
 }

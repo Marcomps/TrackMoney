@@ -48,14 +48,16 @@ public sealed class TransactionEntryService : ITransactionEntryService
         // every subsequent expense once already over. Computed arithmetically from spend-before-this
         // expense rather than re-querying after save, so there's no risk of double-counting this
         // expense against itself.
-        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, ct);
+        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, account.Currency, ct);
         decimal spentBefore = 0m;
         if (budget is not null)
         {
             var startOfMonth = new DateOnly(date.Year, date.Month, 1);
-            var monthTransactions = await _transactionRepository.GetByDateRangeAsync(startOfMonth, date, ct);
-            var summary = _spendingCalculator.Calculate(monthTransactions);
-            spentBefore = summary.SpentByCategory.GetValueOrDefault(categoryId);
+            var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
+            var accounts = await _accountRepository.GetAllAsync(ct);
+            var accountCurrencies = accounts.ToDictionary(a => a.Id, a => a.Currency);
+            var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
+            spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
         }
 
         var expense = new Expense(date, amount, accountId, categoryId, beneficiaryPersonId, payerPersonId, description, notes);

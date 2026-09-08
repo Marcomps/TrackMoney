@@ -15,6 +15,7 @@ public sealed partial class BudgetsListViewModel : ObservableObject
     private readonly IBudgetRepository _budgetRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IFinancialAccountRepository _accountRepository;
     private readonly ISpendingCalculator _spendingCalculator;
     private readonly IBudgetEvaluator _budgetEvaluator;
 
@@ -33,12 +34,14 @@ public sealed partial class BudgetsListViewModel : ObservableObject
         IBudgetRepository budgetRepository,
         ITransactionRepository transactionRepository,
         ICategoryRepository categoryRepository,
+        IFinancialAccountRepository accountRepository,
         ISpendingCalculator spendingCalculator,
         IBudgetEvaluator budgetEvaluator)
     {
         _budgetRepository = budgetRepository;
         _transactionRepository = transactionRepository;
         _categoryRepository = categoryRepository;
+        _accountRepository = accountRepository;
         _spendingCalculator = spendingCalculator;
         _budgetEvaluator = budgetEvaluator;
     }
@@ -58,18 +61,20 @@ public sealed partial class BudgetsListViewModel : ObservableObject
             var budgets = await _budgetRepository.GetForMonthAsync(today.Year, today.Month);
             var transactions = await _transactionRepository.GetByDateRangeAsync(startOfMonth, today);
             var categories = await _categoryRepository.GetAllAsync();
+            var accounts = await _accountRepository.GetAllAsync();
 
             var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
+            var accountCurrencies = accounts.ToDictionary(a => a.Id, a => a.Currency);
 
-            var summary = _spendingCalculator.Calculate(transactions);
-            var statuses = _budgetEvaluator.Evaluate(budgets, summary).ToDictionary(s => s.CategoryId);
+            var summary = _spendingCalculator.Calculate(transactions, accountCurrencies);
+            // BudgetEvaluator.Evaluate returns one status per input budget, in the same order — zipped
+            // by position rather than a CategoryId-keyed dictionary, because a category can now
+            // legitimately have more than one budget in the same month (one per currency).
+            var statuses = _budgetEvaluator.Evaluate(budgets, summary);
 
             Budgets.Clear();
-            foreach (var budget in budgets)
+            foreach (var (budget, status) in budgets.Zip(statuses))
             {
-                if (!statuses.TryGetValue(budget.CategoryId, out var status))
-                    continue;
-
                 var categoryName = categoryNames.TryGetValue(budget.CategoryId, out var name) ? name : "?";
                 Budgets.Add(BudgetListItem.FromDomain(budget, status, categoryName));
             }

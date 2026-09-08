@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Models;
+using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.RecurringExpenses;
@@ -22,6 +23,9 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEmpty))]
     private bool hasLoaded;
+
+    [ObservableProperty]
+    private string? errorMessage;
 
     public ObservableCollection<DueRecurringExpenseListItem> DueRecurringExpenses { get; } = [];
 
@@ -54,7 +58,7 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
         {
             var today = DateOnly.FromDateTime(DateTime.Today);
 
-            var recurringExpenses = await _recurringExpenseRepository.GetAllAsync();
+            var recurringExpenses = await _recurringExpenseRepository.GetActiveAsync();
             var categories = await _categoryRepository.GetAllAsync();
             var accounts = await _accountRepository.GetAllAsync();
 
@@ -72,10 +76,11 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
                 var categoryName = NameOf(categoryNames, recurringExpense.CategoryId);
                 var accountName = NameOf(accountNames, recurringExpense.AccountId);
 
-                RecurringExpenses.Add(RecurringExpenseListItem.FromDomain(recurringExpense, categoryName, accountName));
+                var listItem = RecurringExpenseListItem.FromDomain(recurringExpense, categoryName, accountName);
+                RecurringExpenses.Add(listItem);
 
                 if (recurringExpense.IsDue(today))
-                    DueRecurringExpenses.Add(DueRecurringExpenseListItem.FromDomain(recurringExpense, categoryName, accountName));
+                    DueRecurringExpenses.Add(DueRecurringExpenseListItem.FromListItem(listItem));
             }
 
             HasLoaded = true;
@@ -94,10 +99,16 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
         if (IsBusy)
             return;
 
+        ErrorMessage = null;
         IsBusy = true;
         try
         {
             await _recurringExpenseService.ConfirmOccurrenceAsync(recurringExpenseId);
+        }
+        catch (Exception)
+        {
+            ErrorMessage = AppResources.RecurringExpenses_ConfirmError;
+            return;
         }
         finally
         {
@@ -115,6 +126,7 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
         if (IsBusy)
             return;
 
+        ErrorMessage = null;
         IsBusy = true;
         try
         {
@@ -124,6 +136,11 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
 
             recurringExpense.Deactivate();
             await _recurringExpenseRepository.SaveChangesAsync();
+        }
+        catch (Exception)
+        {
+            ErrorMessage = AppResources.RecurringExpenses_DeactivateError;
+            return;
         }
         finally
         {

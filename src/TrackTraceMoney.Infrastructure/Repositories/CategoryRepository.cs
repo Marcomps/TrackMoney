@@ -6,7 +6,7 @@ namespace TrackTraceMoney.Infrastructure.Repositories;
 
 internal sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepository
 {
-    public CategoryRepository(TrackTraceMoneyDbContext context) : base(context)
+    public CategoryRepository(TrackTraceMoneyDbContext context, IDbAccessGate gate) : base(context, gate)
     {
     }
 }

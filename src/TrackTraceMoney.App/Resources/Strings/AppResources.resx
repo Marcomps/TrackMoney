@@ -295,6 +295,9 @@
   <data name="AddBudget_AmountLabel" xml:space="preserve">
     <value>Monto</value>
   </data>
+  <data name="AddBudget_CurrencyLabel" xml:space="preserve">
+    <value>Moneda</value>
+  </data>
   <data name="AddBudget_SaveButton" xml:space="preserve">
     <value>Guardar</value>
   </data>
@@ -327,6 +330,12 @@
   </data>
   <data name="RecurringExpenses_NextDueLabel" xml:space="preserve">
     <value>Próximo:</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmError" xml:space="preserve">
+    <value>No se pudo confirmar el gasto recurrente. Inténtalo de nuevo.</value>
+  </data>
+  <data name="RecurringExpenses_DeactivateError" xml:space="preserve">
+    <value>No se pudo desactivar el gasto recurrente. Inténtalo de nuevo.</value>
   </data>
   <data name="RecurringExpenseFrequency_Weekly" xml:space="preserve">
     <value>Semanal</value>

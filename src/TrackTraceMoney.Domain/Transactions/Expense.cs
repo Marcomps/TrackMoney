@@ -18,6 +18,8 @@ public sealed class Expense : Transaction
 
     public override Guid? SpendCategoryId => CategoryId;
 
+    public override Guid? SpendAccountId => AccountId;
+
     private Expense()
     {
     }

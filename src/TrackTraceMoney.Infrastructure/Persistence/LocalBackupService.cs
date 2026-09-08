@@ -48,9 +48,13 @@ namespace TrackTraceMoney.Infrastructure.Persistence;
 /// user via a resx-driven message. This intentionally does not attempt a live in-session recovery.
 /// </para>
 /// <para>
-/// This class does not "fix" the shared-root-DbContext DI setup itself (e.g. by introducing
-/// per-page scopes) — that is a broader change with app-wide implications outside this feature's
-/// scope, and is flagged separately rather than changed as a drive-by here.
+/// This class no longer leaves the shared-root-DbContext DI setup entirely unfixed: <see cref="IDbAccessGate"/>
+/// (see its remarks for the full design) serializes access to the shared connection at the repository
+/// call site, and <see cref="ExportAsync"/>/<see cref="RestoreAsync"/> below acquire the same gate for
+/// their own duration so a raw file copy/overwrite can never race a concurrent repository operation
+/// that's mid-flight against the very file being copied. That is a narrower fix than introducing real
+/// per-page/per-operation <see cref="TrackTraceMoneyDbContext"/> instances — that broader change is
+/// still flagged separately, not attempted here.
 /// </para>
 /// </remarks>
 public sealed class LocalBackupService : ILocalBackupService
@@ -58,21 +62,29 @@ public sealed class LocalBackupService : ILocalBackupService
     private static readonly byte[] SqliteHeaderMagic = "SQLite format 3\0"u8.ToArray();
 
     private readonly TrackTraceMoneyDbContext _dbContext;
+    private readonly IDbAccessGate _gate;
 
-    public LocalBackupService(TrackTraceMoneyDbContext dbContext)
+    public LocalBackupService(TrackTraceMoneyDbContext dbContext, IDbAccessGate gate)
     {
         _dbContext = dbContext;
+        _gate = gate;
     }
 
-    public async Task<Stream> ExportAsync(CancellationToken ct = default)
+    public async Task ExportAsync(string destinationPath, CancellationToken ct = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+
         var dbPath = GetDatabasePath();
 
-        // Release any idle pooled native connections before reading the file — see class remarks.
+        using var gateScope = await _gate.AcquireAsync(ct);
+
+        // Release any idle pooled native connections before copying the file — see class remarks.
         SqliteConnection.ClearAllPools();
 
-        var bytes = await File.ReadAllBytesAsync(dbPath, ct);
-        return new MemoryStream(bytes, writable: false);
+        // A direct file-to-file copy, held for its whole duration under the same gate scope that
+        // guards every other database access, avoids buffering the entire (potentially large) database
+        // file into managed memory the way reading it into a byte[]/MemoryStream would.
+        File.Copy(dbPath, destinationPath, overwrite: true);
     }
 
     public async Task RestoreAsync(Stream backupData, CancellationToken ct = default)
@@ -81,6 +93,8 @@ public sealed class LocalBackupService : ILocalBackupService
 
         var dbPath = GetDatabasePath();
         var tempPath = dbPath + ".restore-tmp";
+
+        using var gateScope = await _gate.AcquireAsync(ct);
 
         try
         {

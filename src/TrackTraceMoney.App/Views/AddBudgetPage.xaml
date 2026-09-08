@@ -16,6 +16,10 @@
             <Label Text="{x:Static resources:AppResources.AddBudget_AmountLabel}" />
             <Entry Text="{Binding AmountText}" Keyboard="Numeric" />
 
+            <Label Text="{x:Static resources:AppResources.AddBudget_CurrencyLabel}" />
+            <Picker ItemsSource="{Binding AvailableCurrencies}"
+                    SelectedItem="{Binding SelectedCurrency}" />
+
             <Label Text="{Binding ErrorMessage}" TextColor="Red" />
 
             <Button Text="{x:Static resources:AppResources.AddBudget_SaveButton}"

@@ -33,6 +33,8 @@
                                         <Span Text="{Binding Spent, StringFormat='{0:N2}'}" />
                                         <Span Text=" / " />
                                         <Span Text="{Binding BudgetAmount, StringFormat='{0:N2}'}" />
+                                        <Span Text=" " />
+                                        <Span Text="{Binding Currency}" />
                                     </FormattedString>
                                 </Label.FormattedText>
                             </Label>

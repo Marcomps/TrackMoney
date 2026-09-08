@@ -7,10 +7,10 @@ namespace TrackTraceMoney.Infrastructure.Repositories;
 
 internal sealed class FinancialAccountRepository : RepositoryBase<FinancialAccount>, IFinancialAccountRepository
 {
-    public FinancialAccountRepository(TrackTraceMoneyDbContext context) : base(context)
+    public FinancialAccountRepository(TrackTraceMoneyDbContext context, IDbAccessGate gate) : base(context, gate)
     {
     }
 
-    public async Task<IReadOnlyList<FinancialAccount>> GetActiveAsync(CancellationToken ct = default) =>
-        await Context.Set<FinancialAccount>().Where(a => a.IsActive).ToListAsync(ct);
+    public Task<IReadOnlyList<FinancialAccount>> GetActiveAsync(CancellationToken ct = default) =>
+        GuardedAsync<IReadOnlyList<FinancialAccount>>(async () => await Context.Set<FinancialAccount>().Where(a => a.IsActive).ToListAsync(ct), ct);
 }

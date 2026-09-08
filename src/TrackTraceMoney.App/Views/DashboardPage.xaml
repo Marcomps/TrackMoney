@@ -36,20 +36,29 @@
                     </CollectionView>
                 </VerticalStackLayout>
 
-                <!-- Tile 2: income / expenses / available this month -->
+                <!-- Tile 2: income / expenses / available this month — one block per currency, never blended -->
                 <VerticalStackLayout Spacing="8">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_IncomeLabel}" FontSize="16" />
-                        <Label Grid.Column="1" Text="{Binding Income, StringFormat='{0:N2}'}" FontSize="16" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_ExpensesLabel}" FontSize="16" />
-                        <Label Grid.Column="1" Text="{Binding Expenses, StringFormat='{0:N2}'}" FontSize="16" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AvailableLabel}" FontSize="16" FontAttributes="Bold" />
-                        <Label Grid.Column="1" Text="{Binding Available, StringFormat='{0:N2}'}" FontSize="16" FontAttributes="Bold" />
-                    </Grid>
+                    <CollectionView ItemsSource="{Binding IncomeExpenseSummaries}" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:CurrencyIncomeExpense">
+                                <VerticalStackLayout Spacing="4" Padding="0,4">
+                                    <Label Text="{Binding Currency}" FontSize="16" FontAttributes="Bold" />
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_IncomeLabel}" FontSize="16" />
+                                        <Label Grid.Column="1" Text="{Binding Income, StringFormat='{0:N2}'}" FontSize="16" />
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_ExpensesLabel}" FontSize="16" />
+                                        <Label Grid.Column="1" Text="{Binding Expenses, StringFormat='{0:N2}'}" FontSize="16" />
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AvailableLabel}" FontSize="16" FontAttributes="Bold" />
+                                        <Label Grid.Column="1" Text="{Binding Available, StringFormat='{0:N2}'}" FontSize="16" FontAttributes="Bold" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                 </VerticalStackLayout>
 
                 <!-- Tile 3: over-budget categories this month -->
@@ -71,6 +80,8 @@
                                                 <Span Text="{Binding Spent, StringFormat='{0:N2}'}" />
                                                 <Span Text=" / " />
                                                 <Span Text="{Binding BudgetAmount, StringFormat='{0:N2}'}" />
+                                                <Span Text=" " />
+                                                <Span Text="{Binding Currency}" />
                                             </FormattedString>
                                         </Label.FormattedText>
                                     </Label>

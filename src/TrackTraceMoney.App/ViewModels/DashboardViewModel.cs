@@ -27,21 +27,14 @@ public sealed partial class DashboardViewModel : ObservableObject
     private bool hasLoaded;
 
     [ObservableProperty]
-    private decimal income;
-
-    [ObservableProperty]
-    private decimal expenses;
-
-    [ObservableProperty]
-    private decimal available;
-
-    [ObservableProperty]
     private string healthEmoji = string.Empty;
 
     [ObservableProperty]
     private string healthLabel = string.Empty;
 
     public ObservableCollection<CurrencyBalance> Balances { get; } = [];
+
+    public ObservableCollection<CurrencyIncomeExpense> IncomeExpenseSummaries { get; } = [];
 
     public ObservableCollection<BudgetListItem> OverBudgetCategories { get; } = [];
 
@@ -89,21 +82,32 @@ public sealed partial class DashboardViewModel : ObservableObject
             foreach (var group in accounts.GroupBy(a => a.Currency))
                 Balances.Add(new CurrencyBalance(group.Key, group.Sum(a => a.Balance)));
 
-            // Tile 2: income / expenses / available this month.
-            var spendingSummary = _spendingCalculator.Calculate(transactions);
-            var incomeSummary = _incomeCalculator.Calculate(transactions);
-            Income = incomeSummary.TotalIncome;
-            Expenses = spendingSummary.TotalSpent;
-            Available = Income - Expenses;
+            // Tile 2: income / expenses / available this month — per currency, never blended
+            // (mirrors Tile 1's accounts.GroupBy(a => a.Currency) above).
+            var accountCurrencies = accounts.ToDictionary(a => a.Id, a => a.Currency);
+            var spendingSummary = _spendingCalculator.Calculate(transactions, accountCurrencies);
+            var incomeSummary = _incomeCalculator.Calculate(transactions, accountCurrencies);
+
+            IncomeExpenseSummaries.Clear();
+            var currencies = spendingSummary.TotalSpentByCurrency.Keys.Union(incomeSummary.TotalIncomeByCurrency.Keys);
+            foreach (var currency in currencies)
+            {
+                var currencyIncome = incomeSummary.TotalIncomeByCurrency.GetValueOrDefault(currency);
+                var currencyExpenses = spendingSummary.TotalSpentByCurrency.GetValueOrDefault(currency);
+                IncomeExpenseSummaries.Add(new CurrencyIncomeExpense(currency, currencyIncome, currencyExpenses));
+            }
 
             // Tile 3: over-budget categories this month.
             var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
-            var statuses = _budgetEvaluator.Evaluate(budgets, spendingSummary).ToDictionary(s => s.CategoryId);
+            // BudgetEvaluator.Evaluate returns one status per input budget, in the same order — zipped
+            // by position rather than a CategoryId-keyed dictionary, because a category can now
+            // legitimately have more than one budget in the same month (one per currency).
+            var statuses = _budgetEvaluator.Evaluate(budgets, spendingSummary);
 
             OverBudgetCategories.Clear();
-            foreach (var budget in budgets)
+            foreach (var (budget, status) in budgets.Zip(statuses))
             {
-                if (!statuses.TryGetValue(budget.CategoryId, out var status) || !status.IsOverBudget)
+                if (!status.IsOverBudget)
                     continue;
 
                 var categoryName = categoryNames.TryGetValue(budget.CategoryId, out var name) ? name : "?";

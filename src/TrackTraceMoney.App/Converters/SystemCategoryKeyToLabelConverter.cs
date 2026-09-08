@@ -1,18 +1,20 @@
-using System.Globalization;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Domain.Categories;
 
 namespace TrackTraceMoney.App.Converters;
 
-public sealed class SystemCategoryKeyToLabelConverter : IValueConverter
+public sealed class SystemCategoryKeyToLabelConverter : EnumToLabelConverter<SystemCategoryKey>
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is SystemCategoryKey key ? GetLabel(key) : string.Empty;
+    protected override string GetLabel(SystemCategoryKey value) => ResolveLabel(value);
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
+    /// <summary>
+    /// Resolves the display name for a category: the localized system label for system-defined
+    /// categories, or the user's own typed name for user-defined ones (there is nothing to translate).
+    /// </summary>
+    public static string GetDisplayName(Category category) =>
+        category.IsSystemDefined ? ResolveLabel(category.SystemKey) : category.Name;
 
-    public static string GetLabel(SystemCategoryKey key) => key switch
+    private static string ResolveLabel(SystemCategoryKey key) => key switch
     {
         SystemCategoryKey.Food => AppResources.Category_Food,
         SystemCategoryKey.Housing => AppResources.Category_Housing,
@@ -30,11 +32,4 @@ public sealed class SystemCategoryKeyToLabelConverter : IValueConverter
         SystemCategoryKey.Other => AppResources.Category_Other,
         _ => string.Empty
     };
-
-    /// <summary>
-    /// Resolves the display name for a category: the localized system label for system-defined
-    /// categories, or the user's own typed name for user-defined ones (there is nothing to translate).
-    /// </summary>
-    public static string GetDisplayName(Category category) =>
-        category.IsSystemDefined ? GetLabel(category.SystemKey) : category.Name;
 }

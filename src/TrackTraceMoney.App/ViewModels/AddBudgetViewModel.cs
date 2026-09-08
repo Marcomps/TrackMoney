@@ -7,6 +7,7 @@ using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Domain.Budgets;
+using TrackTraceMoney.Domain.Enums;
 
 namespace TrackTraceMoney.App.ViewModels;
 
@@ -22,12 +23,17 @@ public sealed partial class AddBudgetViewModel : ObservableObject
     private string amountText = string.Empty;
 
     [ObservableProperty]
+    private CurrencyCode selectedCurrency = CurrencyCode.USD;
+
+    [ObservableProperty]
     private string? errorMessage;
 
     [ObservableProperty]
     private bool isBusy;
 
     public ObservableCollection<NamedOption> Categories { get; } = [];
+
+    public IReadOnlyList<CurrencyCode> AvailableCurrencies { get; } = Enum.GetValues<CurrencyCode>();
 
     public AddBudgetViewModel(IBudgetRepository budgetRepository, ICategoryRepository categoryRepository)
     {
@@ -67,14 +73,14 @@ public sealed partial class AddBudgetViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            var existing = await _budgetRepository.GetForCategoryAndMonthAsync(SelectedCategory.Id, today.Year, today.Month);
+            var existing = await _budgetRepository.GetForCategoryAndMonthAsync(SelectedCategory.Id, today.Year, today.Month, SelectedCurrency);
             if (existing is not null)
             {
                 existing.UpdateAmount(amount);
             }
             else
             {
-                var budget = new Budget(SelectedCategory.Id, amount, today.Year, today.Month);
+                var budget = new Budget(SelectedCategory.Id, amount, today.Year, today.Month, SelectedCurrency);
                 await _budgetRepository.AddAsync(budget);
             }
 

@@ -7,10 +7,11 @@ namespace TrackTraceMoney.Application.Abstractions;
 public interface ILocalBackupService
 {
     /// <summary>
-    /// Produces a copy of the current local database as a readable stream, positioned at 0.
-    /// The caller owns the returned stream and is responsible for disposing it.
+    /// Copies the current local database directly to <paramref name="destinationPath"/>, overwriting
+    /// any existing file there. Implementations must copy the file without buffering its entire
+    /// contents into managed memory first.
     /// </summary>
-    Task<Stream> ExportAsync(CancellationToken ct = default);
+    Task ExportAsync(string destinationPath, CancellationToken ct = default);
 
     /// <summary>
     /// Replaces the local database's contents with the given backup data.

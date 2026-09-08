@@ -82,7 +82,7 @@ public sealed partial class HistoryViewModel : ObservableObject
 
         TypeOptions.Add(new TransactionTypeFilterOption(null, AppResources.History_AllTypesOption));
         foreach (var type in Enum.GetValues<TransactionType>())
-            TypeOptions.Add(new TransactionTypeFilterOption(type, LabelFor(type)));
+            TypeOptions.Add(new TransactionTypeFilterOption(type, TransactionTypeToLabelConverter.GetDisplayName(type)));
 
         selectedTypeFilter = TypeOptions[0];
     }
@@ -207,12 +207,4 @@ public sealed partial class HistoryViewModel : ObservableObject
 
         OnPropertyChanged(nameof(IsEmpty));
     }
-
-    private static string LabelFor(TransactionType type) => type switch
-    {
-        TransactionType.Expense => AppResources.TransactionType_Expense,
-        TransactionType.Income => AppResources.TransactionType_Income,
-        TransactionType.Transfer => AppResources.TransactionType_Transfer,
-        _ => string.Empty
-    };
 }

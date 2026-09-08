@@ -6,7 +6,7 @@ namespace TrackTraceMoney.Infrastructure.Repositories;
 
 internal sealed class PersonRepository : RepositoryBase<Person>, IPersonRepository
 {
-    public PersonRepository(TrackTraceMoneyDbContext context) : base(context)
+    public PersonRepository(TrackTraceMoneyDbContext context, IDbAccessGate gate) : base(context, gate)
     {
     }
 }

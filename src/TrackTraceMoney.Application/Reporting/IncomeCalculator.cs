@@ -1,3 +1,4 @@
+using TrackTraceMoney.Domain.Enums;
 using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.Application.Reporting;
@@ -5,22 +6,29 @@ namespace TrackTraceMoney.Application.Reporting;
 /// <summary>
 /// Aggregates income the mirror-image way of <see cref="SpendingCalculator"/>: only transactions
 /// flagged via <see cref="Transaction.CountsAsIncome"/> count, so transfers between own accounts
-/// (or any future movement that merely relocates money) never inflate "ingresos del período".
+/// (or any future movement that merely relocates money) never inflate "ingresos del período". Also
+/// never blends currencies — see <see cref="SpendingCalculator"/>'s summary for why.
 /// </summary>
 public sealed class IncomeCalculator : IIncomeCalculator
 {
-    public IncomeSummary Calculate(IEnumerable<Transaction> transactions)
+    public IncomeSummary Calculate(IEnumerable<Transaction> transactions, IReadOnlyDictionary<Guid, CurrencyCode> accountCurrencies)
     {
-        decimal total = 0m;
+        var totalByCurrency = new Dictionary<CurrencyCode, decimal>();
 
         foreach (var transaction in transactions)
         {
             if (!transaction.CountsAsIncome)
                 continue;
 
-            total += transaction.Amount;
+            if (transaction.IncomeAccountId is not { } accountId
+                || !accountCurrencies.TryGetValue(accountId, out var currency))
+            {
+                continue;
+            }
+
+            totalByCurrency[currency] = totalByCurrency.GetValueOrDefault(currency) + transaction.Amount;
         }
 
-        return new IncomeSummary { TotalIncome = total };
+        return new IncomeSummary { TotalIncomeByCurrency = totalByCurrency };
     }
 }

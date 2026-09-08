@@ -28,6 +28,20 @@ public abstract class Transaction : Entity
     /// <summary>The category this transaction's spend should be attributed to, if any.</summary>
     public virtual Guid? SpendCategoryId => null;
 
+    /// <summary>
+    /// The account whose currency governs this transaction's spend amount, if any (only meaningful
+    /// when <see cref="CountsAsExpense"/> is true). Exposed the same way as <see cref="SpendCategoryId"/>
+    /// so aggregation code never needs to pattern-match on concrete transaction types to find "the"
+    /// account for currency-aware grouping.
+    /// </summary>
+    public virtual Guid? SpendAccountId => null;
+
+    /// <summary>
+    /// The account whose currency governs this transaction's income amount, if any (only meaningful
+    /// when <see cref="CountsAsIncome"/> is true). Mirrors <see cref="SpendAccountId"/> for the income side.
+    /// </summary>
+    public virtual Guid? IncomeAccountId => null;
+
     protected Transaction()
     {
     }

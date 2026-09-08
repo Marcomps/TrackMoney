@@ -24,8 +24,7 @@ public sealed record HistoryEntryItem(
         IReadOnlyDictionary<Guid, string> accountNames,
         IReadOnlyDictionary<Guid, string> categoryNames)
     {
-        static string NameOf(IReadOnlyDictionary<Guid, string> names, Guid id) =>
-            names.TryGetValue(id, out var name) ? name : "?";
+        var accountLabel = TransactionLabelFormatter.BuildLabel(transaction, accountNames, categoryNames);
 
         return transaction switch
         {
@@ -35,7 +34,7 @@ public sealed record HistoryEntryItem(
                 expense.Amount,
                 TransactionType.Expense,
                 expense.Description,
-                $"{NameOf(accountNames, expense.AccountId)} → {NameOf(categoryNames, expense.CategoryId)}",
+                accountLabel,
                 [expense.AccountId],
                 expense.CategoryId,
                 BuildPersonIds(expense.PayerPersonId, expense.BeneficiaryPersonId)),
@@ -45,7 +44,7 @@ public sealed record HistoryEntryItem(
                 income.Amount,
                 TransactionType.Income,
                 income.Description,
-                $"{NameOf(categoryNames, income.CategoryId)} → {NameOf(accountNames, income.DestinationAccountId)}",
+                accountLabel,
                 [income.DestinationAccountId],
                 income.CategoryId,
                 BuildPersonIds(income.PersonId)),
@@ -55,7 +54,7 @@ public sealed record HistoryEntryItem(
                 transfer.Amount,
                 TransactionType.Transfer,
                 transfer.Description,
-                $"{NameOf(accountNames, transfer.SourceAccountId)} → {NameOf(accountNames, transfer.DestinationAccountId)}",
+                accountLabel,
                 [transfer.SourceAccountId, transfer.DestinationAccountId],
                 null,
                 []),

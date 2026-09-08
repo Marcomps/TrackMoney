@@ -1,5 +1,3 @@
-using TrackTraceMoney.Domain.RecurringExpenses;
-
 namespace TrackTraceMoney.App.Models;
 
 /// <summary>A row in the "due now" section at the top of the recurring expenses screen.</summary>
@@ -11,15 +9,16 @@ public sealed record DueRecurringExpenseListItem(
     string AccountName,
     DateOnly OccurrenceDate)
 {
-    public static DueRecurringExpenseListItem FromDomain(
-        RecurringExpense recurringExpense,
-        string categoryName,
-        string accountName) =>
+    /// <summary>
+    /// Builds a "due now" row from an already-built <see cref="RecurringExpenseListItem"/>, reusing its
+    /// already-resolved category/account display names instead of resolving them a second time.
+    /// </summary>
+    public static DueRecurringExpenseListItem FromListItem(RecurringExpenseListItem listItem) =>
         new(
-            recurringExpense.Id,
-            recurringExpense.Name,
-            recurringExpense.Amount,
-            categoryName,
-            accountName,
-            recurringExpense.NextOccurrenceDate);
+            listItem.Id,
+            listItem.Name,
+            listItem.Amount,
+            listItem.CategoryName,
+            listItem.AccountName,
+            listItem.NextDueDate);
 }
