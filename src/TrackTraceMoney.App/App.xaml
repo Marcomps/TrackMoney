@@ -14,6 +14,7 @@
             <converters:AccountKindToLabelConverter x:Key="AccountKindToLabelConverter" />
             <converters:TransactionTypeToLabelConverter x:Key="TransactionTypeToLabelConverter" />
             <converters:SystemCategoryKeyToLabelConverter x:Key="SystemCategoryKeyToLabelConverter" />
+            <converters:RecurringExpenseFrequencyToLabelConverter x:Key="RecurringExpenseFrequencyToLabelConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

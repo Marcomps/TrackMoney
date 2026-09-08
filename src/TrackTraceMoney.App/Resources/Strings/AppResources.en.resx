@@ -307,6 +307,87 @@
   <data name="AddBudget_ValidationAmountInvalid" xml:space="preserve">
     <value>Amount must be a valid number greater than zero.</value>
   </data>
+  <data name="RecurringExpenses_Title" xml:space="preserve">
+    <value>Recurring expenses</value>
+  </data>
+  <data name="RecurringExpenses_Empty" xml:space="preserve">
+    <value>You don't have any recurring expenses yet. Add the first one to get started.</value>
+  </data>
+  <data name="RecurringExpenses_AddButton" xml:space="preserve">
+    <value>Add recurring expense</value>
+  </data>
+  <data name="RecurringExpenses_DueSectionTitle" xml:space="preserve">
+    <value>Due for confirmation</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmButton" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="RecurringExpenses_DeactivateButton" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="RecurringExpenses_NextDueLabel" xml:space="preserve">
+    <value>Next:</value>
+  </data>
+  <data name="RecurringExpenseFrequency_Weekly" xml:space="preserve">
+    <value>Weekly</value>
+  </data>
+  <data name="RecurringExpenseFrequency_Monthly" xml:space="preserve">
+    <value>Monthly</value>
+  </data>
+  <data name="RecurringExpenseFrequency_Yearly" xml:space="preserve">
+    <value>Yearly</value>
+  </data>
+  <data name="AddRecurringExpense_Title" xml:space="preserve">
+    <value>New recurring expense</value>
+  </data>
+  <data name="AddRecurringExpense_NameLabel" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="AddRecurringExpense_NamePlaceholder" xml:space="preserve">
+    <value>e.g. Netflix</value>
+  </data>
+  <data name="AddRecurringExpense_AmountLabel" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="AddRecurringExpense_CategoryLabel" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="AddRecurringExpense_AccountLabel" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="AddRecurringExpense_FrequencyLabel" xml:space="preserve">
+    <value>Frequency</value>
+  </data>
+  <data name="AddRecurringExpense_StartDateLabel" xml:space="preserve">
+    <value>Start date</value>
+  </data>
+  <data name="AddRecurringExpense_HasEndDateLabel" xml:space="preserve">
+    <value>Has an end date</value>
+  </data>
+  <data name="AddRecurringExpense_EndDateLabel" xml:space="preserve">
+    <value>End date</value>
+  </data>
+  <data name="AddRecurringExpense_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="AddRecurringExpense_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddRecurringExpense_ValidationNameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="AddRecurringExpense_ValidationAmountInvalid" xml:space="preserve">
+    <value>Amount must be a valid number greater than zero.</value>
+  </data>
+  <data name="AddRecurringExpense_ValidationCategoryRequired" xml:space="preserve">
+    <value>You must select a category.</value>
+  </data>
+  <data name="AddRecurringExpense_ValidationAccountRequired" xml:space="preserve">
+    <value>You must select an account.</value>
+  </data>
+  <data name="AddRecurringExpense_ValidationEndDateInvalid" xml:space="preserve">
+    <value>End date cannot be before the start date.</value>
+  </data>
   <data name="Dashboard_Title" xml:space="preserve">
     <value>Dashboard</value>
   </data>

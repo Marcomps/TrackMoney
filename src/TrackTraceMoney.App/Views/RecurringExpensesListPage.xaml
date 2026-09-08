@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.RecurringExpensesListPage"
+             x:DataType="viewModels:RecurringExpensesListViewModel"
+             x:Name="Root"
+             Title="{x:Static resources:AppResources.RecurringExpenses_Title}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+
+        <VerticalStackLayout Grid.Row="0"
+                              IsVisible="{Binding HasDueRecurringExpenses}"
+                              Spacing="8"
+                              Margin="0,0,0,16">
+
+            <Label Text="{x:Static resources:AppResources.RecurringExpenses_DueSectionTitle}"
+                   FontAttributes="Bold"
+                   FontSize="16" />
+
+            <VerticalStackLayout Spacing="4"
+                                  BindableLayout.ItemsSource="{Binding DueRecurringExpenses}">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate x:DataType="models:DueRecurringExpenseListItem">
+                    <Border Padding="12" Margin="0,4" StrokeShape="RoundRectangle 8">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontAttributes="Bold" />
+                            <Label Grid.Row="1" Grid.Column="0">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding CategoryName}" />
+                                        <Span Text=" · " />
+                                        <Span Text="{Binding AccountName}" />
+                                        <Span Text=" · " />
+                                        <Span Text="{Binding Amount, StringFormat='{0:N2}'}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                            <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
+                                    Text="{x:Static resources:AppResources.RecurringExpenses_ConfirmButton}"
+                                    Command="{Binding Source={x:Reference Root}, Path=BindingContext.ConfirmCommand}"
+                                    CommandParameter="{Binding Id}"
+                                    VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+
+        <RefreshView Grid.Row="1"
+                     IsRefreshing="{Binding IsBusy}"
+                     Command="{Binding LoadRecurringExpensesCommand}">
+            <CollectionView ItemsSource="{Binding RecurringExpenses}"
+                             SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
+                        <Label Text="{x:Static resources:AppResources.RecurringExpenses_Empty}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:RecurringExpenseListItem">
+                        <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
+                            <Label Grid.Row="1" Grid.Column="0">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding CategoryName}" />
+                                        <Span Text=" · " />
+                                        <Span Text="{Binding AccountName}" />
+                                        <Span Text=" · " />
+                                        <Span Text="{Binding Amount, StringFormat='{0:N2}'}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                            <Label Grid.Row="2" Grid.Column="0">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding Frequency, Converter={StaticResource RecurringExpenseFrequencyToLabelConverter}}" />
+                                        <Span Text=" · " />
+                                        <Span Text="{x:Static resources:AppResources.RecurringExpenses_NextDueLabel}" />
+                                        <Span Text=" " />
+                                        <Span Text="{Binding NextDueDate}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                            <Button Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"
+                                    Text="{x:Static resources:AppResources.RecurringExpenses_DeactivateButton}"
+                                    Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeactivateCommand}"
+                                    CommandParameter="{Binding Id}"
+                                    IsVisible="{Binding IsActive}"
+                                    VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <Button Grid.Row="2"
+                Text="{x:Static resources:AppResources.RecurringExpenses_AddButton}"
+                Command="{Binding AddRecurringExpenseCommand}"
+                HorizontalOptions="Fill"
+                Margin="0,12,0,0" />
+
+    </Grid>
+
+</ContentPage>

@@ -17,6 +17,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IFinancialAccountRepository, FinancialAccountRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<IBudgetRepository, BudgetRepository>();
+        services.AddScoped<IRecurringExpenseRepository, RecurringExpenseRepository>();
         services.AddScoped<ILocalBackupService, LocalBackupService>();
 
         return services;

@@ -3,6 +3,7 @@ using TrackTraceMoney.Domain.Accounts;
 using TrackTraceMoney.Domain.Budgets;
 using TrackTraceMoney.Domain.Categories;
 using TrackTraceMoney.Domain.People;
+using TrackTraceMoney.Domain.RecurringExpenses;
 using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.Infrastructure.Persistence;
@@ -18,6 +19,8 @@ public sealed class TrackTraceMoneyDbContext : DbContext
     public DbSet<Transaction> Transactions => Set<Transaction>();
 
     public DbSet<Budget> Budgets => Set<Budget>();
+
+    public DbSet<RecurringExpense> RecurringExpenses => Set<RecurringExpense>();
 
     public TrackTraceMoneyDbContext(DbContextOptions<TrackTraceMoneyDbContext> options)
         : base(options)

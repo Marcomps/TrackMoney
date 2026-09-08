@@ -7,6 +7,7 @@ using TrackTraceMoney.App.ViewModels;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Budgets;
+using TrackTraceMoney.Application.RecurringExpenses;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Application.Transactions;
 using TrackTraceMoney.Infrastructure;
@@ -61,6 +62,12 @@ public static class MauiProgram
 		builder.Services.AddTransient<BudgetsListPage>();
 		builder.Services.AddTransient<AddBudgetViewModel>();
 		builder.Services.AddTransient<AddBudgetPage>();
+
+		builder.Services.AddScoped<IRecurringExpenseService, RecurringExpenseService>();
+		builder.Services.AddTransient<RecurringExpensesListViewModel>();
+		builder.Services.AddTransient<RecurringExpensesListPage>();
+		builder.Services.AddTransient<AddRecurringExpenseViewModel>();
+		builder.Services.AddTransient<AddRecurringExpensePage>();
 
 		builder.Services.AddTransient<SettingsViewModel>();
 		builder.Services.AddTransient<SettingsPage>();
