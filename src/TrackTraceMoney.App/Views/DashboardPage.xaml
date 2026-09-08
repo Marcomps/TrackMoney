@@ -91,6 +91,31 @@
                     </CollectionView>
                 </VerticalStackLayout>
 
+                <!-- Tile 5: upcoming payments — recurring expenses due now or within the next 7 days -->
+                <VerticalStackLayout Spacing="8">
+                    <Label FontSize="18" FontAttributes="Bold"
+                           Text="{x:Static resources:AppResources.Dashboard_UpcomingPaymentsSectionTitle}" />
+                    <Label Text="{x:Static resources:AppResources.Dashboard_UpcomingPaymentsEmpty}"
+                           IsVisible="{Binding ShowUpcomingPaymentsEmpty}" />
+                    <CollectionView ItemsSource="{Binding UpcomingPayments}" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:RecurringExpenseListItem">
+                                <Grid Padding="0,4" ColumnDefinitions="*,Auto,Auto">
+                                    <Label Grid.Column="0" Text="{Binding Name}" FontSize="16" />
+                                    <Label Grid.Column="1" HorizontalOptions="End" Margin="8,0"
+                                           Text="{Binding Amount, StringFormat='{0:N2}'}" FontSize="16" />
+                                    <Label Grid.Column="2" HorizontalOptions="End"
+                                           Text="{Binding NextDueDate}" FontSize="16" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    <Button Text="{x:Static resources:AppResources.Dashboard_UpcomingPaymentsGoToButton}"
+                            Command="{Binding GoToRecurringExpensesCommand}"
+                            IsVisible="{Binding HasUpcomingPayments}"
+                            HorizontalOptions="Fill" />
+                </VerticalStackLayout>
+
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>

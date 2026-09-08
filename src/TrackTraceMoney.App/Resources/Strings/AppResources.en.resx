@@ -427,6 +427,15 @@
   <data name="Dashboard_Health_Healthy" xml:space="preserve">
     <value>Healthy: your accounts and budgets are in good shape.</value>
   </data>
+  <data name="Dashboard_UpcomingPaymentsSectionTitle" xml:space="preserve">
+    <value>Upcoming payments</value>
+  </data>
+  <data name="Dashboard_UpcomingPaymentsEmpty" xml:space="preserve">
+    <value>You have no payments due in the next 7 days.</value>
+  </data>
+  <data name="Dashboard_UpcomingPaymentsGoToButton" xml:space="preserve">
+    <value>View recurring expenses</value>
+  </data>
   <data name="Transactions_ViewHistoryButton" xml:space="preserve">
     <value>View history</value>
   </data>

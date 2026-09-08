@@ -427,6 +427,15 @@
   <data name="Dashboard_Health_Healthy" xml:space="preserve">
     <value>Saludable: tus cuentas y presupuestos están en orden.</value>
   </data>
+  <data name="Dashboard_UpcomingPaymentsSectionTitle" xml:space="preserve">
+    <value>Próximos pagos</value>
+  </data>
+  <data name="Dashboard_UpcomingPaymentsEmpty" xml:space="preserve">
+    <value>No tienes pagos pendientes en los próximos 7 días.</value>
+  </data>
+  <data name="Dashboard_UpcomingPaymentsGoToButton" xml:space="preserve">
+    <value>Ver gastos recurrentes</value>
+  </data>
   <data name="Transactions_ViewHistoryButton" xml:space="preserve">
     <value>Ver historial</value>
   </data>
