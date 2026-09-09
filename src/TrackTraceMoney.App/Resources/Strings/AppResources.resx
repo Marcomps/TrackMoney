@@ -226,6 +226,39 @@
   <data name="CreditCardDetail_DueDateLabel" xml:space="preserve">
     <value>Fecha límite de pago:</value>
   </data>
+  <data name="CreditCardDetail_PurchasedVsPaidTitle" xml:space="preserve">
+    <value>Comprado vs. pagado</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidWindowLabel" xml:space="preserve">
+    <value>Periodo</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidWindow_Month" xml:space="preserve">
+    <value>Mes</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidWindow_Cycle" xml:space="preserve">
+    <value>Ciclo</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidWindow_ThreeMonths" xml:space="preserve">
+    <value>3 meses</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidWindow_SixMonths" xml:space="preserve">
+    <value>6 meses</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidWindow_Year" xml:space="preserve">
+    <value>Año</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidPurchasedLabel" xml:space="preserve">
+    <value>Comprado</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidPaidLabel" xml:space="preserve">
+    <value>Pagado</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidOverMessage" xml:space="preserve">
+    <value>Estás gastando más de lo que estás pagando.</value>
+  </data>
+  <data name="CreditCardDetail_PurchasedVsPaidUnderMessage" xml:space="preserve">
+    <value>Estás pagando {0:N2} más de lo que estás gastando.</value>
+  </data>
   <data name="RecordCreditCardStatement_Title" xml:space="preserve">
     <value>Registrar estado de cuenta</value>
   </data>

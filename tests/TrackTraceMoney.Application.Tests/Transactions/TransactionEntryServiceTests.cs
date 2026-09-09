@@ -448,6 +448,13 @@ public sealed class TransactionEntryServiceTests
                 .Where(t => t.Date >= from && t.Date <= to && t.SpendAccountId == spendAccountId)
                 .ToList());
 
+        public Task<IReadOnlyList<CreditCardPayment>> GetCreditCardPaymentsByDateRangeAndCreditAccountAsync(
+            DateOnly from, DateOnly to, Guid creditAccountId, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<CreditCardPayment>>(_transactions
+                .OfType<CreditCardPayment>()
+                .Where(p => p.Date >= from && p.Date <= to && p.CreditAccountId == creditAccountId)
+                .ToList());
+
         public Task AddAsync(Transaction entity, CancellationToken ct = default)
         {
             _transactions.Add(entity);

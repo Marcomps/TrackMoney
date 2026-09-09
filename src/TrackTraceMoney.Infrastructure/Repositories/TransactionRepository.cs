@@ -29,4 +29,12 @@ internal sealed class TransactionRepository : RepositoryBase<Transaction>, ITran
             .ToListAsync(ct))
             .Where(t => t.SpendAccountId == spendAccountId)
             .ToList(), ct);
+
+    public Task<IReadOnlyList<CreditCardPayment>> GetCreditCardPaymentsByDateRangeAndCreditAccountAsync(
+        DateOnly from, DateOnly to, Guid creditAccountId, CancellationToken ct = default) =>
+        GuardedAsync<IReadOnlyList<CreditCardPayment>>(async () => await Context.Set<Transaction>()
+            .Where(t => t.Date >= from && t.Date <= to)
+            .OfType<CreditCardPayment>()
+            .Where(p => p.CreditAccountId == creditAccountId)
+            .ToListAsync(ct), ct);
 }

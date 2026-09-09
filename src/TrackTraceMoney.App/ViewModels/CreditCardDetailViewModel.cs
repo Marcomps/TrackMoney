@@ -6,7 +6,9 @@ using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
+using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Domain.CreditAccounts;
+using TrackTraceMoney.Domain.Enums;
 
 namespace TrackTraceMoney.App.ViewModels;
 
@@ -22,6 +24,9 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
     private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly ICreditCardStatementRepository _statementRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly ICreditCardPurchasedVsPaidCalculator _purchasedVsPaidCalculator;
+
+    private CurrencyCode cardCurrency;
 
     [ObservableProperty]
     private Guid creditAccountId;
@@ -50,7 +55,30 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CycleIsNotClosed))]
     private bool canRecordStatement;
 
+    [ObservableProperty]
+    private PurchasedVsPaidWindowOption? selectedPurchasedVsPaidWindow;
+
+    [ObservableProperty]
+    private decimal totalPurchased;
+
+    [ObservableProperty]
+    private decimal totalPaid;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PurchasedVsPaidIndicatorMessage))]
+    private decimal purchasedVsPaidDifference;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PurchasedVsPaidIndicatorEmoji))]
+    [NotifyPropertyChangedFor(nameof(PurchasedVsPaidIndicatorMessage))]
+    private bool isSpendingMoreThanPaying;
+
+    [ObservableProperty]
+    private bool isRecalculatingPurchasedVsPaid;
+
     public ObservableCollection<CreditCardStatementListItem> Statements { get; } = [];
+
+    public ObservableCollection<PurchasedVsPaidWindowOption> PurchasedVsPaidWindowOptions { get; } = [];
 
     public bool IsEmpty => HasLoaded && Statements.Count == 0;
 
@@ -59,14 +87,30 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
     public string CycleNotClosedMessage =>
         string.Format(CultureInfo.CurrentCulture, AppResources.CreditCardDetail_CycleNotClosedMessage, CycleEndDate);
 
+    public string PurchasedVsPaidIndicatorEmoji => PurchasedVsPaidIndicator.GetEmoji(IsSpendingMoreThanPaying);
+
+    public string PurchasedVsPaidIndicatorMessage => IsSpendingMoreThanPaying
+        ? AppResources.CreditCardDetail_PurchasedVsPaidOverMessage
+        : string.Format(CultureInfo.CurrentCulture, AppResources.CreditCardDetail_PurchasedVsPaidUnderMessage, PurchasedVsPaidDifference);
+
     public CreditCardDetailViewModel(
         ICreditAccountRepository creditAccountRepository,
         ICreditCardStatementRepository statementRepository,
-        ITransactionRepository transactionRepository)
+        ITransactionRepository transactionRepository,
+        ICreditCardPurchasedVsPaidCalculator purchasedVsPaidCalculator)
     {
         _creditAccountRepository = creditAccountRepository;
         _statementRepository = statementRepository;
         _transactionRepository = transactionRepository;
+        _purchasedVsPaidCalculator = purchasedVsPaidCalculator;
+
+        PurchasedVsPaidWindowOptions.Add(new PurchasedVsPaidWindowOption(PurchasedVsPaidWindow.Month, AppResources.CreditCardDetail_PurchasedVsPaidWindow_Month));
+        PurchasedVsPaidWindowOptions.Add(new PurchasedVsPaidWindowOption(PurchasedVsPaidWindow.Cycle, AppResources.CreditCardDetail_PurchasedVsPaidWindow_Cycle));
+        PurchasedVsPaidWindowOptions.Add(new PurchasedVsPaidWindowOption(PurchasedVsPaidWindow.ThreeMonths, AppResources.CreditCardDetail_PurchasedVsPaidWindow_ThreeMonths));
+        PurchasedVsPaidWindowOptions.Add(new PurchasedVsPaidWindowOption(PurchasedVsPaidWindow.SixMonths, AppResources.CreditCardDetail_PurchasedVsPaidWindow_SixMonths));
+        PurchasedVsPaidWindowOptions.Add(new PurchasedVsPaidWindowOption(PurchasedVsPaidWindow.Year, AppResources.CreditCardDetail_PurchasedVsPaidWindow_Year));
+
+        selectedPurchasedVsPaidWindow = PurchasedVsPaidWindowOptions[0];
     }
 
     [RelayCommand]
@@ -83,6 +127,7 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
                 return;
 
             CardName = card.Name;
+            cardCurrency = card.Currency;
 
             var today = DateOnly.FromDateTime(DateTime.Today);
 
@@ -114,12 +159,49 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
 
             HasLoaded = true;
             OnPropertyChanged(nameof(IsEmpty));
+
+            await RecalculatePurchasedVsPaidAsync();
         }
         finally
         {
             IsBusy = false;
         }
     }
+
+    [RelayCommand]
+    private async Task RecalculatePurchasedVsPaidAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var (windowStart, windowEnd) = SelectedPurchasedVsPaidWindow?.Window switch
+        {
+            PurchasedVsPaidWindow.Month => (new DateOnly(today.Year, today.Month, 1), today),
+            PurchasedVsPaidWindow.Cycle => (CycleStartDate, CycleEndDate < today ? CycleEndDate : today),
+            PurchasedVsPaidWindow.ThreeMonths => (today.AddMonths(-3), today),
+            PurchasedVsPaidWindow.SixMonths => (today.AddMonths(-6), today),
+            PurchasedVsPaidWindow.Year => (today.AddYears(-1), today),
+            _ => (new DateOnly(today.Year, today.Month, 1), today)
+        };
+
+        IsRecalculatingPurchasedVsPaid = true;
+        try
+        {
+            var purchases = await _transactionRepository.GetByDateRangeAndSpendAccountAsync(windowStart, windowEnd, CreditAccountId);
+            var payments = await _transactionRepository.GetCreditCardPaymentsByDateRangeAndCreditAccountAsync(windowStart, windowEnd, CreditAccountId);
+
+            var result = _purchasedVsPaidCalculator.Calculate(CreditAccountId, cardCurrency, windowStart, windowEnd, purchases, payments);
+
+            TotalPurchased = result.TotalPurchased;
+            TotalPaid = result.TotalPaid;
+            PurchasedVsPaidDifference = result.Difference;
+            IsSpendingMoreThanPaying = result.IsSpendingMoreThanPaying;
+        }
+        finally
+        {
+            IsRecalculatingPurchasedVsPaid = false;
+        }
+    }
+
+    partial void OnSelectedPurchasedVsPaidWindowChanged(PurchasedVsPaidWindowOption? value) => RecalculatePurchasedVsPaidCommand.Execute(null);
 
     [RelayCommand]
     private async Task RecordStatementAsync() =>

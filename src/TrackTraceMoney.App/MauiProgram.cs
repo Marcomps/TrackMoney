@@ -46,6 +46,7 @@ public static class MauiProgram
 		builder.Services.AddTransient<CreditCardsListPage>();
 		builder.Services.AddTransient<AddCreditCardViewModel>();
 		builder.Services.AddTransient<AddCreditCardPage>();
+		builder.Services.AddSingleton<ICreditCardPurchasedVsPaidCalculator, CreditCardPurchasedVsPaidCalculator>();
 		builder.Services.AddTransient<CreditCardDetailViewModel>();
 		builder.Services.AddTransient<CreditCardDetailPage>();
 		builder.Services.AddTransient<RecordCreditCardStatementViewModel>();

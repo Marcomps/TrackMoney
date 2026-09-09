@@ -35,6 +35,27 @@
                 <Label Text="{Binding CycleNotClosedMessage}"
                        IsVisible="{Binding CycleIsNotClosed}" />
 
+                <Label Text="{x:Static resources:AppResources.CreditCardDetail_PurchasedVsPaidTitle}" FontAttributes="Bold" Margin="0,12,0,0" />
+                <Label Text="{x:Static resources:AppResources.CreditCardDetail_PurchasedVsPaidWindowLabel}" />
+                <Picker ItemsSource="{Binding PurchasedVsPaidWindowOptions}" SelectedItem="{Binding SelectedPurchasedVsPaidWindow}">
+                    <Picker.ItemDisplayBinding>
+                        <Binding Path="Label" />
+                    </Picker.ItemDisplayBinding>
+                </Picker>
+                <Label Text="{x:Static resources:AppResources.CreditCardDetail_PurchasedVsPaidPurchasedLabel}" />
+                <Label Text="{Binding TotalPurchased, StringFormat='{0:N2}'}" />
+                <Label Text="{x:Static resources:AppResources.CreditCardDetail_PurchasedVsPaidPaidLabel}" />
+                <Label Text="{Binding TotalPaid, StringFormat='{0:N2}'}" />
+                <Label>
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding PurchasedVsPaidIndicatorEmoji}" />
+                            <Span Text=" " />
+                            <Span Text="{Binding PurchasedVsPaidIndicatorMessage}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+
                 <Label Text="{x:Static resources:AppResources.CreditCardDetail_StatementHistoryTitle}"
                        FontAttributes="Bold"
                        Margin="0,12,0,0" />

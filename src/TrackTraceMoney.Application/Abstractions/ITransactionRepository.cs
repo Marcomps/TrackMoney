@@ -29,4 +29,13 @@ public interface ITransactionRepository : IRepository<Transaction>
     /// GetByDateRangeAndCategoryAsync.
     /// </summary>
     Task<IReadOnlyList<Transaction>> GetByDateRangeAndSpendAccountAsync(DateOnly from, DateOnly to, Guid spendAccountId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Every CreditCardPayment in a date range targeting the given credit account (README §17
+    /// "purchased vs. paid"). Unlike GetByDateRangeAndCategoryAsync/GetByDateRangeAndSpendAccountAsync,
+    /// this is not a polymorphic virtual-property match — CreditAccountId is a real mapped column on
+    /// CreditCardPayment specifically, so the type+column filter is pushed into the EF query itself.
+    /// </summary>
+    Task<IReadOnlyList<CreditCardPayment>> GetCreditCardPaymentsByDateRangeAndCreditAccountAsync(
+        DateOnly from, DateOnly to, Guid creditAccountId, CancellationToken ct = default);
 }
