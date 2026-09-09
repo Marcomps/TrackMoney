@@ -46,6 +46,10 @@ public static class MauiProgram
 		builder.Services.AddTransient<CreditCardsListPage>();
 		builder.Services.AddTransient<AddCreditCardViewModel>();
 		builder.Services.AddTransient<AddCreditCardPage>();
+		builder.Services.AddTransient<CreditCardDetailViewModel>();
+		builder.Services.AddTransient<CreditCardDetailPage>();
+		builder.Services.AddTransient<RecordCreditCardStatementViewModel>();
+		builder.Services.AddTransient<RecordCreditCardStatementPage>();
 
 		builder.Services.AddSingleton<ILocalNotifier, AndroidLocalNotifier>();
 		builder.Services.AddScoped<ITransactionEntryService, TransactionEntryService>();

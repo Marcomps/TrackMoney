@@ -18,4 +18,15 @@ public interface ITransactionRepository : IRepository<Transaction>
     /// needs one category's spend, not every transaction across every account/category for the period.
     /// </summary>
     Task<IReadOnlyList<Transaction>> GetByDateRangeAndCategoryAsync(DateOnly from, DateOnly to, Guid categoryId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Every transaction within a date range whose <see cref="Transaction.SpendAccountId"/> matches the
+    /// given account — used to compute a credit card statement cycle's purchase total (README §15) without
+    /// storing any transaction→statement association. Only CreditCardPurchase currently overrides
+    /// SpendAccountId to a CreditAccountId (CreditCardPayment leaves it null, the base default), so this
+    /// naturally excludes payments — no separate type check needed. Client-side filtered after the
+    /// date-range query since SpendAccountId isn't a mapped column, same reasoning as
+    /// GetByDateRangeAndCategoryAsync.
+    /// </summary>
+    Task<IReadOnlyList<Transaction>> GetByDateRangeAndSpendAccountAsync(DateOnly from, DateOnly to, Guid spendAccountId, CancellationToken ct = default);
 }

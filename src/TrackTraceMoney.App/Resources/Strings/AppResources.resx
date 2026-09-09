@@ -202,6 +202,63 @@
   <data name="AddCreditCard_ValidationPaymentDueDayInvalid" xml:space="preserve">
     <value>El día de pago debe estar entre 1 y 31.</value>
   </data>
+  <data name="CreditCardDetail_CurrentCycleLabel" xml:space="preserve">
+    <value>Ciclo actual</value>
+  </data>
+  <data name="CreditCardDetail_PurchasesThisCycleLabel" xml:space="preserve">
+    <value>Compras en este ciclo</value>
+  </data>
+  <data name="CreditCardDetail_CycleNotClosedMessage" xml:space="preserve">
+    <value>El ciclo aún no cierra. Podrás registrar el estado de cuenta a partir del {0}.</value>
+  </data>
+  <data name="CreditCardDetail_RecordStatementButton" xml:space="preserve">
+    <value>Registrar estado de cuenta</value>
+  </data>
+  <data name="CreditCardDetail_StatementHistoryTitle" xml:space="preserve">
+    <value>Historial de estados de cuenta</value>
+  </data>
+  <data name="CreditCardDetail_NoStatementsYet" xml:space="preserve">
+    <value>Aún no hay estados de cuenta registrados.</value>
+  </data>
+  <data name="CreditCardDetail_LatestStatementLabel" xml:space="preserve">
+    <value>Compras del ciclo:</value>
+  </data>
+  <data name="CreditCardDetail_DueDateLabel" xml:space="preserve">
+    <value>Fecha límite de pago:</value>
+  </data>
+  <data name="RecordCreditCardStatement_Title" xml:space="preserve">
+    <value>Registrar estado de cuenta</value>
+  </data>
+  <data name="RecordCreditCardStatement_EditTitle" xml:space="preserve">
+    <value>Editar estado de cuenta</value>
+  </data>
+  <data name="RecordCreditCardStatement_CycleLabel" xml:space="preserve">
+    <value>Ciclo</value>
+  </data>
+  <data name="RecordCreditCardStatement_PurchasesLabel" xml:space="preserve">
+    <value>Compras de este ciclo</value>
+  </data>
+  <data name="RecordCreditCardStatement_MinimumPaymentLabel" xml:space="preserve">
+    <value>Pago mínimo</value>
+  </data>
+  <data name="RecordCreditCardStatement_PayInFullAmountLabel" xml:space="preserve">
+    <value>Pago para evitar intereses</value>
+  </data>
+  <data name="RecordCreditCardStatement_ValidationMinimumPaymentInvalid" xml:space="preserve">
+    <value>El pago mínimo debe ser un número válido y no negativo.</value>
+  </data>
+  <data name="RecordCreditCardStatement_ValidationPayInFullAmountInvalid" xml:space="preserve">
+    <value>El pago para evitar intereses debe ser un número válido y no negativo.</value>
+  </data>
+  <data name="RecordCreditCardStatement_ValidationCycleNotClosed" xml:space="preserve">
+    <value>El ciclo aún no cierra. Podrás registrar el estado de cuenta a partir del {0}.</value>
+  </data>
+  <data name="RecordCreditCardStatement_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="RecordCreditCardStatement_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
   <data name="Transactions_Title" xml:space="preserve">
     <value>Movimientos</value>
   </data>

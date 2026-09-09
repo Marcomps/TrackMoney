@@ -225,6 +225,11 @@ public sealed class RecurringExpenseServiceTests
                 .Where(t => t.Date >= from && t.Date <= to && t.SpendCategoryId == categoryId)
                 .ToList());
 
+        public Task<IReadOnlyList<Transaction>> GetByDateRangeAndSpendAccountAsync(DateOnly from, DateOnly to, Guid spendAccountId, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Transaction>>(_transactions
+                .Where(t => t.Date >= from && t.Date <= to && t.SpendAccountId == spendAccountId)
+                .ToList());
+
         public Task AddAsync(Transaction entity, CancellationToken ct = default)
         {
             _transactions.Add(entity);

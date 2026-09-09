@@ -96,4 +96,33 @@ public sealed class CreditCard : CreditAccount
         AnnualInterestRate = annualInterestRate;
         MonthlyInterestRate = monthlyInterestRate;
     }
+
+    /// <summary>
+    /// The next date on/after <paramref name="onOrAfter"/> whose day-of-month is <paramref name="dayOfMonth"/>,
+    /// clamping to the last day of a short month (e.g. day 31 in February becomes the 28th/29th) rather than
+    /// rolling into the next month. Always recomputed from the target year/month — never derived by AddMonths-ing
+    /// a previously clamped date — so a short month never permanently shifts the configured day going forward
+    /// (unlike RecurringExpense.Advance's accepted AddMonths-drift limitation, which doesn't apply here because
+    /// StatementCutOffDay/PaymentDueDay are stable stored ints to recompute from every time, not a running date).
+    /// </summary>
+    public DateOnly GetNextDateForDayOfMonth(int dayOfMonth, DateOnly onOrAfter)
+    {
+        var candidate = ClampedDate(onOrAfter.Year, onOrAfter.Month, dayOfMonth);
+        return candidate >= onOrAfter ? candidate : ClampedDate(onOrAfter.AddMonths(1).Year, onOrAfter.AddMonths(1).Month, dayOfMonth);
+    }
+
+    public DateOnly GetCutOffDateOnOrAfter(DateOnly date) => GetNextDateForDayOfMonth(StatementCutOffDay, date);
+
+    /// <summary>
+    /// The payment due date for a cycle that closed on <paramref name="cutOffDate"/>. Uses the same
+    /// "next date on/after" search starting the day after the cutoff, correctly landing in the same month
+    /// when PaymentDueDay > StatementCutOffDay, or the following month otherwise — matches README §15's
+    /// worked example (cutoff 25 → due date Oct 10) with no stored ordering assumption between the two
+    /// day-of-month fields (there is none, per this class's existing remarks).
+    /// </summary>
+    public DateOnly GetPaymentDueDateForCycleEndingOn(DateOnly cutOffDate) =>
+        GetNextDateForDayOfMonth(PaymentDueDay, cutOffDate.AddDays(1));
+
+    private static DateOnly ClampedDate(int year, int month, int day) =>
+        new(year, month, Math.Min(day, DateTime.DaysInMonth(year, month)));
 }

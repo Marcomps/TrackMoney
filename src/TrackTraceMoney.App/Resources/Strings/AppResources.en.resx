@@ -202,6 +202,63 @@
   <data name="AddCreditCard_ValidationPaymentDueDayInvalid" xml:space="preserve">
     <value>Payment due day must be between 1 and 31.</value>
   </data>
+  <data name="CreditCardDetail_CurrentCycleLabel" xml:space="preserve">
+    <value>Current cycle</value>
+  </data>
+  <data name="CreditCardDetail_PurchasesThisCycleLabel" xml:space="preserve">
+    <value>Purchases this cycle</value>
+  </data>
+  <data name="CreditCardDetail_CycleNotClosedMessage" xml:space="preserve">
+    <value>This cycle hasn't closed yet. You'll be able to record the statement starting {0}.</value>
+  </data>
+  <data name="CreditCardDetail_RecordStatementButton" xml:space="preserve">
+    <value>Record statement</value>
+  </data>
+  <data name="CreditCardDetail_StatementHistoryTitle" xml:space="preserve">
+    <value>Statement history</value>
+  </data>
+  <data name="CreditCardDetail_NoStatementsYet" xml:space="preserve">
+    <value>No statements recorded yet.</value>
+  </data>
+  <data name="CreditCardDetail_LatestStatementLabel" xml:space="preserve">
+    <value>Cycle purchases:</value>
+  </data>
+  <data name="CreditCardDetail_DueDateLabel" xml:space="preserve">
+    <value>Payment due date:</value>
+  </data>
+  <data name="RecordCreditCardStatement_Title" xml:space="preserve">
+    <value>Record statement</value>
+  </data>
+  <data name="RecordCreditCardStatement_EditTitle" xml:space="preserve">
+    <value>Edit statement</value>
+  </data>
+  <data name="RecordCreditCardStatement_CycleLabel" xml:space="preserve">
+    <value>Cycle</value>
+  </data>
+  <data name="RecordCreditCardStatement_PurchasesLabel" xml:space="preserve">
+    <value>Purchases this cycle</value>
+  </data>
+  <data name="RecordCreditCardStatement_MinimumPaymentLabel" xml:space="preserve">
+    <value>Minimum payment</value>
+  </data>
+  <data name="RecordCreditCardStatement_PayInFullAmountLabel" xml:space="preserve">
+    <value>Pay-in-full amount</value>
+  </data>
+  <data name="RecordCreditCardStatement_ValidationMinimumPaymentInvalid" xml:space="preserve">
+    <value>Minimum payment must be a valid, non-negative number.</value>
+  </data>
+  <data name="RecordCreditCardStatement_ValidationPayInFullAmountInvalid" xml:space="preserve">
+    <value>Pay-in-full amount must be a valid, non-negative number.</value>
+  </data>
+  <data name="RecordCreditCardStatement_ValidationCycleNotClosed" xml:space="preserve">
+    <value>This cycle hasn't closed yet. You'll be able to record the statement starting {0}.</value>
+  </data>
+  <data name="RecordCreditCardStatement_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="RecordCreditCardStatement_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
   <data name="Transactions_Title" xml:space="preserve">
     <value>Transactions</value>
   </data>

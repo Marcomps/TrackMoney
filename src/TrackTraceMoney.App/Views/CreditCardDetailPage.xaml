@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.CreditCardDetailPage"
+             x:DataType="viewModels:CreditCardDetailViewModel"
+             x:Name="Root"
+             Title="{Binding CardName}">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+
+                <Label Text="{x:Static resources:AppResources.CreditCardDetail_CurrentCycleLabel}" FontAttributes="Bold" />
+                <Label>
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding CycleStartDate}" />
+                            <Span Text=" - " />
+                            <Span Text="{Binding CycleEndDate}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+
+                <Label Text="{x:Static resources:AppResources.CreditCardDetail_PurchasesThisCycleLabel}" />
+                <Label Text="{Binding PurchasesSoFarThisCycle, StringFormat='{0:N2}'}" FontSize="16" />
+
+                <Button Text="{x:Static resources:AppResources.CreditCardDetail_RecordStatementButton}"
+                        Command="{Binding RecordStatementCommand}"
+                        IsVisible="{Binding CanRecordStatement}"
+                        HorizontalOptions="Fill" />
+
+                <Label Text="{Binding CycleNotClosedMessage}"
+                       IsVisible="{Binding CycleIsNotClosed}" />
+
+                <Label Text="{x:Static resources:AppResources.CreditCardDetail_StatementHistoryTitle}"
+                       FontAttributes="Bold"
+                       Margin="0,12,0,0" />
+
+                <Label Text="{x:Static resources:AppResources.CreditCardDetail_NoStatementsYet}"
+                       IsVisible="{Binding IsEmpty}" />
+
+                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Statements}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:CreditCardStatementListItem">
+                            <Border Padding="12" Margin="0,4" StrokeShape="RoundRectangle 8">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenStatementCommand}"
+                                        CommandParameter="{Binding Id}" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout Spacing="2">
+                                    <Label FontAttributes="Bold">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding CycleStartDate}" />
+                                                <Span Text=" - " />
+                                                <Span Text="{Binding CycleEndDate}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label>
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{x:Static resources:AppResources.CreditCardDetail_LatestStatementLabel}" />
+                                                <Span Text=" " />
+                                                <Span Text="{Binding PurchasesThisCycle, StringFormat='{0:N2}'}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label>
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding MinimumPayment, StringFormat='{0:N2}'}" />
+                                                <Span Text=" / " />
+                                                <Span Text="{Binding PayInFullAmount, StringFormat='{0:N2}'}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label>
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{x:Static resources:AppResources.CreditCardDetail_DueDateLabel}" />
+                                                <Span Text=" " />
+                                                <Span Text="{Binding DueDate}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

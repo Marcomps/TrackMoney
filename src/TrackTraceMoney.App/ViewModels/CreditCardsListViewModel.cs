@@ -60,4 +60,8 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
     {
         await Shell.Current.GoToAsync(nameof(AddCreditCardPage));
     }
+
+    [RelayCommand]
+    private static async Task OpenCreditCardAsync(Guid creditAccountId) =>
+        await Shell.Current.GoToAsync($"{nameof(CreditCardDetailPage)}?creditAccountId={creditAccountId}");
 }

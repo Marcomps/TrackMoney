@@ -9,6 +9,8 @@ public partial class AppShell : Shell
 		InitializeComponent();
 		Routing.RegisterRoute(nameof(AddAccountPage), typeof(AddAccountPage));
 		Routing.RegisterRoute(nameof(AddCreditCardPage), typeof(AddCreditCardPage));
+		Routing.RegisterRoute(nameof(CreditCardDetailPage), typeof(CreditCardDetailPage));
+		Routing.RegisterRoute(nameof(RecordCreditCardStatementPage), typeof(RecordCreditCardStatementPage));
 		Routing.RegisterRoute(nameof(AddTransactionPage), typeof(AddTransactionPage));
 		Routing.RegisterRoute(nameof(HistoryPage), typeof(HistoryPage));
 		Routing.RegisterRoute(nameof(AddCategoryPage), typeof(AddCategoryPage));

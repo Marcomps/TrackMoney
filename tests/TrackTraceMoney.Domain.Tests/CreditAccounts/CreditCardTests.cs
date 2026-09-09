@@ -195,4 +195,40 @@ public sealed class CreditCardTests
         card.Reactivate();
         Assert.True(card.IsActive);
     }
+
+    [Fact]
+    public void GetCutOffDateOnOrAfter_ShortMonthClamps_ThenNextCycleDoesNotStayStuckClamped()
+    {
+        var card = CreateCard(statementCutOffDay: 31);
+
+        // The search starts within February 2026 (not a leap year) — the 31st doesn't exist there,
+        // so the cut-off clamps to the 28th.
+        var firstCycleEnd = card.GetCutOffDateOnOrAfter(new DateOnly(2026, 2, 1));
+        Assert.Equal(new DateOnly(2026, 2, 28), firstCycleEnd);
+
+        // The NEXT cycle, starting the day after the clamped date, must correctly recompute the
+        // 31st for March rather than staying stuck at 28 (proves no permanent drift).
+        var secondCycleEnd = card.GetCutOffDateOnOrAfter(firstCycleEnd.AddDays(1));
+        Assert.Equal(new DateOnly(2026, 3, 31), secondCycleEnd);
+    }
+
+    [Fact]
+    public void GetPaymentDueDateForCycleEndingOn_DueDayAfterCutOffDay_RollsToNextMonth()
+    {
+        var card = CreateCard(statementCutOffDay: 25, paymentDueDay: 10);
+
+        var dueDate = card.GetPaymentDueDateForCycleEndingOn(new DateOnly(2026, 9, 25));
+
+        Assert.Equal(new DateOnly(2026, 10, 10), dueDate);
+    }
+
+    [Fact]
+    public void GetPaymentDueDateForCycleEndingOn_DueDayBeforeCutOffDay_StaysInSameMonth()
+    {
+        var card = CreateCard(statementCutOffDay: 5, paymentDueDay: 20);
+
+        var dueDate = card.GetPaymentDueDateForCycleEndingOn(new DateOnly(2026, 9, 5));
+
+        Assert.Equal(new DateOnly(2026, 9, 20), dueDate);
+    }
 }
