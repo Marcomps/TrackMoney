@@ -220,6 +220,9 @@
   <data name="TransactionType_Transfer" xml:space="preserve">
     <value>Transferencia</value>
   </data>
+  <data name="TransactionType_CreditCardPurchase" xml:space="preserve">
+    <value>Compra con tarjeta</value>
+  </data>
   <data name="AddTransaction_Title" xml:space="preserve">
     <value>Nuevo movimiento</value>
   </data>

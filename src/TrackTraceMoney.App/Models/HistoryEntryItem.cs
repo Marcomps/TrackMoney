@@ -58,6 +58,16 @@ public sealed record HistoryEntryItem(
                 [transfer.SourceAccountId, transfer.DestinationAccountId],
                 null,
                 []),
+            CreditCardPurchase purchase => new HistoryEntryItem(
+                purchase.Id,
+                purchase.Date,
+                purchase.Amount,
+                TransactionType.CreditCardPurchase,
+                purchase.Description,
+                accountLabel,
+                [purchase.CreditAccountId],
+                purchase.CategoryId,
+                BuildPersonIds(purchase.PayerPersonId, purchase.BeneficiaryPersonId)),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

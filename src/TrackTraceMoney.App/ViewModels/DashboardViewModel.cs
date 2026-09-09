@@ -13,6 +13,7 @@ namespace TrackTraceMoney.App.ViewModels;
 public sealed partial class DashboardViewModel : ObservableObject
 {
     private readonly IFinancialAccountRepository _accountRepository;
+    private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IBudgetRepository _budgetRepository;
@@ -51,6 +52,7 @@ public sealed partial class DashboardViewModel : ObservableObject
 
     public DashboardViewModel(
         IFinancialAccountRepository accountRepository,
+        ICreditAccountRepository creditAccountRepository,
         ITransactionRepository transactionRepository,
         ICategoryRepository categoryRepository,
         IBudgetRepository budgetRepository,
@@ -60,6 +62,7 @@ public sealed partial class DashboardViewModel : ObservableObject
         IBudgetEvaluator budgetEvaluator)
     {
         _accountRepository = accountRepository;
+        _creditAccountRepository = creditAccountRepository;
         _transactionRepository = transactionRepository;
         _categoryRepository = categoryRepository;
         _budgetRepository = budgetRepository;
@@ -82,19 +85,24 @@ public sealed partial class DashboardViewModel : ObservableObject
             var startOfMonth = new DateOnly(today.Year, today.Month, 1);
 
             var accounts = await _accountRepository.GetActiveAsync();
+            var creditAccounts = await _creditAccountRepository.GetActiveAsync();
             var transactions = await _transactionRepository.GetByDateRangeAsync(startOfMonth, today);
             var budgets = await _budgetRepository.GetForMonthAsync(today.Year, today.Month);
             var categories = await _categoryRepository.GetAllAsync();
             var recurringExpenses = await _recurringExpenseRepository.GetActiveAsync();
 
-            // Tile 1: available balance per currency — never summed across currencies.
+            // Tile 1: available balance per currency — never summed across currencies. Deliberately
+            // FinancialAccount only: CreditAccount.AmountOwed is debt, never "available balance"
+            // (CLAUDE.md hard constraint — a card's debt must never inflate this tile).
             Balances.Clear();
             foreach (var group in accounts.GroupBy(a => a.Currency))
                 Balances.Add(new CurrencyBalance(group.Key, group.Sum(a => a.Balance)));
 
             // Tile 2: income / expenses / available this month — per currency, never blended
-            // (mirrors Tile 1's accounts.GroupBy(a => a.Currency) above).
-            var accountCurrencies = accounts.ToDictionary(a => a.Id, a => a.Currency);
+            // (mirrors Tile 1's accounts.GroupBy(a => a.Currency) above). Includes credit accounts in
+            // the currency lookup (not the balance sum above) so card purchases aren't silently
+            // dropped from the expenses total.
+            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
             var spendingSummary = _spendingCalculator.Calculate(transactions, accountCurrencies);
             var incomeSummary = _incomeCalculator.Calculate(transactions, accountCurrencies);
 

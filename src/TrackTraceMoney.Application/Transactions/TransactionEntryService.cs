@@ -8,6 +8,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
 {
     private readonly ITransactionRepository _transactionRepository;
     private readonly IFinancialAccountRepository _accountRepository;
+    private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly IBudgetRepository _budgetRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly ISpendingCalculator _spendingCalculator;
@@ -16,6 +17,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
     public TransactionEntryService(
         ITransactionRepository transactionRepository,
         IFinancialAccountRepository accountRepository,
+        ICreditAccountRepository creditAccountRepository,
         IBudgetRepository budgetRepository,
         ICategoryRepository categoryRepository,
         ISpendingCalculator spendingCalculator,
@@ -23,6 +25,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
     {
         _transactionRepository = transactionRepository;
         _accountRepository = accountRepository;
+        _creditAccountRepository = creditAccountRepository;
         _budgetRepository = budgetRepository;
         _categoryRepository = categoryRepository;
         _spendingCalculator = spendingCalculator;
@@ -55,7 +58,8 @@ public sealed class TransactionEntryService : ITransactionEntryService
             var startOfMonth = new DateOnly(date.Year, date.Month, 1);
             var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
             var accounts = await _accountRepository.GetAllAsync(ct);
-            var accountCurrencies = accounts.ToDictionary(a => a.Id, a => a.Currency);
+            var creditAccounts = await _creditAccountRepository.GetAllAsync(ct);
+            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
             var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
             spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
         }
@@ -132,5 +136,57 @@ public sealed class TransactionEntryService : ITransactionEntryService
 
         await _transactionRepository.AddAsync(transfer, ct);
         await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    public async Task RecordCreditCardPurchaseAsync(
+        DateOnly date,
+        decimal amount,
+        Guid creditAccountId,
+        Guid categoryId,
+        Guid? payerPersonId,
+        Guid? beneficiaryPersonId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default)
+    {
+        var creditAccount = await _creditAccountRepository.GetByIdAsync(creditAccountId, ct)
+            ?? throw new InvalidOperationException($"Credit account '{creditAccountId}' was not found.");
+
+        // Same budget-crossing check as RecordExpenseAsync — see its comment above. Kept duplicated
+        // here rather than factored into a second service, since the crossing logic must stay in sync
+        // for every spend-counting transaction kind (README §34/§37; CLAUDE.md's #1 risk).
+        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, creditAccount.Currency, ct);
+        decimal spentBefore = 0m;
+        if (budget is not null)
+        {
+            var startOfMonth = new DateOnly(date.Year, date.Month, 1);
+            var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
+            var accounts = await _accountRepository.GetAllAsync(ct);
+            var creditAccounts = await _creditAccountRepository.GetAllAsync(ct);
+            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
+            var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
+            spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
+        }
+
+        var purchase = new CreditCardPurchase(date, amount, creditAccountId, categoryId, beneficiaryPersonId, payerPersonId, description, notes);
+
+        creditAccount.RegisterCharge(amount);
+
+        await _transactionRepository.AddAsync(purchase, ct);
+        await _transactionRepository.SaveChangesAsync(ct);
+
+        if (budget is not null)
+        {
+            var wasOverBudget = spentBefore > budget.Amount;
+            var newSpent = spentBefore + amount;
+            var isOverBudget = newSpent > budget.Amount;
+
+            if (!wasOverBudget && isOverBudget)
+            {
+                var category = await _categoryRepository.GetByIdAsync(categoryId, ct);
+                if (category is not null)
+                    await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
+            }
+        }
     }
 }

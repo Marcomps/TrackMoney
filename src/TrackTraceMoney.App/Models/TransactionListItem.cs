@@ -40,6 +40,13 @@ public sealed record TransactionListItem(
                 TransactionType.Transfer,
                 transfer.Description,
                 accountLabel),
+            CreditCardPurchase purchase => new TransactionListItem(
+                purchase.Id,
+                purchase.Date,
+                purchase.Amount,
+                TransactionType.CreditCardPurchase,
+                purchase.Description,
+                accountLabel),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

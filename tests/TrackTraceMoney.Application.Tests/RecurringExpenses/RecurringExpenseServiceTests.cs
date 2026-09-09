@@ -6,6 +6,7 @@ using TrackTraceMoney.Domain.Accounts;
 using TrackTraceMoney.Domain.Budgets;
 using TrackTraceMoney.Domain.Categories;
 using TrackTraceMoney.Domain.Common;
+using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.Enums;
 using TrackTraceMoney.Domain.RecurringExpenses;
 using TrackTraceMoney.Domain.Transactions;
@@ -30,11 +31,12 @@ public sealed class RecurringExpenseServiceTests
         FakeUnitOfWork UnitOfWork) CreateSut(bool throwOnRecurringExpenseSave = false)
     {
         var accounts = new InMemoryAccountRepository();
+        var creditAccounts = new InMemoryCreditAccountRepository();
         var transactions = new InMemoryTransactionRepository();
         var budgets = new InMemoryBudgetRepository();
         var categories = new InMemoryCategoryRepository();
         var notifier = new FakeLocalNotifier();
-        var transactionEntryService = new TransactionEntryService(transactions, accounts, budgets, categories, new SpendingCalculator(), notifier);
+        var transactionEntryService = new TransactionEntryService(transactions, accounts, creditAccounts, budgets, categories, new SpendingCalculator(), notifier);
 
         var recurringExpenses = new InMemoryRecurringExpenseRepository { ThrowOnSaveChanges = throwOnRecurringExpenseSave };
         var unitOfWork = new FakeUnitOfWork();
@@ -230,6 +232,30 @@ public sealed class RecurringExpenseServiceTests
         }
 
         public void Remove(Transaction entity) => _transactions.Remove(entity);
+
+        public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class InMemoryCreditAccountRepository : ICreditAccountRepository
+    {
+        private readonly Dictionary<Guid, CreditAccount> _creditAccounts = new();
+
+        public Task<CreditAccount?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+            Task.FromResult(_creditAccounts.GetValueOrDefault(id));
+
+        public Task<IReadOnlyList<CreditAccount>> GetAllAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<CreditAccount>>(_creditAccounts.Values.ToList());
+
+        public Task<IReadOnlyList<CreditAccount>> GetActiveAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<CreditAccount>>(_creditAccounts.Values.Where(a => a.IsActive).ToList());
+
+        public Task AddAsync(CreditAccount entity, CancellationToken ct = default)
+        {
+            _creditAccounts[entity.Id] = entity;
+            return Task.CompletedTask;
+        }
+
+        public void Remove(CreditAccount entity) => _creditAccounts.Remove(entity.Id);
 
         public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
     }

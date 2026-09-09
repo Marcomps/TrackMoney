@@ -17,7 +17,9 @@ internal sealed class TransactionRepository : RepositoryBase<Transaction>, ITran
             .ToListAsync(ct), ct);
 
     public Task<IReadOnlyList<Transaction>> GetByDateRangeAndCategoryAsync(DateOnly from, DateOnly to, Guid categoryId, CancellationToken ct = default) =>
-        GuardedAsync<IReadOnlyList<Transaction>>(async () => (await Context.Set<Expense>()
-            .Where(e => e.Date >= from && e.Date <= to && e.CategoryId == categoryId)
-            .ToListAsync(ct)).Cast<Transaction>().ToList(), ct);
+        GuardedAsync<IReadOnlyList<Transaction>>(async () => (await Context.Set<Transaction>()
+            .Where(t => t.Date >= from && t.Date <= to)
+            .ToListAsync(ct))
+            .Where(t => t.SpendCategoryId == categoryId)
+            .ToList(), ct);
 }

@@ -36,4 +36,22 @@ public interface ITransactionEntryService
         string? description,
         string? notes,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Records a purchase made on a credit card (README §11 "Payment method" = Credit card). This is
+    /// the expense — it increases the card's <see cref="Domain.CreditAccounts.CreditAccount.AmountOwed"/>
+    /// (debt) and counts as spend. The later payment of that debt is a separate, not-yet-built
+    /// <c>CreditCardPayment</c> transaction that reduces a bank account's balance and the card's debt —
+    /// it must never be recorded as a second expense (CLAUDE.md's #1 correctness risk).
+    /// </summary>
+    Task RecordCreditCardPurchaseAsync(
+        DateOnly date,
+        decimal amount,
+        Guid creditAccountId,
+        Guid categoryId,
+        Guid? payerPersonId,
+        Guid? beneficiaryPersonId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default);
 }

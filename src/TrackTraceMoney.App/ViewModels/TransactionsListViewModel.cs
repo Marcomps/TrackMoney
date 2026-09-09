@@ -12,6 +12,7 @@ public sealed partial class TransactionsListViewModel : ObservableObject
 {
     private readonly ITransactionRepository _transactionRepository;
     private readonly IFinancialAccountRepository _accountRepository;
+    private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly ICategoryRepository _categoryRepository;
 
     [ObservableProperty]
@@ -28,10 +29,12 @@ public sealed partial class TransactionsListViewModel : ObservableObject
     public TransactionsListViewModel(
         ITransactionRepository transactionRepository,
         IFinancialAccountRepository accountRepository,
+        ICreditAccountRepository creditAccountRepository,
         ICategoryRepository categoryRepository)
     {
         _transactionRepository = transactionRepository;
         _accountRepository = accountRepository;
+        _creditAccountRepository = creditAccountRepository;
         _categoryRepository = categoryRepository;
     }
 
@@ -45,9 +48,10 @@ public sealed partial class TransactionsListViewModel : ObservableObject
         try
         {
             var accounts = await _accountRepository.GetAllAsync();
+            var creditAccounts = await _creditAccountRepository.GetAllAsync();
             var categories = await _categoryRepository.GetAllAsync();
 
-            var accountNames = accounts.ToDictionary(a => a.Id, a => a.Name);
+            var accountNames = AccountNameMapBuilder.Build(accounts, creditAccounts);
             var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
 
             var today = DateOnly.FromDateTime(DateTime.Today);

@@ -26,6 +26,7 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
         builder.HasDiscriminator<string>("TransactionType")
             .HasValue<Income>("Income")
             .HasValue<Expense>("Expense")
-            .HasValue<Transfer>("Transfer");
+            .HasValue<Transfer>("Transfer")
+            .HasValue<CreditCardPurchase>("CreditCardPurchase");
     }
 }

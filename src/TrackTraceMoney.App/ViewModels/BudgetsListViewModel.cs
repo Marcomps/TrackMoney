@@ -16,6 +16,7 @@ public sealed partial class BudgetsListViewModel : ObservableObject
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IFinancialAccountRepository _accountRepository;
+    private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly ISpendingCalculator _spendingCalculator;
     private readonly IBudgetEvaluator _budgetEvaluator;
 
@@ -35,6 +36,7 @@ public sealed partial class BudgetsListViewModel : ObservableObject
         ITransactionRepository transactionRepository,
         ICategoryRepository categoryRepository,
         IFinancialAccountRepository accountRepository,
+        ICreditAccountRepository creditAccountRepository,
         ISpendingCalculator spendingCalculator,
         IBudgetEvaluator budgetEvaluator)
     {
@@ -42,6 +44,7 @@ public sealed partial class BudgetsListViewModel : ObservableObject
         _transactionRepository = transactionRepository;
         _categoryRepository = categoryRepository;
         _accountRepository = accountRepository;
+        _creditAccountRepository = creditAccountRepository;
         _spendingCalculator = spendingCalculator;
         _budgetEvaluator = budgetEvaluator;
     }
@@ -62,9 +65,10 @@ public sealed partial class BudgetsListViewModel : ObservableObject
             var transactions = await _transactionRepository.GetByDateRangeAsync(startOfMonth, today);
             var categories = await _categoryRepository.GetAllAsync();
             var accounts = await _accountRepository.GetAllAsync();
+            var creditAccounts = await _creditAccountRepository.GetAllAsync();
 
             var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
-            var accountCurrencies = accounts.ToDictionary(a => a.Id, a => a.Currency);
+            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
 
             var summary = _spendingCalculator.Calculate(transactions, accountCurrencies);
             // BudgetEvaluator.Evaluate returns one status per input budget, in the same order — zipped

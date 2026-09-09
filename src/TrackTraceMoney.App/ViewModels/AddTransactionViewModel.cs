@@ -14,6 +14,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 {
     private readonly ITransactionEntryService _transactionEntryService;
     private readonly IFinancialAccountRepository _accountRepository;
+    private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IPersonRepository _personRepository;
 
@@ -62,9 +63,23 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     [ObservableProperty]
     private bool isBusy;
 
-    public IReadOnlyList<TransactionType> AvailableTypes { get; } = Enum.GetValues<TransactionType>();
+    // CreditCardPurchase is deliberately excluded: a card purchase is entered through the Expense
+    // block below (README §11's "Payment method" field), not as its own top-level Type — this Picker
+    // must keep mirroring README §45's quick-action menu, which has no separate "Card purchase" item.
+    public IReadOnlyList<TransactionType> AvailableTypes { get; } =
+        Enum.GetValues<TransactionType>().Where(t => t != TransactionType.CreditCardPurchase).ToList();
 
     public ObservableCollection<NamedOption> Accounts { get; } = [];
+
+    /// <summary>
+    /// Backs ONLY the Expense block's Account picker — includes both <c>FinancialAccount</c>s and
+    /// credit cards (README §11's "Payment method" field), unlike <see cref="Accounts"/> which stays
+    /// FinancialAccount-only and still backs Income's destination picker and Transfer's source/
+    /// destination pickers. Cards must never be selectable there: <c>Transfer</c>/<c>Income</c> only
+    /// work with <c>FinancialAccount.Credit</c>/<c>Debit</c>, and <c>CreditAccount</c> has no such
+    /// methods (hard constraint).
+    /// </summary>
+    public ObservableCollection<NamedOption> PaymentAccounts { get; } = [];
 
     public ObservableCollection<NamedOption> Categories { get; } = [];
 
@@ -79,11 +94,13 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     public AddTransactionViewModel(
         ITransactionEntryService transactionEntryService,
         IFinancialAccountRepository accountRepository,
+        ICreditAccountRepository creditAccountRepository,
         ICategoryRepository categoryRepository,
         IPersonRepository personRepository)
     {
         _transactionEntryService = transactionEntryService;
         _accountRepository = accountRepository;
+        _creditAccountRepository = creditAccountRepository;
         _categoryRepository = categoryRepository;
         _personRepository = personRepository;
     }
@@ -92,12 +109,21 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private async Task LoadOptionsAsync()
     {
         var accounts = await _accountRepository.GetActiveAsync();
+        var creditAccounts = await _creditAccountRepository.GetActiveAsync();
         var categories = await _categoryRepository.GetAllAsync();
         var people = await _personRepository.GetAllAsync();
 
         Accounts.Clear();
         foreach (var account in accounts)
             Accounts.Add(new NamedOption(account.Id, account.Name, account.Currency));
+
+        // README §14's own example uses a "💳 " prefix for cards (e.g. "💳 BAC Card"); the Picker
+        // renders via NamedOption.ToString(), so no ItemDisplayBinding is needed for this prefix.
+        PaymentAccounts.Clear();
+        foreach (var account in accounts)
+            PaymentAccounts.Add(new NamedOption(account.Id, account.Name, account.Currency, IsCreditAccount: false));
+        foreach (var creditAccount in creditAccounts)
+            PaymentAccounts.Add(new NamedOption(creditAccount.Id, $"💳 {creditAccount.Name}", creditAccount.Currency, IsCreditAccount: true));
 
         Categories.Clear();
         foreach (var category in categories)
@@ -140,15 +166,30 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         return;
                     }
 
-                    await _transactionEntryService.RecordExpenseAsync(
-                        date,
-                        amount,
-                        SelectedAccount.Id,
-                        SelectedCategory.Id,
-                        AsNullableId(SelectedPayer),
-                        AsNullableId(SelectedBeneficiary),
-                        Description,
-                        Notes);
+                    if (SelectedAccount.IsCreditAccount)
+                    {
+                        await _transactionEntryService.RecordCreditCardPurchaseAsync(
+                            date,
+                            amount,
+                            SelectedAccount.Id,
+                            SelectedCategory.Id,
+                            AsNullableId(SelectedPayer),
+                            AsNullableId(SelectedBeneficiary),
+                            Description,
+                            Notes);
+                    }
+                    else
+                    {
+                        await _transactionEntryService.RecordExpenseAsync(
+                            date,
+                            amount,
+                            SelectedAccount.Id,
+                            SelectedCategory.Id,
+                            AsNullableId(SelectedPayer),
+                            AsNullableId(SelectedBeneficiary),
+                            Description,
+                            Notes);
+                    }
                     break;
 
                 case TransactionType.Income:

@@ -14,13 +14,15 @@ namespace TrackTraceMoney.App.ViewModels;
 /// ever recorded, as opposed to <see cref="TransactionsListViewModel"/> which only shows the current
 /// month. Filters are applied in-memory over a single <c>ITransactionRepository.GetAllAsync</c>
 /// snapshot (offline-first, local SQLite, MVP volume — no pagination/server-side filtering needed).
-/// "Card" and "Status" filters from README's example are intentionally omitted: credit card accounts
-/// are Phase 2, and "Status" has no backing field on <c>Transaction</c> yet.
+/// The "Card" filter from README's example is covered by <see cref="AccountOptions"/>, which now
+/// includes credit cards alongside <c>FinancialAccount</c>s. "Status" is still intentionally omitted:
+/// it has no backing field on <c>Transaction</c> yet.
 /// </summary>
 public sealed partial class HistoryViewModel : ObservableObject
 {
     private readonly ITransactionRepository _transactionRepository;
     private readonly IFinancialAccountRepository _accountRepository;
+    private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IPersonRepository _personRepository;
 
@@ -72,11 +74,13 @@ public sealed partial class HistoryViewModel : ObservableObject
     public HistoryViewModel(
         ITransactionRepository transactionRepository,
         IFinancialAccountRepository accountRepository,
+        ICreditAccountRepository creditAccountRepository,
         ICategoryRepository categoryRepository,
         IPersonRepository personRepository)
     {
         _transactionRepository = transactionRepository;
         _accountRepository = accountRepository;
+        _creditAccountRepository = creditAccountRepository;
         _categoryRepository = categoryRepository;
         _personRepository = personRepository;
 
@@ -97,11 +101,12 @@ public sealed partial class HistoryViewModel : ObservableObject
         try
         {
             var accounts = await _accountRepository.GetAllAsync();
+            var creditAccounts = await _creditAccountRepository.GetAllAsync();
             var categories = await _categoryRepository.GetAllAsync();
             var people = await _personRepository.GetAllAsync();
             var transactions = await _transactionRepository.GetAllAsync();
 
-            var accountNames = accounts.ToDictionary(a => a.Id, a => a.Name);
+            var accountNames = AccountNameMapBuilder.Build(accounts, creditAccounts);
             var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
 
             _allEntries = transactions
@@ -112,6 +117,8 @@ public sealed partial class HistoryViewModel : ObservableObject
             AccountOptions.Add(new NamedOption(Guid.Empty, AppResources.History_AllAccountsOption));
             foreach (var account in accounts)
                 AccountOptions.Add(new NamedOption(account.Id, account.Name, account.Currency));
+            foreach (var creditAccount in creditAccounts)
+                AccountOptions.Add(new NamedOption(creditAccount.Id, $"💳 {creditAccount.Name}", creditAccount.Currency, IsCreditAccount: true));
 
             CategoryOptions.Clear();
             CategoryOptions.Add(new NamedOption(Guid.Empty, AppResources.History_AllCategoriesOption));
