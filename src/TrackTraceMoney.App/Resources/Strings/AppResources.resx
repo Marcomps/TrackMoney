@@ -124,6 +124,84 @@
   <data name="AddAccount_ValidationGoalInvalid" xml:space="preserve">
     <value>La meta debe ser un número válido y no negativo.</value>
   </data>
+  <data name="Credit_Title" xml:space="preserve">
+    <value>Crédito</value>
+  </data>
+  <data name="CreditCards_Empty" xml:space="preserve">
+    <value>Aún no tienes tarjetas de crédito. Agrega la primera para comenzar.</value>
+  </data>
+  <data name="CreditCards_AddButton" xml:space="preserve">
+    <value>Agregar tarjeta</value>
+  </data>
+  <data name="AddCreditCard_Title" xml:space="preserve">
+    <value>Nueva tarjeta de crédito</value>
+  </data>
+  <data name="AddCreditCard_NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="AddCreditCard_IssuerLabel" xml:space="preserve">
+    <value>Emisor</value>
+  </data>
+  <data name="AddCreditCard_LastFourDigitsLabel" xml:space="preserve">
+    <value>Últimos 4 dígitos (opcional)</value>
+  </data>
+  <data name="AddCreditCard_CurrencyLabel" xml:space="preserve">
+    <value>Moneda</value>
+  </data>
+  <data name="AddCreditCard_CreditLimitLabel" xml:space="preserve">
+    <value>Límite de crédito</value>
+  </data>
+  <data name="AddCreditCard_AmountOwedLabel" xml:space="preserve">
+    <value>Saldo adeudado inicial</value>
+  </data>
+  <data name="AddCreditCard_AnnualInterestRateLabel" xml:space="preserve">
+    <value>Tasa de interés anual (opcional)</value>
+  </data>
+  <data name="AddCreditCard_MonthlyInterestRateLabel" xml:space="preserve">
+    <value>Tasa de interés mensual (opcional)</value>
+  </data>
+  <data name="AddCreditCard_StatementCutOffDayLabel" xml:space="preserve">
+    <value>Día de corte</value>
+  </data>
+  <data name="AddCreditCard_PaymentDueDayLabel" xml:space="preserve">
+    <value>Día de pago</value>
+  </data>
+  <data name="AddCreditCard_NotesLabel" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="AddCreditCard_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="AddCreditCard_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddCreditCard_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="AddCreditCard_ValidationIssuerRequired" xml:space="preserve">
+    <value>El emisor es obligatorio.</value>
+  </data>
+  <data name="AddCreditCard_ValidationLastFourDigitsInvalid" xml:space="preserve">
+    <value>Los últimos 4 dígitos deben ser exactamente 4 números.</value>
+  </data>
+  <data name="AddCreditCard_ValidationCreditLimitInvalid" xml:space="preserve">
+    <value>El límite de crédito debe ser un número mayor que cero.</value>
+  </data>
+  <data name="AddCreditCard_ValidationAmountOwedInvalid" xml:space="preserve">
+    <value>El saldo adeudado inicial debe ser un número válido y no negativo.</value>
+  </data>
+  <data name="AddCreditCard_ValidationAnnualInterestRateInvalid" xml:space="preserve">
+    <value>La tasa de interés anual debe ser un número válido y no negativo.</value>
+  </data>
+  <data name="AddCreditCard_ValidationMonthlyInterestRateInvalid" xml:space="preserve">
+    <value>La tasa de interés mensual debe ser un número válido y no negativo.</value>
+  </data>
+  <data name="AddCreditCard_ValidationStatementCutOffDayInvalid" xml:space="preserve">
+    <value>El día de corte debe estar entre 1 y 31.</value>
+  </data>
+  <data name="AddCreditCard_ValidationPaymentDueDayInvalid" xml:space="preserve">
+    <value>El día de pago debe estar entre 1 y 31.</value>
+  </data>
   <data name="Transactions_Title" xml:space="preserve">
     <value>Movimientos</value>
   </data>

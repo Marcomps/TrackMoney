@@ -5,10 +5,12 @@ using TrackTraceMoney.Domain.Accounts;
 namespace TrackTraceMoney.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-/// Table-per-hierarchy mapping for every asset/liability account type. New account types (Phase 2
-/// credit cards/loans, Phase 3 term deposits/investment funds) get their own
-/// <c>.HasValue&lt;T&gt;("...")</c> line here plus their own IEntityTypeConfiguration for
-/// type-specific columns — see BankAccountConfiguration/SavingsAccountConfiguration.
+/// Table-per-hierarchy mapping for every asset account type. New asset account types (Phase 3 term
+/// deposits/investment funds) get their own <c>.HasValue&lt;T&gt;("...")</c> line here plus their own
+/// IEntityTypeConfiguration for type-specific columns — see BankAccountConfiguration/
+/// SavingsAccountConfiguration. Credit cards/loans (Phase 2) are liabilities mapped by a separate TPH
+/// hierarchy rooted at <c>CreditAccount</c> (see CreditAccountConfiguration) — they deliberately do not
+/// join this table/hierarchy.
 /// </summary>
 public sealed class FinancialAccountConfiguration : IEntityTypeConfiguration<FinancialAccount>
 {

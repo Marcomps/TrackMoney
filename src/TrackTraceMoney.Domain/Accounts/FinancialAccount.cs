@@ -4,10 +4,13 @@ using TrackTraceMoney.Domain.Enums;
 namespace TrackTraceMoney.Domain.Accounts;
 
 /// <summary>
-/// Base for every asset/liability product the app tracks (README §8). Phase 1 ships the asset
-/// subtypes below (<see cref="CashAccount"/>, <see cref="BankAccount"/>, <see cref="SavingsAccount"/>);
-/// credit cards/loans (Phase 2) and term deposits/investment funds (Phase 3) are deliberately not
-/// modeled yet — see CLAUDE.md's roadmap phase boundaries.
+/// Base for every asset account the app tracks (README §8). Phase 1 ships the asset subtypes below
+/// (<see cref="CashAccount"/>, <see cref="BankAccount"/>, <see cref="SavingsAccount"/>); term deposits/
+/// investment funds (Phase 3) are deliberately not modeled yet — see CLAUDE.md's roadmap phase
+/// boundaries. Credit cards/loans (Phase 2) are liabilities and live in a separate, sibling hierarchy
+/// rooted at <see cref="TrackTraceMoney.Domain.CreditAccounts.CreditAccount"/> — not a subtype of this
+/// class and not part of this TPH hierarchy — because <see cref="Credit"/>/<see cref="Debit"/> model
+/// *available funds*, which means the opposite of what a liability's "amount owed" means.
 /// </summary>
 public abstract class FinancialAccount : Entity
 {
