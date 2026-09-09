@@ -189,4 +189,36 @@ public sealed class TransactionEntryService : ITransactionEntryService
             }
         }
     }
+
+    public async Task RecordCreditCardPaymentAsync(
+        DateOnly date,
+        decimal amount,
+        Guid sourceAccountId,
+        Guid creditAccountId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default)
+    {
+        var sourceAccount = await _accountRepository.GetByIdAsync(sourceAccountId, ct)
+            ?? throw new InvalidOperationException($"Account '{sourceAccountId}' was not found.");
+
+        var creditAccount = await _creditAccountRepository.GetByIdAsync(creditAccountId, ct)
+            ?? throw new InvalidOperationException($"Credit account '{creditAccountId}' was not found.");
+
+        // README §6/§10: same cross-currency rejection as RecordTransferAsync — no conversion feature
+        // in scope, so a numeric amount can't be safely applied to accounts in different currencies.
+        if (sourceAccount.Currency != creditAccount.Currency)
+            throw new InvalidOperationException(
+                $"Cannot pay a card with an account in a different currency ({sourceAccount.Currency} -> {creditAccount.Currency}) without currency conversion support.");
+
+        var payment = new CreditCardPayment(date, amount, sourceAccountId, creditAccountId, description, notes);
+
+        // Credit side first: RegisterPayment's overpayment guard is the stricter/newer invariant — if it
+        // throws, the source account must not have been mutated yet.
+        creditAccount.RegisterPayment(amount);
+        sourceAccount.Debit(amount);
+
+        await _transactionRepository.AddAsync(payment, ct);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
 }

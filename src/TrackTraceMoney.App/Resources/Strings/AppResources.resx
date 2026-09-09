@@ -223,6 +223,9 @@
   <data name="TransactionType_CreditCardPurchase" xml:space="preserve">
     <value>Compra con tarjeta</value>
   </data>
+  <data name="TransactionType_CreditCardPayment" xml:space="preserve">
+    <value>Pago de tarjeta</value>
+  </data>
   <data name="AddTransaction_Title" xml:space="preserve">
     <value>Nuevo movimiento</value>
   </data>
@@ -243,6 +246,9 @@
   </data>
   <data name="AddTransaction_SourceAccountLabel" xml:space="preserve">
     <value>Cuenta origen</value>
+  </data>
+  <data name="AddTransaction_CardLabel" xml:space="preserve">
+    <value>Tarjeta</value>
   </data>
   <data name="AddTransaction_CategoryLabel" xml:space="preserve">
     <value>Categoría</value>

@@ -5,5 +5,6 @@ public enum TransactionType
     Expense,
     Income,
     Transfer,
-    CreditCardPurchase
+    CreditCardPurchase,
+    CreditCardPayment
 }

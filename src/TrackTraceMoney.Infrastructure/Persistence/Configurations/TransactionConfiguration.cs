@@ -27,6 +27,7 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
             .HasValue<Income>("Income")
             .HasValue<Expense>("Expense")
             .HasValue<Transfer>("Transfer")
-            .HasValue<CreditCardPurchase>("CreditCardPurchase");
+            .HasValue<CreditCardPurchase>("CreditCardPurchase")
+            .HasValue<CreditCardPayment>("CreditCardPayment");
     }
 }

@@ -57,6 +57,14 @@
                 <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedDestinationAccount}" />
             </VerticalStackLayout>
 
+            <VerticalStackLayout IsVisible="{Binding IsCreditCardPayment}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddTransaction_SourceAccountLabel}" />
+                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedCardPaymentSource}" />
+
+                <Label Text="{x:Static resources:AppResources.AddTransaction_CardLabel}" />
+                <Picker ItemsSource="{Binding CreditCardOptions}" SelectedItem="{Binding SelectedCardPaymentTarget}" />
+            </VerticalStackLayout>
+
             <Label Text="{x:Static resources:AppResources.AddTransaction_DescriptionLabel}" />
             <Entry Text="{Binding Description}" />
 

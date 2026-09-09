@@ -23,6 +23,8 @@ internal static class TransactionLabelFormatter
                 $"{NameOf(accountNames, transfer.SourceAccountId)} → {NameOf(accountNames, transfer.DestinationAccountId)}",
             CreditCardPurchase purchase =>
                 $"{NameOf(accountNames, purchase.CreditAccountId)} → {NameOf(categoryNames, purchase.CategoryId)}",
+            CreditCardPayment payment =>
+                $"{NameOf(accountNames, payment.SourceAccountId)} → 💳 {NameOf(accountNames, payment.CreditAccountId)}",
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
 

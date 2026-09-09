@@ -290,6 +290,79 @@ public sealed class TransactionEntryServiceTests
         Assert.Equal(110m, spendTotal);
     }
 
+    [Fact]
+    public async Task RecordCreditCardPaymentAsync_DebitsSourceAndReducesDebt_ExactlyOnce()
+    {
+        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        card.RegisterCharge(500m);
+
+        await service.RecordCreditCardPaymentAsync(DateOnly.FromDateTime(DateTime.Today), 300m, checking.Id, card.Id, "Card payment", null);
+
+        Assert.Equal(700m, checking.Balance);
+        Assert.Equal(200m, card.AmountOwed);
+        var recorded = Assert.Single(transactions.All);
+        Assert.IsType<CreditCardPayment>(recorded);
+    }
+
+    [Fact]
+    public async Task RecordCreditCardPaymentAsync_NeverCountsAsSpend_AndNeverTriggersBudgetNotification()
+    {
+        // THE critical test for this slice: the purchase already counted as spend; the payment must
+        // not count again, and must never touch budget/notification machinery at all (CLAUDE.md's #1
+        // correctness risk, inverse direction — do not wire ISpendingCalculator/ILocalNotifier here).
+        var (service, accounts, creditAccounts, transactions, budgets, categories, notifier) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var category = categories.Add(Category.CreateUserDefined("Dining"));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
+
+        // Push spend right up to the budget limit via a purchase in that category.
+        await service.RecordCreditCardPurchaseAsync(today, 100m, card.Id, category.Id, null, null, "At the limit", null);
+        var callsBeforePayment = notifier.Calls.Count;
+
+        // Now pay down the card's debt — unrelated to the category, no category at all on this type.
+        await service.RecordCreditCardPaymentAsync(today, 60m, checking.Id, card.Id, "Card payment", null);
+
+        Assert.Equal(callsBeforePayment, notifier.Calls.Count);
+        var recorded = transactions.All.OfType<CreditCardPayment>().Single();
+        Assert.False(recorded.CountsAsExpense);
+    }
+
+    [Fact]
+    public async Task RecordCreditCardPaymentAsync_Overpayment_ThrowsAndDoesNotMutateEitherSide()
+    {
+        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        card.RegisterCharge(200m);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordCreditCardPaymentAsync(DateOnly.FromDateTime(DateTime.Today), 300m, checking.Id, card.Id, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(1000m, checking.Balance);
+        Assert.Equal(200m, card.AmountOwed);
+    }
+
+    [Fact]
+    public async Task RecordCreditCardPaymentAsync_AcrossDifferentCurrencies_ThrowsAndDoesNotMutateEitherSide()
+    {
+        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var card = creditAccounts.Add(new CreditCard("Tarjeta MXN", CurrencyCode.MXN, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        card.RegisterCharge(500m);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordCreditCardPaymentAsync(DateOnly.FromDateTime(DateTime.Today), 300m, checking.Id, card.Id, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(1000m, checking.Balance);
+        Assert.Equal(500m, card.AmountOwed);
+    }
+
     private sealed class InMemoryAccountRepository : IFinancialAccountRepository
     {
         private readonly Dictionary<Guid, FinancialAccount> _accounts = new();

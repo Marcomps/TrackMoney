@@ -22,6 +22,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsExpense))]
     [NotifyPropertyChangedFor(nameof(IsIncome))]
     [NotifyPropertyChangedFor(nameof(IsTransfer))]
+    [NotifyPropertyChangedFor(nameof(IsCreditCardPayment))]
     private TransactionType selectedType = TransactionType.Expense;
 
     [ObservableProperty]
@@ -50,6 +51,12 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 
     [ObservableProperty]
     private NamedOption? selectedPerson;
+
+    [ObservableProperty]
+    private NamedOption? selectedCardPaymentSource;
+
+    [ObservableProperty]
+    private NamedOption? selectedCardPaymentTarget;
 
     [ObservableProperty]
     private string? description;
@@ -81,6 +88,13 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     /// </summary>
     public ObservableCollection<NamedOption> PaymentAccounts { get; } = [];
 
+    /// <summary>
+    /// Backs ONLY the CreditCardPayment block's Card picker — credit cards only, no <c>💳</c> prefix
+    /// (the screen's own "Card" field label already conveys that), unlike
+    /// <see cref="PaymentAccounts"/> which mixes both hierarchies with a prefix for the Expense block.
+    /// </summary>
+    public ObservableCollection<NamedOption> CreditCardOptions { get; } = [];
+
     public ObservableCollection<NamedOption> Categories { get; } = [];
 
     public ObservableCollection<NamedOption> People { get; } = [];
@@ -90,6 +104,8 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     public bool IsIncome => SelectedType == TransactionType.Income;
 
     public bool IsTransfer => SelectedType == TransactionType.Transfer;
+
+    public bool IsCreditCardPayment => SelectedType == TransactionType.CreditCardPayment;
 
     public AddTransactionViewModel(
         ITransactionEntryService transactionEntryService,
@@ -124,6 +140,10 @@ public sealed partial class AddTransactionViewModel : ObservableObject
             PaymentAccounts.Add(new NamedOption(account.Id, account.Name, account.Currency, IsCreditAccount: false));
         foreach (var creditAccount in creditAccounts)
             PaymentAccounts.Add(new NamedOption(creditAccount.Id, $"💳 {creditAccount.Name}", creditAccount.Currency, IsCreditAccount: true));
+
+        CreditCardOptions.Clear();
+        foreach (var creditAccount in creditAccounts)
+            CreditCardOptions.Add(new NamedOption(creditAccount.Id, creditAccount.Name, creditAccount.Currency, IsCreditAccount: true));
 
         Categories.Clear();
         foreach (var category in categories)
@@ -239,6 +259,28 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         amount,
                         SelectedSourceAccount.Id,
                         SelectedDestinationAccount.Id,
+                        Description,
+                        Notes);
+                    break;
+
+                case TransactionType.CreditCardPayment:
+                    if (SelectedCardPaymentSource is null || SelectedCardPaymentTarget is null)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationAccountRequired;
+                        return;
+                    }
+
+                    if (SelectedCardPaymentSource.Currency != SelectedCardPaymentTarget.Currency)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationCurrencyMismatch;
+                        return;
+                    }
+
+                    await _transactionEntryService.RecordCreditCardPaymentAsync(
+                        date,
+                        amount,
+                        SelectedCardPaymentSource.Id,
+                        SelectedCardPaymentTarget.Id,
                         Description,
                         Notes);
                     break;

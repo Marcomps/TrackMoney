@@ -19,6 +19,7 @@ public sealed class TransactionTypeToLabelConverter : EnumToLabelConverter<Trans
         TransactionType.Income => AppResources.TransactionType_Income,
         TransactionType.Transfer => AppResources.TransactionType_Transfer,
         TransactionType.CreditCardPurchase => AppResources.TransactionType_CreditCardPurchase,
+        TransactionType.CreditCardPayment => AppResources.TransactionType_CreditCardPayment,
         _ => string.Empty
     };
 }

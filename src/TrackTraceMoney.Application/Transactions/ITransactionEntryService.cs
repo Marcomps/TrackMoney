@@ -54,4 +54,19 @@ public interface ITransactionEntryService
         string? description,
         string? notes,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Records a payment against a credit card's debt (README §16, §46). Decreases the source
+    /// FinancialAccount's balance and the CreditAccount's AmountOwed. Never counts as spend — the
+    /// original CreditCardPurchase was the expense; this is only debt settlement. Do not wire budget/
+    /// ISpendingCalculator machinery onto this method (CLAUDE.md's #1 correctness risk, inverse direction).
+    /// </summary>
+    Task RecordCreditCardPaymentAsync(
+        DateOnly date,
+        decimal amount,
+        Guid sourceAccountId,
+        Guid creditAccountId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default);
 }
