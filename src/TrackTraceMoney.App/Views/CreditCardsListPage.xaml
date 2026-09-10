@@ -30,7 +30,15 @@
                                     Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenCreditCardCommand}"
                                     CommandParameter="{Binding Id}" />
                             </Grid.GestureRecognizers>
-                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="16" />
+                            <Label Grid.Row="0" Grid.Column="0" FontSize="16">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding HealthEmoji}" />
+                                        <Span Text=" " />
+                                        <Span Text="{Binding Name}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
                             <Label Grid.Row="1" Grid.Column="0" Text="{Binding Issuer}" FontSize="12" Opacity="0.7" />
                             <Label Grid.Row="2" Grid.Column="0"
                                    Text="{Binding MaskedLastFourDigits}"

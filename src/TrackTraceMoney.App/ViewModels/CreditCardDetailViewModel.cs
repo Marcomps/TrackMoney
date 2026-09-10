@@ -6,6 +6,7 @@ using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
+using TrackTraceMoney.Application.CreditAccounts;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.Enums;
@@ -25,6 +26,7 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
     private readonly ICreditCardStatementRepository _statementRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICreditCardPurchasedVsPaidCalculator _purchasedVsPaidCalculator;
+    private readonly ICreditCardHealthEvaluator _healthEvaluator;
 
     private CurrencyCode cardCurrency;
 
@@ -76,6 +78,12 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
     [ObservableProperty]
     private bool isRecalculatingPurchasedVsPaid;
 
+    [ObservableProperty]
+    private string healthEmoji = string.Empty;
+
+    [ObservableProperty]
+    private string healthMessage = string.Empty;
+
     public ObservableCollection<CreditCardStatementListItem> Statements { get; } = [];
 
     public ObservableCollection<PurchasedVsPaidWindowOption> PurchasedVsPaidWindowOptions { get; } = [];
@@ -97,12 +105,14 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
         ICreditAccountRepository creditAccountRepository,
         ICreditCardStatementRepository statementRepository,
         ITransactionRepository transactionRepository,
-        ICreditCardPurchasedVsPaidCalculator purchasedVsPaidCalculator)
+        ICreditCardPurchasedVsPaidCalculator purchasedVsPaidCalculator,
+        ICreditCardHealthEvaluator healthEvaluator)
     {
         _creditAccountRepository = creditAccountRepository;
         _statementRepository = statementRepository;
         _transactionRepository = transactionRepository;
         _purchasedVsPaidCalculator = purchasedVsPaidCalculator;
+        _healthEvaluator = healthEvaluator;
 
         PurchasedVsPaidWindowOptions.Add(new PurchasedVsPaidWindowOption(PurchasedVsPaidWindow.Month, AppResources.CreditCardDetail_PurchasedVsPaidWindow_Month));
         PurchasedVsPaidWindowOptions.Add(new PurchasedVsPaidWindowOption(PurchasedVsPaidWindow.Cycle, AppResources.CreditCardDetail_PurchasedVsPaidWindow_Cycle));
@@ -132,6 +142,23 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
             var today = DateOnly.FromDateTime(DateTime.Today);
 
             var latestStatement = await _statementRepository.GetLatestForCardAsync(CreditAccountId);
+
+            var paymentsMadeThisCycle = latestStatement is null
+                ? 0m
+                : (await _transactionRepository.GetCreditCardPaymentsByDateRangeAndCreditAccountAsync(
+                    latestStatement.CycleEndDate.AddDays(1), today, CreditAccountId)).Sum(t => t.Amount);
+            var assessment = _healthEvaluator.Evaluate(card, latestStatement, paymentsMadeThisCycle, today);
+
+            HealthEmoji = CreditCardHealthIndicator.GetEmoji(assessment.Status);
+            HealthMessage = assessment.Status switch
+            {
+                CreditCardHealthStatus.Green => AppResources.CreditCardHealth_GreenMessage,
+                CreditCardHealthStatus.Yellow => string.Format(CultureInfo.CurrentCulture, AppResources.CreditCardHealth_YellowMessage, assessment.DueDate!.Value.DayNumber - today.DayNumber),
+                CreditCardHealthStatus.Orange => AppResources.CreditCardHealth_OrangeMessage,
+                CreditCardHealthStatus.Red => AppResources.CreditCardHealth_RedMessage,
+                _ => AppResources.CreditCardHealth_NoStatementMessage
+            };
+
             var cycleStart = latestStatement is null
                 ? DateOnly.FromDateTime(card.CreatedAtUtc.DateTime)
                 : latestStatement.CycleEndDate.AddDays(1);

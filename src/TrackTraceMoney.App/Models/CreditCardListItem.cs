@@ -1,3 +1,4 @@
+using TrackTraceMoney.Application.CreditAccounts;
 using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.Enums;
 
@@ -11,13 +12,15 @@ public sealed record CreditCardListItem(
     CurrencyCode Currency,
     decimal CreditLimit,
     decimal AmountOwed,
-    decimal AvailableCredit)
+    decimal AvailableCredit,
+    CreditCardHealthStatus HealthStatus,
+    string HealthEmoji)
 {
     public bool HasLastFourDigits => !string.IsNullOrEmpty(LastFourDigits);
 
     public string MaskedLastFourDigits => HasLastFourDigits ? $"•••• {LastFourDigits}" : string.Empty;
 
-    public static CreditCardListItem FromDomain(CreditCard card) => new(
+    public static CreditCardListItem FromDomain(CreditCard card, CreditCardHealthStatus healthStatus) => new(
         card.Id,
         card.Name,
         card.Issuer,
@@ -25,5 +28,7 @@ public sealed record CreditCardListItem(
         card.Currency,
         card.CreditLimit,
         card.AmountOwed,
-        card.AvailableCredit);
+        card.AvailableCredit,
+        healthStatus,
+        CreditCardHealthIndicator.GetEmoji(healthStatus));
 }

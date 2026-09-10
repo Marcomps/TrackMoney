@@ -7,6 +7,7 @@ using TrackTraceMoney.App.ViewModels;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Budgets;
+using TrackTraceMoney.Application.CreditAccounts;
 using TrackTraceMoney.Application.RecurringExpenses;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Application.Transactions;
@@ -47,6 +48,7 @@ public static class MauiProgram
 		builder.Services.AddTransient<AddCreditCardViewModel>();
 		builder.Services.AddTransient<AddCreditCardPage>();
 		builder.Services.AddSingleton<ICreditCardPurchasedVsPaidCalculator, CreditCardPurchasedVsPaidCalculator>();
+		builder.Services.AddSingleton<ICreditCardHealthEvaluator, CreditCardHealthEvaluator>();
 		builder.Services.AddTransient<CreditCardDetailViewModel>();
 		builder.Services.AddTransient<CreditCardDetailPage>();
 		builder.Services.AddTransient<RecordCreditCardStatementViewModel>();

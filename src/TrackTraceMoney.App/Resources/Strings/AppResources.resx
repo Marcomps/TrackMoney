@@ -259,6 +259,24 @@
   <data name="CreditCardDetail_PurchasedVsPaidUnderMessage" xml:space="preserve">
     <value>Estás pagando {0:N2} más de lo que estás gastando.</value>
   </data>
+  <data name="CreditCardHealth_Title" xml:space="preserve">
+    <value>Estado de la tarjeta</value>
+  </data>
+  <data name="CreditCardHealth_GreenMessage" xml:space="preserve">
+    <value>Situación saludable.</value>
+  </data>
+  <data name="CreditCardHealth_YellowMessage" xml:space="preserve">
+    <value>Atención: faltan {0} días para la fecha límite y aún no cubres el pago para evitar intereses.</value>
+  </data>
+  <data name="CreditCardHealth_OrangeMessage" xml:space="preserve">
+    <value>Situación de riesgo: pago parcial o uso elevado del límite.</value>
+  </data>
+  <data name="CreditCardHealth_RedMessage" xml:space="preserve">
+    <value>Situación crítica: hay un pago vencido.</value>
+  </data>
+  <data name="CreditCardHealth_NoStatementMessage" xml:space="preserve">
+    <value>Aún no hay un estado de cuenta registrado para evaluar la salud de la tarjeta.</value>
+  </data>
   <data name="RecordCreditCardStatement_Title" xml:space="preserve">
     <value>Registrar estado de cuenta</value>
   </data>

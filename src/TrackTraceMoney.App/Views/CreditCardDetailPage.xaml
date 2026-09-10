@@ -13,6 +13,17 @@
         <ScrollView>
             <VerticalStackLayout Padding="16" Spacing="12">
 
+                <Label Text="{x:Static resources:AppResources.CreditCardHealth_Title}" FontAttributes="Bold" />
+                <Label>
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding HealthEmoji}" />
+                            <Span Text=" " />
+                            <Span Text="{Binding HealthMessage}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+
                 <Label Text="{x:Static resources:AppResources.CreditCardDetail_CurrentCycleLabel}" FontAttributes="Bold" />
                 <Label>
                     <Label.FormattedText>

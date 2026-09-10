@@ -259,6 +259,24 @@
   <data name="CreditCardDetail_PurchasedVsPaidUnderMessage" xml:space="preserve">
     <value>You're paying {0:N2} more than you're spending.</value>
   </data>
+  <data name="CreditCardHealth_Title" xml:space="preserve">
+    <value>Card status</value>
+  </data>
+  <data name="CreditCardHealth_GreenMessage" xml:space="preserve">
+    <value>Healthy situation.</value>
+  </data>
+  <data name="CreditCardHealth_YellowMessage" xml:space="preserve">
+    <value>Attention: {0} days left until the due date and you haven't covered the pay-in-full amount yet.</value>
+  </data>
+  <data name="CreditCardHealth_OrangeMessage" xml:space="preserve">
+    <value>At-risk situation: partial payment or high limit usage.</value>
+  </data>
+  <data name="CreditCardHealth_RedMessage" xml:space="preserve">
+    <value>Critical situation: there's an overdue payment.</value>
+  </data>
+  <data name="CreditCardHealth_NoStatementMessage" xml:space="preserve">
+    <value>There's no statement recorded yet to evaluate the card's health.</value>
+  </data>
   <data name="RecordCreditCardStatement_Title" xml:space="preserve">
     <value>Record statement</value>
   </data>
