@@ -727,4 +727,112 @@
   <data name="Notification_BudgetExceeded_Body" xml:space="preserve">
     <value>Superaste el presupuesto de {0} por {1} (límite: {2}).</value>
   </data>
+  <data name="CreditCards_ViewLoansButton" xml:space="preserve">
+    <value>Ver préstamos</value>
+  </data>
+  <data name="Loans_Title" xml:space="preserve">
+    <value>Préstamos</value>
+  </data>
+  <data name="Loans_Empty" xml:space="preserve">
+    <value>Aún no tienes préstamos. Agrega el primero para comenzar.</value>
+  </data>
+  <data name="Loans_AddButton" xml:space="preserve">
+    <value>Agregar préstamo</value>
+  </data>
+  <data name="AddLoan_Title" xml:space="preserve">
+    <value>Nuevo préstamo</value>
+  </data>
+  <data name="AddLoan_NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="AddLoan_InstitutionLabel" xml:space="preserve">
+    <value>Institución</value>
+  </data>
+  <data name="AddLoan_KindLabel" xml:space="preserve">
+    <value>Tipo de préstamo</value>
+  </data>
+  <data name="AddLoan_CurrencyLabel" xml:space="preserve">
+    <value>Moneda</value>
+  </data>
+  <data name="AddLoan_OriginalAmountLabel" xml:space="preserve">
+    <value>Monto original</value>
+  </data>
+  <data name="AddLoan_CurrentBalanceLabel" xml:space="preserve">
+    <value>Saldo actual</value>
+  </data>
+  <data name="AddLoan_InterestRateLabel" xml:space="preserve">
+    <value>Tasa de interés</value>
+  </data>
+  <data name="AddLoan_RateTypeLabel" xml:space="preserve">
+    <value>Tipo de tasa</value>
+  </data>
+  <data name="AddLoan_MonthlyInstallmentLabel" xml:space="preserve">
+    <value>Cuota mensual</value>
+  </data>
+  <data name="AddLoan_NextPaymentDateLabel" xml:space="preserve">
+    <value>Próxima fecha de pago</value>
+  </data>
+  <data name="AddLoan_RequiredPaymentLabel" xml:space="preserve">
+    <value>Pago requerido</value>
+  </data>
+  <data name="AddLoan_FeesLabel" xml:space="preserve">
+    <value>Comisiones (opcional)</value>
+  </data>
+  <data name="AddLoan_NotesLabel" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="AddLoan_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="AddLoan_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddLoan_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="AddLoan_ValidationInstitutionRequired" xml:space="preserve">
+    <value>La institución es obligatoria.</value>
+  </data>
+  <data name="AddLoan_ValidationOriginalAmountInvalid" xml:space="preserve">
+    <value>El monto original debe ser un número mayor que cero.</value>
+  </data>
+  <data name="AddLoan_ValidationCurrentBalanceInvalid" xml:space="preserve">
+    <value>El saldo actual debe ser un número válido y no negativo.</value>
+  </data>
+  <data name="AddLoan_ValidationInterestRateInvalid" xml:space="preserve">
+    <value>La tasa de interés debe ser un número válido y no negativo.</value>
+  </data>
+  <data name="AddLoan_ValidationMonthlyInstallmentInvalid" xml:space="preserve">
+    <value>La cuota mensual debe ser un número mayor que cero.</value>
+  </data>
+  <data name="AddLoan_ValidationRequiredPaymentInvalid" xml:space="preserve">
+    <value>El pago requerido debe ser un número mayor que cero.</value>
+  </data>
+  <data name="AddLoan_ValidationFeesInvalid" xml:space="preserve">
+    <value>Las comisiones deben ser un número válido y no negativo.</value>
+  </data>
+  <data name="LoanKind_PersonalLoan" xml:space="preserve">
+    <value>Préstamo personal</value>
+  </data>
+  <data name="LoanKind_AutoLoan" xml:space="preserve">
+    <value>Préstamo de auto</value>
+  </data>
+  <data name="LoanKind_Mortgage" xml:space="preserve">
+    <value>Hipoteca</value>
+  </data>
+  <data name="LoanKind_BankCredit" xml:space="preserve">
+    <value>Crédito bancario</value>
+  </data>
+  <data name="LoanKind_InstallmentPurchase" xml:space="preserve">
+    <value>Compra a plazos</value>
+  </data>
+  <data name="LoanKind_OtherLoan" xml:space="preserve">
+    <value>Otro préstamo</value>
+  </data>
+  <data name="LoanRateType_Fixed" xml:space="preserve">
+    <value>Fija</value>
+  </data>
+  <data name="LoanRateType_Variable" xml:space="preserve">
+    <value>Variable</value>
+  </data>
 </root>

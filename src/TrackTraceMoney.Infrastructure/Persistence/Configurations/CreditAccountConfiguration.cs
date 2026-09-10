@@ -26,7 +26,7 @@ public sealed class CreditAccountConfiguration : IEntityTypeConfiguration<Credit
         builder.HasIndex(a => a.IsActive);
 
         builder.HasDiscriminator<string>("CreditAccountType")
-            .HasValue<CreditCard>("CreditCard");
-        // .HasValue<Loan>("Loan") — reserved for a future Phase 2 slice.
+            .HasValue<CreditCard>("CreditCard")
+            .HasValue<Loan>("Loan");
     }
 }

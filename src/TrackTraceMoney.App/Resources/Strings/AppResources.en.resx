@@ -727,4 +727,112 @@
   <data name="Notification_BudgetExceeded_Body" xml:space="preserve">
     <value>You went over your {0} budget by {1} (limit: {2}).</value>
   </data>
+  <data name="CreditCards_ViewLoansButton" xml:space="preserve">
+    <value>View loans</value>
+  </data>
+  <data name="Loans_Title" xml:space="preserve">
+    <value>Loans</value>
+  </data>
+  <data name="Loans_Empty" xml:space="preserve">
+    <value>You don't have any loans yet. Add your first one to get started.</value>
+  </data>
+  <data name="Loans_AddButton" xml:space="preserve">
+    <value>Add loan</value>
+  </data>
+  <data name="AddLoan_Title" xml:space="preserve">
+    <value>New loan</value>
+  </data>
+  <data name="AddLoan_NameLabel" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="AddLoan_InstitutionLabel" xml:space="preserve">
+    <value>Institution</value>
+  </data>
+  <data name="AddLoan_KindLabel" xml:space="preserve">
+    <value>Loan type</value>
+  </data>
+  <data name="AddLoan_CurrencyLabel" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="AddLoan_OriginalAmountLabel" xml:space="preserve">
+    <value>Original amount</value>
+  </data>
+  <data name="AddLoan_CurrentBalanceLabel" xml:space="preserve">
+    <value>Current balance</value>
+  </data>
+  <data name="AddLoan_InterestRateLabel" xml:space="preserve">
+    <value>Interest rate</value>
+  </data>
+  <data name="AddLoan_RateTypeLabel" xml:space="preserve">
+    <value>Rate type</value>
+  </data>
+  <data name="AddLoan_MonthlyInstallmentLabel" xml:space="preserve">
+    <value>Monthly installment</value>
+  </data>
+  <data name="AddLoan_NextPaymentDateLabel" xml:space="preserve">
+    <value>Next payment date</value>
+  </data>
+  <data name="AddLoan_RequiredPaymentLabel" xml:space="preserve">
+    <value>Required payment</value>
+  </data>
+  <data name="AddLoan_FeesLabel" xml:space="preserve">
+    <value>Fees (optional)</value>
+  </data>
+  <data name="AddLoan_NotesLabel" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="AddLoan_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="AddLoan_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddLoan_ValidationNameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="AddLoan_ValidationInstitutionRequired" xml:space="preserve">
+    <value>Institution is required.</value>
+  </data>
+  <data name="AddLoan_ValidationOriginalAmountInvalid" xml:space="preserve">
+    <value>Original amount must be a number greater than zero.</value>
+  </data>
+  <data name="AddLoan_ValidationCurrentBalanceInvalid" xml:space="preserve">
+    <value>Current balance must be a valid, non-negative number.</value>
+  </data>
+  <data name="AddLoan_ValidationInterestRateInvalid" xml:space="preserve">
+    <value>Interest rate must be a valid, non-negative number.</value>
+  </data>
+  <data name="AddLoan_ValidationMonthlyInstallmentInvalid" xml:space="preserve">
+    <value>Monthly installment must be a number greater than zero.</value>
+  </data>
+  <data name="AddLoan_ValidationRequiredPaymentInvalid" xml:space="preserve">
+    <value>Required payment must be a number greater than zero.</value>
+  </data>
+  <data name="AddLoan_ValidationFeesInvalid" xml:space="preserve">
+    <value>Fees must be a valid, non-negative number.</value>
+  </data>
+  <data name="LoanKind_PersonalLoan" xml:space="preserve">
+    <value>Personal loan</value>
+  </data>
+  <data name="LoanKind_AutoLoan" xml:space="preserve">
+    <value>Auto loan</value>
+  </data>
+  <data name="LoanKind_Mortgage" xml:space="preserve">
+    <value>Mortgage</value>
+  </data>
+  <data name="LoanKind_BankCredit" xml:space="preserve">
+    <value>Bank credit</value>
+  </data>
+  <data name="LoanKind_InstallmentPurchase" xml:space="preserve">
+    <value>Installment purchase</value>
+  </data>
+  <data name="LoanKind_OtherLoan" xml:space="preserve">
+    <value>Other loan</value>
+  </data>
+  <data name="LoanRateType_Fixed" xml:space="preserve">
+    <value>Fixed</value>
+  </data>
+  <data name="LoanRateType_Variable" xml:space="preserve">
+    <value>Variable</value>
+  </data>
 </root>

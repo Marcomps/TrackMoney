@@ -9,7 +9,7 @@
              x:Name="Root"
              Title="{x:Static resources:AppResources.Credit_Title}">
 
-    <Grid RowDefinitions="*,Auto" Padding="16">
+    <Grid RowDefinitions="*,Auto,Auto" Padding="16">
 
         <RefreshView Grid.Row="0"
                      IsRefreshing="{Binding IsBusy}"
@@ -66,6 +66,12 @@
                 Command="{Binding AddCreditCardCommand}"
                 HorizontalOptions="Fill"
                 Margin="0,12,0,0" />
+
+        <Button Grid.Row="2"
+                Text="{x:Static resources:AppResources.CreditCards_ViewLoansButton}"
+                Command="{Binding ViewLoansCommand}"
+                HorizontalOptions="Fill"
+                Margin="0,8,0,0" />
 
     </Grid>
 
