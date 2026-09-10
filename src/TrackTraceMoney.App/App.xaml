@@ -17,6 +17,8 @@
             <converters:RecurringExpenseFrequencyToLabelConverter x:Key="RecurringExpenseFrequencyToLabelConverter" />
             <converters:LoanKindToLabelConverter x:Key="LoanKindToLabelConverter" />
             <converters:LoanRateTypeToLabelConverter x:Key="LoanRateTypeToLabelConverter" />
+            <converters:TermDepositRateTypeToLabelConverter x:Key="TermDepositRateTypeToLabelConverter" />
+            <converters:TermDepositInterestFrequencyToLabelConverter x:Key="TermDepositInterestFrequencyToLabelConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

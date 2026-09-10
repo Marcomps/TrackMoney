@@ -4,9 +4,9 @@ using TrackTraceMoney.Domain.Enums;
 namespace TrackTraceMoney.Domain.Accounts;
 
 /// <summary>
-/// Base for every asset account the app tracks (README §8). Phase 1 ships the asset subtypes below
-/// (<see cref="CashAccount"/>, <see cref="BankAccount"/>, <see cref="SavingsAccount"/>); term deposits/
-/// investment funds (Phase 3) are deliberately not modeled yet — see CLAUDE.md's roadmap phase
+/// Base for every asset account the app tracks (README §8). Phase 1 shipped <see cref="CashAccount"/>,
+/// <see cref="BankAccount"/>, <see cref="SavingsAccount"/>; Phase 3 added <see cref="TermDeposit"/>.
+/// Investment funds (README §23) are deliberately not modeled yet — see CLAUDE.md's roadmap phase
 /// boundaries. Credit cards/loans (Phase 2) are liabilities and live in a separate, sibling hierarchy
 /// rooted at <see cref="TrackTraceMoney.Domain.CreditAccounts.CreditAccount"/> — not a subtype of this
 /// class and not part of this TPH hierarchy — because <see cref="Credit"/>/<see cref="Debit"/> model
@@ -23,6 +23,14 @@ public abstract class FinancialAccount : Entity
     public bool IsActive { get; private set; } = true;
 
     public string? Notes { get; private set; }
+
+    /// <summary>
+    /// Whether this account's balance should count toward "available balance" (README §30 Q1) — distinct
+    /// from Net Worth (a future Phase 3 slice), which sums every FinancialAccount regardless of this flag.
+    /// A locked-until-maturity TermDeposit overrides this to false; every other current subtype is
+    /// reasonably "what you have" and keeps the true default.
+    /// </summary>
+    public virtual bool CountsAsAvailableBalance => true;
 
     protected FinancialAccount()
     {

@@ -895,4 +895,115 @@
   <data name="SnowballPlan_AdvisoryNote" xml:space="preserve">
     <value>This is a suggestion only — nothing is posted automatically. Use Add Transaction to record your actual payment.</value>
   </data>
+  <data name="Accounts_ViewTermDepositsButton" xml:space="preserve">
+    <value>View Term Deposits</value>
+  </data>
+  <data name="TermDeposits_Title" xml:space="preserve">
+    <value>Term Deposits</value>
+  </data>
+  <data name="TermDeposits_Empty" xml:space="preserve">
+    <value>You don't have any term deposits yet. Add your first one to get started.</value>
+  </data>
+  <data name="TermDeposits_AddButton" xml:space="preserve">
+    <value>Add Term Deposit</value>
+  </data>
+  <data name="AddTermDeposit_Title" xml:space="preserve">
+    <value>New Term Deposit</value>
+  </data>
+  <data name="AddTermDeposit_NameLabel" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="AddTermDeposit_InstitutionLabel" xml:space="preserve">
+    <value>Institution</value>
+  </data>
+  <data name="AddTermDeposit_InitialPrincipalLabel" xml:space="preserve">
+    <value>Initial principal</value>
+  </data>
+  <data name="AddTermDeposit_OpeningBalanceLabel" xml:space="preserve">
+    <value>Opening balance</value>
+  </data>
+  <data name="AddTermDeposit_CurrencyLabel" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="AddTermDeposit_RateLabel" xml:space="preserve">
+    <value>Rate</value>
+  </data>
+  <data name="AddTermDeposit_RateTypeLabel" xml:space="preserve">
+    <value>Rate type</value>
+  </data>
+  <data name="AddTermDeposit_StartDateLabel" xml:space="preserve">
+    <value>Start date</value>
+  </data>
+  <data name="AddTermDeposit_MaturityDateLabel" xml:space="preserve">
+    <value>Maturity date</value>
+  </data>
+  <data name="AddTermDeposit_InterestFrequencyLabel" xml:space="preserve">
+    <value>Interest frequency</value>
+  </data>
+  <data name="AddTermDeposit_IsCompoundingLabel" xml:space="preserve">
+    <value>Compounding interest</value>
+  </data>
+  <data name="AddTermDeposit_AutoRenewalLabel" xml:space="preserve">
+    <value>Auto-renewal</value>
+  </data>
+  <data name="AddTermDeposit_EstimatedInterestLabel" xml:space="preserve">
+    <value>Estimated interest (optional)</value>
+  </data>
+  <data name="AddTermDeposit_InterestReceivedLabel" xml:space="preserve">
+    <value>Interest received</value>
+  </data>
+  <data name="AddTermDeposit_NotesLabel" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="AddTermDeposit_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="AddTermDeposit_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddTermDeposit_ValidationNameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="AddTermDeposit_ValidationInstitutionRequired" xml:space="preserve">
+    <value>Institution is required.</value>
+  </data>
+  <data name="AddTermDeposit_ValidationInitialPrincipalInvalid" xml:space="preserve">
+    <value>Initial principal must be a number greater than zero.</value>
+  </data>
+  <data name="AddTermDeposit_ValidationOpeningBalanceInvalid" xml:space="preserve">
+    <value>Opening balance must be a valid, non-negative number.</value>
+  </data>
+  <data name="AddTermDeposit_ValidationRateInvalid" xml:space="preserve">
+    <value>Rate must be a valid, non-negative number.</value>
+  </data>
+  <data name="AddTermDeposit_ValidationMaturityDateInvalid" xml:space="preserve">
+    <value>Maturity date must be after the start date.</value>
+  </data>
+  <data name="AddTermDeposit_ValidationEstimatedInterestInvalid" xml:space="preserve">
+    <value>Estimated interest must be a valid, non-negative number.</value>
+  </data>
+  <data name="AddTermDeposit_ValidationInterestReceivedInvalid" xml:space="preserve">
+    <value>Interest received must be a valid, non-negative number.</value>
+  </data>
+  <data name="TermDepositRateType_Nominal" xml:space="preserve">
+    <value>Nominal</value>
+  </data>
+  <data name="TermDepositRateType_Effective" xml:space="preserve">
+    <value>Effective</value>
+  </data>
+  <data name="TermDepositInterestFrequency_Monthly" xml:space="preserve">
+    <value>Monthly</value>
+  </data>
+  <data name="TermDepositInterestFrequency_Quarterly" xml:space="preserve">
+    <value>Quarterly</value>
+  </data>
+  <data name="TermDepositInterestFrequency_Semiannual" xml:space="preserve">
+    <value>Semiannual</value>
+  </data>
+  <data name="TermDepositInterestFrequency_Annual" xml:space="preserve">
+    <value>Annual</value>
+  </data>
+  <data name="TermDepositInterestFrequency_AtMaturity" xml:space="preserve">
+    <value>At maturity</value>
+  </data>
 </root>

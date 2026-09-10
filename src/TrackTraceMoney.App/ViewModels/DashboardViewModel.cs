@@ -94,9 +94,11 @@ public sealed partial class DashboardViewModel : ObservableObject
 
             // Tile 1: available balance per currency — never summed across currencies. Deliberately
             // FinancialAccount only: CreditAccount.AmountOwed is debt, never "available balance"
-            // (CLAUDE.md hard constraint — a card's debt must never inflate this tile).
+            // (CLAUDE.md hard constraint — a card's debt must never inflate this tile). Also filtered to
+            // CountsAsAvailableBalance: a TermDeposit's balance is locked until maturity, so it must not
+            // inflate "what you have" here even though it's a FinancialAccount (README §30 Q1).
             Balances.Clear();
-            foreach (var group in accounts.GroupBy(a => a.Currency))
+            foreach (var group in accounts.Where(a => a.CountsAsAvailableBalance).GroupBy(a => a.Currency))
                 Balances.Add(new CurrencyBalance(group.Key, group.Sum(a => a.Balance)));
 
             // Tile 2: income / expenses / available this month — per currency, never blended
