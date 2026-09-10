@@ -850,4 +850,46 @@
   <data name="LoanRateType_Variable" xml:space="preserve">
     <value>Variable</value>
   </data>
+  <data name="CreditCards_ViewSnowballButton" xml:space="preserve">
+    <value>View Snowball Plan</value>
+  </data>
+  <data name="SnowballPlan_Title" xml:space="preserve">
+    <value>Snowball Plan</value>
+  </data>
+  <data name="SnowballPlan_ExtraLabel" xml:space="preserve">
+    <value>Extra available this cycle</value>
+  </data>
+  <data name="SnowballPlan_CurrentTargetLabel" xml:space="preserve">
+    <value>CURRENT TARGET</value>
+  </data>
+  <data name="SnowballPlan_BalanceLabel" xml:space="preserve">
+    <value>Balance</value>
+  </data>
+  <data name="SnowballPlan_MinimumLabel" xml:space="preserve">
+    <value>Minimum</value>
+  </data>
+  <data name="SnowballPlan_SuggestedExtraLabel" xml:space="preserve">
+    <value>Suggested extra</value>
+  </data>
+  <data name="SnowballPlan_SuggestedTotalLabel" xml:space="preserve">
+    <value>Suggested total payment</value>
+  </data>
+  <data name="SnowballPlan_TotalMinimumsLabel" xml:space="preserve">
+    <value>Total minimums across all debts</value>
+  </data>
+  <data name="SnowballPlan_UnallocatedExtraMessage" xml:space="preserve">
+    <value>{0} left over after {1} is paid off. Consider directing it to {2} next.</value>
+  </data>
+  <data name="SnowballPlan_ExcludedCardsHeader" xml:space="preserve">
+    <value>Cards without a statement (can't be planned yet)</value>
+  </data>
+  <data name="SnowballPlan_ExcludedCardsHint" xml:space="preserve">
+    <value>Record a statement to include this card</value>
+  </data>
+  <data name="SnowballPlan_Empty" xml:space="preserve">
+    <value>No debts to plan yet. Add a credit card or loan first.</value>
+  </data>
+  <data name="SnowballPlan_AdvisoryNote" xml:space="preserve">
+    <value>This is a suggestion only — nothing is posted automatically. Use Add Transaction to record your actual payment.</value>
+  </data>
 </root>

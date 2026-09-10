@@ -850,4 +850,46 @@
   <data name="LoanRateType_Variable" xml:space="preserve">
     <value>Variable</value>
   </data>
+  <data name="CreditCards_ViewSnowballButton" xml:space="preserve">
+    <value>Ver Plan de Bola de Nieve</value>
+  </data>
+  <data name="SnowballPlan_Title" xml:space="preserve">
+    <value>Plan de Bola de Nieve</value>
+  </data>
+  <data name="SnowballPlan_ExtraLabel" xml:space="preserve">
+    <value>Extra disponible este ciclo</value>
+  </data>
+  <data name="SnowballPlan_CurrentTargetLabel" xml:space="preserve">
+    <value>OBJETIVO ACTUAL</value>
+  </data>
+  <data name="SnowballPlan_BalanceLabel" xml:space="preserve">
+    <value>Saldo</value>
+  </data>
+  <data name="SnowballPlan_MinimumLabel" xml:space="preserve">
+    <value>Mínimo</value>
+  </data>
+  <data name="SnowballPlan_SuggestedExtraLabel" xml:space="preserve">
+    <value>Extra sugerido</value>
+  </data>
+  <data name="SnowballPlan_SuggestedTotalLabel" xml:space="preserve">
+    <value>Pago total sugerido</value>
+  </data>
+  <data name="SnowballPlan_TotalMinimumsLabel" xml:space="preserve">
+    <value>Total de mínimos en todas las deudas</value>
+  </data>
+  <data name="SnowballPlan_UnallocatedExtraMessage" xml:space="preserve">
+    <value>{0} restante después de liquidar {1}. Considera destinarlo a {2} a continuación.</value>
+  </data>
+  <data name="SnowballPlan_ExcludedCardsHeader" xml:space="preserve">
+    <value>Tarjetas sin estado de cuenta (aún no se pueden planificar)</value>
+  </data>
+  <data name="SnowballPlan_ExcludedCardsHint" xml:space="preserve">
+    <value>Registra un estado de cuenta para incluir esta tarjeta</value>
+  </data>
+  <data name="SnowballPlan_Empty" xml:space="preserve">
+    <value>Aún no hay deudas que planificar. Agrega una tarjeta o préstamo primero.</value>
+  </data>
+  <data name="SnowballPlan_AdvisoryNote" xml:space="preserve">
+    <value>Esto es solo una sugerencia — nada se registra automáticamente. Usa Agregar Transacción para registrar tu pago real.</value>
+  </data>
 </root>

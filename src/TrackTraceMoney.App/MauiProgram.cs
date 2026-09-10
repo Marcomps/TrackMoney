@@ -57,6 +57,9 @@ public static class MauiProgram
 		builder.Services.AddTransient<LoansListPage>();
 		builder.Services.AddTransient<AddLoanViewModel>();
 		builder.Services.AddTransient<AddLoanPage>();
+		builder.Services.AddSingleton<ISnowballPlanner, SnowballPlanner>();
+		builder.Services.AddTransient<SnowballPlanViewModel>();
+		builder.Services.AddTransient<SnowballPlanPage>();
 
 		builder.Services.AddSingleton<ILocalNotifier, AndroidLocalNotifier>();
 		builder.Services.AddScoped<ITransactionEntryService, TransactionEntryService>();

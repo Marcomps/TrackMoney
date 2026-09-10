@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.SnowballPlanPage"
+             x:DataType="viewModels:SnowballPlanViewModel"
+             x:Name="Root"
+             Title="{x:Static resources:AppResources.SnowballPlan_Title}">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadSnowballPlanCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="16">
+
+                <Label Text="{x:Static resources:AppResources.SnowballPlan_Empty}"
+                       IsVisible="{Binding IsEmpty}"
+                       HorizontalTextAlignment="Center" />
+
+                <VerticalStackLayout Spacing="16" BindableLayout.ItemsSource="{Binding Groups}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="viewModels:SnowballCurrencyGroupItem">
+                            <Border Padding="12" StrokeShape="RoundRectangle 8">
+                                <VerticalStackLayout Spacing="8">
+
+                                    <Label Text="{Binding Currency}" FontAttributes="Bold" FontSize="16" />
+
+                                    <Label Text="{x:Static resources:AppResources.SnowballPlan_ExtraLabel}" />
+                                    <Entry Text="{Binding ExtraAvailableText}" Keyboard="Numeric" />
+
+                                    <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Lines}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="models:SnowballDebtLineItem">
+                                                <VerticalStackLayout Spacing="2" Margin="0,4">
+                                                    <Label Text="{Binding DisplayName}" FontAttributes="Bold" />
+                                                    <Label Text="{x:Static resources:AppResources.SnowballPlan_CurrentTargetLabel}"
+                                                           IsVisible="{Binding IsCurrentTarget}"
+                                                           FontSize="11" Opacity="0.7" />
+                                                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                                                        <Label Grid.Row="0" Grid.Column="0">
+                                                            <Label.FormattedText>
+                                                                <FormattedString>
+                                                                    <Span Text="{x:Static resources:AppResources.SnowballPlan_BalanceLabel}" />
+                                                                    <Span Text=": " />
+                                                                    <Span Text="{Binding AmountOwed, StringFormat='{0:N2}'}" />
+                                                                </FormattedString>
+                                                            </Label.FormattedText>
+                                                        </Label>
+                                                        <Label Grid.Row="0" Grid.Column="1">
+                                                            <Label.FormattedText>
+                                                                <FormattedString>
+                                                                    <Span Text="{x:Static resources:AppResources.SnowballPlan_MinimumLabel}" />
+                                                                    <Span Text=": " />
+                                                                    <Span Text="{Binding MinimumPayment, StringFormat='{0:N2}'}" />
+                                                                </FormattedString>
+                                                            </Label.FormattedText>
+                                                        </Label>
+                                                        <Label Grid.Row="1" Grid.Column="0">
+                                                            <Label.FormattedText>
+                                                                <FormattedString>
+                                                                    <Span Text="{x:Static resources:AppResources.SnowballPlan_SuggestedExtraLabel}" />
+                                                                    <Span Text=": " />
+                                                                    <Span Text="{Binding SuggestedExtra, StringFormat='{0:N2}'}" />
+                                                                </FormattedString>
+                                                            </Label.FormattedText>
+                                                        </Label>
+                                                        <Label Grid.Row="1" Grid.Column="1">
+                                                            <Label.FormattedText>
+                                                                <FormattedString>
+                                                                    <Span Text="{x:Static resources:AppResources.SnowballPlan_SuggestedTotalLabel}" />
+                                                                    <Span Text=": " />
+                                                                    <Span Text="{Binding SuggestedTotalPayment, StringFormat='{0:N2}'}" />
+                                                                </FormattedString>
+                                                            </Label.FormattedText>
+                                                        </Label>
+                                                    </Grid>
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+
+                                    <Label>
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{x:Static resources:AppResources.SnowballPlan_TotalMinimumsLabel}" />
+                                                <Span Text=": " />
+                                                <Span Text="{Binding TotalMinimums, StringFormat='{0:N2}'}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+
+                                    <Label Text="{Binding NextTargetAdvisoryMessage}"
+                                           IsVisible="{Binding ShowNextTargetAdvisory}"
+                                           FontSize="12" Opacity="0.8" />
+
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="8" IsVisible="{Binding HasExcludedCards}">
+                    <Label Text="{x:Static resources:AppResources.SnowballPlan_ExcludedCardsHeader}" FontAttributes="Bold" />
+
+                    <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding ExcludedCards}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:ExcludedCardListItem">
+                                <Border Padding="12" Margin="0,4" StrokeShape="RoundRectangle 8">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={x:Reference Root}, Path=BindingContext.RecordStatementForExcludedCardCommand}"
+                                            CommandParameter="{Binding Id}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="{Binding Name}" FontAttributes="Bold" />
+                                        <Label Text="{Binding AmountOwed, StringFormat='{0:N2}'}" FontSize="12" Opacity="0.7" />
+                                        <Label Text="{x:Static resources:AppResources.SnowballPlan_ExcludedCardsHint}" FontSize="12" Opacity="0.7" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+                <Label Text="{x:Static resources:AppResources.SnowballPlan_AdvisoryNote}"
+                       FontSize="12" Opacity="0.7" Margin="0,12,0,0" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>
