@@ -1006,4 +1006,106 @@
   <data name="TermDepositInterestFrequency_AtMaturity" xml:space="preserve">
     <value>At maturity</value>
   </data>
+  <data name="Accounts_ViewInvestmentFundsButton" xml:space="preserve">
+    <value>View Investment Funds</value>
+  </data>
+  <data name="InvestmentFunds_Title" xml:space="preserve">
+    <value>Investment Funds</value>
+  </data>
+  <data name="InvestmentFunds_Empty" xml:space="preserve">
+    <value>You don't have any investment funds yet. Add your first one to get started.</value>
+  </data>
+  <data name="InvestmentFunds_AddButton" xml:space="preserve">
+    <value>Add Investment Fund</value>
+  </data>
+  <data name="AddInvestmentFund_Title" xml:space="preserve">
+    <value>New Investment Fund</value>
+  </data>
+  <data name="AddInvestmentFund_NameLabel" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="AddInvestmentFund_InstitutionLabel" xml:space="preserve">
+    <value>Institution</value>
+  </data>
+  <data name="AddInvestmentFund_CurrencyLabel" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="AddInvestmentFund_InvestmentDateLabel" xml:space="preserve">
+    <value>Investment date</value>
+  </data>
+  <data name="AddInvestmentFund_ContributionsLabel" xml:space="preserve">
+    <value>Initial investment</value>
+  </data>
+  <data name="AddInvestmentFund_OpeningBalanceLabel" xml:space="preserve">
+    <value>Current value</value>
+  </data>
+  <data name="AddInvestmentFund_WithdrawalsLabel" xml:space="preserve">
+    <value>Withdrawals</value>
+  </data>
+  <data name="AddInvestmentFund_FeesLabel" xml:space="preserve">
+    <value>Fees</value>
+  </data>
+  <data name="AddInvestmentFund_NotesLabel" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="AddInvestmentFund_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="AddInvestmentFund_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddInvestmentFund_ValidationNameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="AddInvestmentFund_ValidationInstitutionRequired" xml:space="preserve">
+    <value>Institution is required.</value>
+  </data>
+  <data name="AddInvestmentFund_ValidationContributionsInvalid" xml:space="preserve">
+    <value>Initial investment must be a number greater than zero.</value>
+  </data>
+  <data name="AddInvestmentFund_ValidationOpeningBalanceInvalid" xml:space="preserve">
+    <value>Current value must be a valid, non-negative number.</value>
+  </data>
+  <data name="AddInvestmentFund_ValidationWithdrawalsInvalid" xml:space="preserve">
+    <value>Withdrawals must be a valid, non-negative number.</value>
+  </data>
+  <data name="AddInvestmentFund_ValidationFeesInvalid" xml:space="preserve">
+    <value>Fees must be a valid, non-negative number.</value>
+  </data>
+  <data name="InvestmentFundDetail_GainLabel" xml:space="preserve">
+    <value>Gain</value>
+  </data>
+  <data name="InvestmentFundDetail_ReturnLabel" xml:space="preserve">
+    <value>Return</value>
+  </data>
+  <data name="InvestmentFundDetail_RecordValuationButton" xml:space="preserve">
+    <value>Record valuation</value>
+  </data>
+  <data name="InvestmentFundDetail_HistoryTitle" xml:space="preserve">
+    <value>Valuation history</value>
+  </data>
+  <data name="InvestmentFundDetail_NoValuationsYet" xml:space="preserve">
+    <value>No valuations recorded yet.</value>
+  </data>
+  <data name="RecordInvestmentValuation_Title" xml:space="preserve">
+    <value>Record valuation</value>
+  </data>
+  <data name="RecordInvestmentValuation_EditTitle" xml:space="preserve">
+    <value>Edit valuation</value>
+  </data>
+  <data name="RecordInvestmentValuation_AsOfDateLabel" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="RecordInvestmentValuation_ValueLabel" xml:space="preserve">
+    <value>Current value</value>
+  </data>
+  <data name="RecordInvestmentValuation_ValidationValueInvalid" xml:space="preserve">
+    <value>Value must be a valid, non-negative number.</value>
+  </data>
+  <data name="RecordInvestmentValuation_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="RecordInvestmentValuation_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
 </root>

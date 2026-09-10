@@ -8,7 +8,10 @@ public sealed class TermDepositConfiguration : IEntityTypeConfiguration<TermDepo
 {
     public void Configure(EntityTypeBuilder<TermDeposit> builder)
     {
-        builder.Property(t => t.Institution).IsRequired().HasMaxLength(200);
+        // Institution also exists on the sibling InvestmentFund subtype in this same TPH hierarchy — pin
+        // the column name explicitly here (and on InvestmentFundConfiguration) or EF splits them into two
+        // physical columns (this repo's documented ef-tph-shared-column-gotcha).
+        builder.Property(t => t.Institution).IsRequired().HasMaxLength(200).HasColumnName("Institution");
         builder.Property(t => t.InitialPrincipal).IsRequired();
         builder.Property(t => t.Rate).IsRequired();
         builder.Property(t => t.RateType).HasConversion<string>().IsRequired();

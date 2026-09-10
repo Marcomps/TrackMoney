@@ -46,6 +46,14 @@ public static class MauiProgram
 		builder.Services.AddTransient<TermDepositsListPage>();
 		builder.Services.AddTransient<AddTermDepositViewModel>();
 		builder.Services.AddTransient<AddTermDepositPage>();
+		builder.Services.AddTransient<InvestmentFundsListViewModel>();
+		builder.Services.AddTransient<InvestmentFundsListPage>();
+		builder.Services.AddTransient<AddInvestmentFundViewModel>();
+		builder.Services.AddTransient<AddInvestmentFundPage>();
+		builder.Services.AddTransient<InvestmentFundDetailViewModel>();
+		builder.Services.AddTransient<InvestmentFundDetailPage>();
+		builder.Services.AddTransient<RecordInvestmentValuationViewModel>();
+		builder.Services.AddTransient<RecordInvestmentValuationPage>();
 
 		builder.Services.AddTransient<CreditCardsListViewModel>();
 		builder.Services.AddTransient<CreditCardsListPage>();

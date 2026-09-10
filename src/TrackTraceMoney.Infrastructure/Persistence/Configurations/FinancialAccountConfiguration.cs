@@ -5,12 +5,12 @@ using TrackTraceMoney.Domain.Accounts;
 namespace TrackTraceMoney.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-/// Table-per-hierarchy mapping for every asset account type. New asset account types (e.g. Phase 3
-/// investment funds) get their own <c>.HasValue&lt;T&gt;("...")</c> line here plus their own
-/// IEntityTypeConfiguration for type-specific columns — see BankAccountConfiguration/
-/// SavingsAccountConfiguration/TermDepositConfiguration. Credit cards/loans (Phase 2) are liabilities
-/// mapped by a separate TPH hierarchy rooted at <c>CreditAccount</c> (see CreditAccountConfiguration) —
-/// they deliberately do not join this table/hierarchy.
+/// Table-per-hierarchy mapping for every asset account type. New asset account types get their own
+/// <c>.HasValue&lt;T&gt;("...")</c> line here plus their own IEntityTypeConfiguration for type-specific
+/// columns — see BankAccountConfiguration/SavingsAccountConfiguration/TermDepositConfiguration/
+/// InvestmentFundConfiguration. Credit cards/loans (Phase 2) are liabilities mapped by a separate TPH
+/// hierarchy rooted at <c>CreditAccount</c> (see CreditAccountConfiguration) — they deliberately do not
+/// join this table/hierarchy.
 /// </summary>
 public sealed class FinancialAccountConfiguration : IEntityTypeConfiguration<FinancialAccount>
 {
@@ -31,6 +31,7 @@ public sealed class FinancialAccountConfiguration : IEntityTypeConfiguration<Fin
             .HasValue<CashAccount>("Cash")
             .HasValue<BankAccount>("Bank")
             .HasValue<SavingsAccount>("Savings")
-            .HasValue<TermDeposit>("TermDeposit");
+            .HasValue<TermDeposit>("TermDeposit")
+            .HasValue<InvestmentFund>("InvestmentFund");
     }
 }

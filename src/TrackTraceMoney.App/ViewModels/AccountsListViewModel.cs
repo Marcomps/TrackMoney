@@ -39,15 +39,17 @@ public sealed partial class AccountsListViewModel : ObservableObject
         {
             var accounts = await _accountRepository.GetActiveAsync();
 
-            // TermDeposit is a FinancialAccount subtype (shares this same repository/table per README
-            // §22) but is deliberately excluded here: it isn't part of AccountListItem's Cash/Bank/Savings
-            // switch (that would mean either folding it into AccountKind, which this slice explicitly
-            // avoids, or AccountListItem.FromDomain throwing NotSupportedException for it) and it has its
-            // own separate list screen (TermDepositsListPage) reached from ViewTermDepositsCommand below.
+            // TermDeposit and InvestmentFund are FinancialAccount subtypes (share this same repository/
+            // table per README §22/§23) but are deliberately excluded here: neither is part of
+            // AccountListItem's Cash/Bank/Savings switch (that would mean either folding them into
+            // AccountKind, which this slice explicitly avoids, or AccountListItem.FromDomain throwing
+            // NotSupportedException for them) and each has its own separate list screen
+            // (TermDepositsListPage/InvestmentFundsListPage) reached from the ViewTermDepositsCommand/
+            // ViewInvestmentFundsCommand below.
             Accounts.Clear();
             foreach (var account in accounts)
             {
-                if (account is TermDeposit)
+                if (account is TermDeposit or InvestmentFund)
                     continue;
 
                 Accounts.Add(AccountListItem.FromDomain(account));
@@ -72,5 +74,11 @@ public sealed partial class AccountsListViewModel : ObservableObject
     private static async Task ViewTermDepositsAsync()
     {
         await Shell.Current.GoToAsync(nameof(TermDepositsListPage));
+    }
+
+    [RelayCommand]
+    private static async Task ViewInvestmentFundsAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(InvestmentFundsListPage));
     }
 }

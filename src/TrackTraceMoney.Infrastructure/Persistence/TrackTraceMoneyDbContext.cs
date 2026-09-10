@@ -27,6 +27,8 @@ public sealed class TrackTraceMoneyDbContext : DbContext
 
     public DbSet<CreditCardStatement> CreditCardStatements => Set<CreditCardStatement>();
 
+    public DbSet<InvestmentValuation> InvestmentValuations => Set<InvestmentValuation>();
+
     public TrackTraceMoneyDbContext(DbContextOptions<TrackTraceMoneyDbContext> options)
         : base(options)
     {

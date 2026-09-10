@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.InvestmentFundDetailPage"
+             x:DataType="viewModels:InvestmentFundDetailViewModel"
+             x:Name="Root"
+             Title="{Binding Name}">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+
+                <Label Text="{x:Static resources:AppResources.AddInvestmentFund_InstitutionLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding Institution}" />
+
+                <Label Text="{x:Static resources:AppResources.AddInvestmentFund_InvestmentDateLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding InvestmentDate}" />
+
+                <Label Text="{x:Static resources:AppResources.AddInvestmentFund_OpeningBalanceLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding Balance, StringFormat='{0:N2}'}" FontSize="16" />
+
+                <Label Text="{x:Static resources:AppResources.AddInvestmentFund_ContributionsLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding Contributions, StringFormat='{0:N2}'}" />
+
+                <Label Text="{x:Static resources:AppResources.AddInvestmentFund_WithdrawalsLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding Withdrawals, StringFormat='{0:N2}'}" />
+
+                <Label Text="{x:Static resources:AppResources.AddInvestmentFund_FeesLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding Fees, StringFormat='{0:N2}'}" />
+
+                <Label Text="{x:Static resources:AppResources.InvestmentFundDetail_GainLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding Gain, StringFormat='{0:N2}'}" />
+
+                <Label Text="{x:Static resources:AppResources.InvestmentFundDetail_ReturnLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding ReturnPercentage, StringFormat='{0:P2}'}" />
+
+                <Button Text="{x:Static resources:AppResources.InvestmentFundDetail_RecordValuationButton}"
+                        Command="{Binding RecordValuationCommand}"
+                        HorizontalOptions="Fill"
+                        Margin="0,12,0,0" />
+
+                <Label Text="{x:Static resources:AppResources.InvestmentFundDetail_HistoryTitle}"
+                       FontAttributes="Bold"
+                       Margin="0,12,0,0" />
+
+                <Label Text="{x:Static resources:AppResources.InvestmentFundDetail_NoValuationsYet}"
+                       IsVisible="{Binding IsEmpty}" />
+
+                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Valuations}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:InvestmentValuationListItem">
+                            <Border Padding="12" Margin="0,4" StrokeShape="RoundRectangle 8">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenValuationCommand}"
+                                        CommandParameter="{Binding Id}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0" Text="{Binding AsOfDate}" FontAttributes="Bold" />
+                                    <Label Grid.Column="1" Text="{Binding Value, StringFormat='{0:N2}'}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

@@ -21,5 +21,9 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(SnowballPlanPage), typeof(SnowballPlanPage));
 		Routing.RegisterRoute(nameof(TermDepositsListPage), typeof(TermDepositsListPage));
 		Routing.RegisterRoute(nameof(AddTermDepositPage), typeof(AddTermDepositPage));
+		Routing.RegisterRoute(nameof(InvestmentFundsListPage), typeof(InvestmentFundsListPage));
+		Routing.RegisterRoute(nameof(AddInvestmentFundPage), typeof(AddInvestmentFundPage));
+		Routing.RegisterRoute(nameof(InvestmentFundDetailPage), typeof(InvestmentFundDetailPage));
+		Routing.RegisterRoute(nameof(RecordInvestmentValuationPage), typeof(RecordInvestmentValuationPage));
 	}
 }

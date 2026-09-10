@@ -5,12 +5,11 @@ namespace TrackTraceMoney.Domain.Accounts;
 
 /// <summary>
 /// Base for every asset account the app tracks (README §8). Phase 1 shipped <see cref="CashAccount"/>,
-/// <see cref="BankAccount"/>, <see cref="SavingsAccount"/>; Phase 3 added <see cref="TermDeposit"/>.
-/// Investment funds (README §23) are deliberately not modeled yet — see CLAUDE.md's roadmap phase
-/// boundaries. Credit cards/loans (Phase 2) are liabilities and live in a separate, sibling hierarchy
-/// rooted at <see cref="TrackTraceMoney.Domain.CreditAccounts.CreditAccount"/> — not a subtype of this
-/// class and not part of this TPH hierarchy — because <see cref="Credit"/>/<see cref="Debit"/> model
-/// *available funds*, which means the opposite of what a liability's "amount owed" means.
+/// <see cref="BankAccount"/>, <see cref="SavingsAccount"/>; Phase 3 added <see cref="TermDeposit"/> and
+/// <see cref="InvestmentFund"/>. Credit cards/loans (Phase 2) are liabilities and live in a separate,
+/// sibling hierarchy rooted at <see cref="TrackTraceMoney.Domain.CreditAccounts.CreditAccount"/> — not a
+/// subtype of this class and not part of this TPH hierarchy — because <see cref="Credit"/>/<see cref="Debit"/>
+/// model *available funds*, which means the opposite of what a liability's "amount owed" means.
 /// </summary>
 public abstract class FinancialAccount : Entity
 {

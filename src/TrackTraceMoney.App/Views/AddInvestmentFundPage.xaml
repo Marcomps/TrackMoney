@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.AddInvestmentFundPage"
+             x:DataType="viewModels:AddInvestmentFundViewModel"
+             Title="{x:Static resources:AppResources.AddInvestmentFund_Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="{x:Static resources:AppResources.AddInvestmentFund_NameLabel}" />
+            <Entry Text="{Binding Name}" />
+
+            <Label Text="{x:Static resources:AppResources.AddInvestmentFund_InstitutionLabel}" />
+            <Entry Text="{Binding Institution}" />
+
+            <Label Text="{x:Static resources:AppResources.AddInvestmentFund_CurrencyLabel}" />
+            <Picker ItemsSource="{Binding AvailableCurrencies}"
+                    SelectedItem="{Binding SelectedCurrency}" />
+
+            <Label Text="{x:Static resources:AppResources.AddInvestmentFund_InvestmentDateLabel}" />
+            <DatePicker Date="{Binding InvestmentDate}" />
+
+            <Label Text="{x:Static resources:AppResources.AddInvestmentFund_ContributionsLabel}" />
+            <Entry Text="{Binding ContributionsText}" Keyboard="Numeric" />
+
+            <Label Text="{x:Static resources:AppResources.AddInvestmentFund_OpeningBalanceLabel}" />
+            <Entry Text="{Binding OpeningBalanceText}" Keyboard="Numeric" />
+
+            <Label Text="{x:Static resources:AppResources.AddInvestmentFund_WithdrawalsLabel}" />
+            <Entry Text="{Binding WithdrawalsText}" Keyboard="Numeric" />
+
+            <Label Text="{x:Static resources:AppResources.AddInvestmentFund_FeesLabel}" />
+            <Entry Text="{Binding FeesText}" Keyboard="Numeric" />
+
+            <Label Text="{x:Static resources:AppResources.AddInvestmentFund_NotesLabel}" />
+            <Editor Text="{Binding Notes}" HeightRequest="80" />
+
+            <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+            <Button Text="{x:Static resources:AppResources.AddInvestmentFund_SaveButton}"
+                    Command="{Binding SaveCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.AddInvestmentFund_CancelButton}"
+                    Command="{Binding CancelCommand}"
+                    HorizontalOptions="Fill" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

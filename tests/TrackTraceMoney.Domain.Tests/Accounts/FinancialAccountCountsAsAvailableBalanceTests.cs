@@ -53,4 +53,18 @@ public sealed class FinancialAccountCountsAsAvailableBalanceTests
 
         Assert.False(termDeposit.CountsAsAvailableBalance);
     }
+
+    [Fact]
+    public void InvestmentFund_CountsAsAvailableBalance_IsFalse()
+    {
+        var investmentFund = new InvestmentFund(
+            "Growth Fund",
+            CurrencyCode.USD,
+            "Example Asset Management",
+            new DateOnly(2026, 1, 1),
+            2000m,
+            2084.50m);
+
+        Assert.False(investmentFund.CountsAsAvailableBalance);
+    }
 }
