@@ -412,6 +412,9 @@
   <data name="AddTransaction_ValidationCurrencyMismatch" xml:space="preserve">
     <value>Source and destination accounts must use the same currency.</value>
   </data>
+  <data name="AddTransaction_ValidationServiceError" xml:space="preserve">
+    <value>Couldn't save this transaction. Please check the amount and try again.</value>
+  </data>
   <data name="AddTransaction_NoneOption" xml:space="preserve">
     <value>None</value>
   </data>

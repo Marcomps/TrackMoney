@@ -85,7 +85,8 @@ public sealed partial class DashboardViewModel : ObservableObject
             var startOfMonth = new DateOnly(today.Year, today.Month, 1);
 
             var accounts = await _accountRepository.GetActiveAsync();
-            var creditAccounts = await _creditAccountRepository.GetActiveAsync();
+            var allAccounts = await _accountRepository.GetAllAsync();
+            var allCreditAccounts = await _creditAccountRepository.GetAllAsync();
             var transactions = await _transactionRepository.GetByDateRangeAsync(startOfMonth, today);
             var budgets = await _budgetRepository.GetForMonthAsync(today.Year, today.Month);
             var categories = await _categoryRepository.GetAllAsync();
@@ -99,10 +100,14 @@ public sealed partial class DashboardViewModel : ObservableObject
                 Balances.Add(new CurrencyBalance(group.Key, group.Sum(a => a.Balance)));
 
             // Tile 2: income / expenses / available this month — per currency, never blended
-            // (mirrors Tile 1's accounts.GroupBy(a => a.Currency) above). Includes credit accounts in
-            // the currency lookup (not the balance sum above) so card purchases aren't silently
-            // dropped from the expenses total.
-            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
+            // (mirrors Tile 1's accounts.GroupBy(a => a.Currency) above). Built from ALL accounts
+            // (active and inactive), not the active-only `accounts` used for Tile 1's balance sum: this
+            // month's transaction history can include a transaction against an account the user has
+            // since deactivated, and that transaction still needs its currency resolved or it silently
+            // vanishes from the expense/income totals (SpendingCalculator skips unresolvable accounts
+            // defensively rather than throwing — see its own doc comment — so the caller must hand it a
+            // complete map; this is the #1 correctness risk called out in CLAUDE.md).
+            var accountCurrencies = AccountCurrencyMapBuilder.Build(allAccounts, allCreditAccounts);
             var spendingSummary = _spendingCalculator.Calculate(transactions, accountCurrencies);
             var incomeSummary = _incomeCalculator.Calculate(transactions, accountCurrencies);
 

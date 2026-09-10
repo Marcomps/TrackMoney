@@ -51,17 +51,27 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
             var creditAccounts = await _creditAccountRepository.GetActiveAsync();
             var today = DateOnly.FromDateTime(DateTime.Today);
 
-            CreditCards.Clear();
-            foreach (var creditAccount in creditAccounts)
-            {
-                if (creditAccount is not CreditCard card)
-                    continue;
+            var cards = creditAccounts.OfType<CreditCard>().ToList();
+            var cardIds = cards.Select(c => c.Id).ToList();
 
-                var latestStatement = await _statementRepository.GetLatestForCardAsync(card.Id);
-                var paymentsMadeThisCycle = latestStatement is null
-                    ? 0m
-                    : (await _transactionRepository.GetCreditCardPaymentsByDateRangeAndCreditAccountAsync(
-                        latestStatement.CycleEndDate.AddDays(1), today, card.Id)).Sum(t => t.Amount);
+            // Batched instead of two per-card queries inside the loop below (finding 10 of the Phase 2
+            // checkpoint review): one query for every card's latest statement, and one query for every
+            // card's payments up to today. Each card's own lower bound (its latest statement's
+            // CycleEndDate) still differs, so that half of the filter is applied per card below, against
+            // the already small, id- and upper-bound-filtered payments list.
+            var latestStatementsByCard = await _statementRepository.GetLatestForCardsAsync(cardIds);
+            var paymentsByCard = (await _transactionRepository.GetCreditCardPaymentsUpToDateForCreditAccountsAsync(today, cardIds))
+                .GroupBy(p => p.CreditAccountId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            CreditCards.Clear();
+            foreach (var card in cards)
+            {
+                latestStatementsByCard.TryGetValue(card.Id, out var latestStatement);
+                decimal paymentsMadeThisCycle = 0m;
+                if (latestStatement is not null && paymentsByCard.TryGetValue(card.Id, out var payments))
+                    paymentsMadeThisCycle = payments.Where(p => p.Date > latestStatement.CycleEndDate).Sum(p => p.Amount);
+
                 var assessment = _healthEvaluator.Evaluate(card, latestStatement, paymentsMadeThisCycle, today);
 
                 CreditCards.Add(CreditCardListItem.FromDomain(card, assessment.Status));

@@ -121,4 +121,53 @@ public sealed class SnowballPlannerTests
         Assert.True(plan.UnallocatedExtra > 0m);
         Assert.Null(plan.NextTargetAfterCurrentId);
     }
+
+    [Fact]
+    public void Plan_SmallestDebtAlreadyPaidOff_RetargetsToNextSmallestAndExcludesItFromLines()
+    {
+        // Nothing deactivates a CreditAccount at AmountOwed == 0, so a paid-off debt can still arrive
+        // here (still IsActive, still carrying its last statement's MinimumPayment). It must not be
+        // picked as target, must not consume any of extraAvailable, and must not appear in Lines.
+        var paidOffCardA = MakeDebt("Card A (paid off)", amountOwed: 0m, minimumPayment: 25m);
+        var cardB = MakeDebt("Card B", amountOwed: 800m, minimumPayment: 80m);
+        var loan = MakeDebt("Loan", amountOwed: 5000m, minimumPayment: 200m);
+
+        var plan = new SnowballPlanner().Plan([paidOffCardA, cardB, loan], extraAvailable: 150m);
+
+        Assert.Equal([cardB.CreditAccountId, loan.CreditAccountId], plan.Lines.Select(l => l.CreditAccountId));
+
+        var lineB = plan.Lines[0];
+        Assert.True(lineB.IsCurrentTarget);
+        Assert.Equal(150m, lineB.SuggestedExtra);
+        Assert.Equal(230m, lineB.SuggestedTotalPayment);
+
+        Assert.Equal(280m, plan.TotalMinimums); // 80 + 200, excluding Card A's stale 25
+    }
+
+    [Fact]
+    public void Plan_AllDebtsPaidOff_ReturnsEmptyPlanWithAllExtraUnallocated()
+    {
+        var cardA = MakeDebt("Card A (paid off)", amountOwed: 0m, minimumPayment: 25m);
+        var cardB = MakeDebt("Card B (paid off)", amountOwed: 0m, minimumPayment: 80m);
+
+        var plan = new SnowballPlanner().Plan([cardA, cardB], extraAvailable: 150m);
+
+        Assert.True(plan.IsEmpty);
+        Assert.Equal(0m, plan.TotalMinimums);
+        Assert.Equal(0m, plan.ExtraAppliedToTarget);
+        Assert.Equal(150m, plan.UnallocatedExtra);
+        Assert.Null(plan.NextTargetAfterCurrentId);
+    }
+
+    [Fact]
+    public void Plan_StaleMinimumExceedsAmountOwed_CapsSuggestedTotalPaymentAtAmountOwed()
+    {
+        var debt = MakeDebt("Debt", amountOwed: 50m, minimumPayment: 80m); // stale minimum from a prior statement
+
+        var plan = new SnowballPlanner().Plan([debt], extraAvailable: 100m);
+
+        var line = plan.Lines[0];
+        Assert.Equal(0m, line.SuggestedExtra); // headroom = max(0, 50-80) = 0
+        Assert.Equal(50m, line.SuggestedTotalPayment); // capped at AmountOwed, not the stale 80 minimum
+    }
 }

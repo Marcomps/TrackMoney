@@ -153,6 +153,9 @@ public sealed class TransactionEntryService : ITransactionEntryService
         var creditAccount = await _creditAccountRepository.GetByIdAsync(creditAccountId, ct)
             ?? throw new InvalidOperationException($"Credit account '{creditAccountId}' was not found.");
 
+        if (creditAccount is not CreditCard)
+            throw new InvalidOperationException($"Credit account '{creditAccountId}' is not a credit card.");
+
         // Same budget-crossing check as RecordExpenseAsync — see its comment above. Kept duplicated
         // here rather than factored into a second service, since the crossing logic must stay in sync
         // for every spend-counting transaction kind (README §34/§37; CLAUDE.md's #1 risk).
@@ -205,6 +208,9 @@ public sealed class TransactionEntryService : ITransactionEntryService
 
         var creditAccount = await _creditAccountRepository.GetByIdAsync(creditAccountId, ct)
             ?? throw new InvalidOperationException($"Credit account '{creditAccountId}' was not found.");
+
+        if (creditAccount is not CreditCard)
+            throw new InvalidOperationException($"Credit account '{creditAccountId}' is not a credit card.");
 
         // README §6/§10: same cross-currency rejection as RecordTransferAsync — no conversion feature
         // in scope, so a numeric amount can't be safely applied to accounts in different currencies.

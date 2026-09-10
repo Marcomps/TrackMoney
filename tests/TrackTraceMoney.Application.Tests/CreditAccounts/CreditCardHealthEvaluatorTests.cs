@@ -89,6 +89,35 @@ public sealed class CreditCardHealthEvaluatorTests
     }
 
     [Fact]
+    public void Evaluate_OverdueWithZeroMinimumAndUnpaidBalance_IsRed()
+    {
+        // Regression guard for the checkpoint review finding: a $0 recorded minimum must not
+        // trivially satisfy "paid at least the minimum" (paymentsMadeThisCycle >= 0 is always true).
+        // An overdue card with a $0 minimum and its entire balance still unpaid must be Red, exactly
+        // like a card with a nonzero minimum that wasn't met — not fall through to Green.
+        var card = CreateCard(amountOwed: 650m);
+        var statement = new CreditCardStatement(card.Id, cycleStartDate: new DateOnly(2026, 7, 26), cycleEndDate: CycleEndDate, minimumPayment: 0m, payInFullAmount: 300m);
+
+        var assessment = new CreditCardHealthEvaluator().Evaluate(card, statement, paymentsMadeThisCycle: 0m, today: new DateOnly(2026, 9, 15));
+
+        Assert.Equal(CreditCardHealthStatus.Red, assessment.Status);
+    }
+
+    [Fact]
+    public void Evaluate_ZeroBalanceWithZeroMinimum_IsStillGreen_NotFalselyRed()
+    {
+        // The flip side of the regression above: a genuinely paid-off card ($0 owed) with a $0
+        // recorded minimum must NOT become falsely Red — the fix only tightens what "met" means when
+        // there's still a balance owed, it must not penalize a card that owes nothing at all.
+        var card = CreateCard(amountOwed: 0m);
+        var statement = new CreditCardStatement(card.Id, cycleStartDate: new DateOnly(2026, 7, 26), cycleEndDate: CycleEndDate, minimumPayment: 0m, payInFullAmount: 0m);
+
+        var assessment = new CreditCardHealthEvaluator().Evaluate(card, statement, paymentsMadeThisCycle: 0m, today: new DateOnly(2026, 9, 5));
+
+        Assert.Equal(CreditCardHealthStatus.Green, assessment.Status);
+    }
+
+    [Fact]
     public void Evaluate_OverdueButMinimumPaid_FallsThroughToOrangeNotRed()
     {
         // The most important boundary case: carrying a revolving balance past the due date after

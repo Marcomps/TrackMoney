@@ -169,12 +169,12 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         PaymentAccounts.Clear();
         foreach (var account in accounts)
             PaymentAccounts.Add(new NamedOption(account.Id, account.Name, account.Currency, IsCreditAccount: false));
-        foreach (var creditAccount in creditAccounts)
-            PaymentAccounts.Add(new NamedOption(creditAccount.Id, $"💳 {creditAccount.Name}", creditAccount.Currency, IsCreditAccount: true));
+        foreach (var creditCard in creditAccounts.OfType<CreditCard>())
+            PaymentAccounts.Add(new NamedOption(creditCard.Id, $"💳 {creditCard.Name}", creditCard.Currency, IsCreditAccount: true));
 
         CreditCardOptions.Clear();
-        foreach (var creditAccount in creditAccounts)
-            CreditCardOptions.Add(new NamedOption(creditAccount.Id, creditAccount.Name, creditAccount.Currency, IsCreditAccount: true));
+        foreach (var creditCard in creditAccounts.OfType<CreditCard>())
+            CreditCardOptions.Add(new NamedOption(creditCard.Id, creditCard.Name, creditCard.Currency, IsCreditAccount: true));
 
         _loans = creditAccounts.OfType<Loan>().ToList();
         LoanOptions.Clear();
@@ -364,6 +364,15 @@ public sealed partial class AddTransactionViewModel : ObservableObject
             }
 
             await Shell.Current.GoToAsync("..");
+        }
+        catch (InvalidOperationException)
+        {
+            // A service-layer invariant rejected the save (e.g. CreditAccount.RegisterPayment's
+            // overpayment guard — nothing client-side compares the entered amount against the target
+            // card/loan's current AmountOwed before calling the service). Surface a generic, localized
+            // message rather than the raw domain exception text, mirroring how RecurringExpensesListViewModel
+            // and SettingsViewModel handle a failed service call elsewhere in this app.
+            ErrorMessage = AppResources.AddTransaction_ValidationServiceError;
         }
         finally
         {

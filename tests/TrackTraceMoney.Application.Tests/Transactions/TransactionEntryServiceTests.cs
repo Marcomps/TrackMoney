@@ -263,6 +263,24 @@ public sealed class TransactionEntryServiceTests
     }
 
     [Fact]
+    public async Task RecordCreditCardPurchaseAsync_CreditAccountIsALoan_ThrowsAndDoesNotRecordTransaction()
+    {
+        // Bug fix regression guard: a Loan must never be accepted by the card-only purchase flow —
+        // RegisterCharge exists on the shared CreditAccount base, so without this guard a Loan would
+        // silently accept a charge via the wrong code path (never calling Loan.AdvanceSchedule),
+        // leaving NextPaymentDate/RequiredPayment stale forever.
+        var (service, _, creditAccounts, transactions, _, _, _) = CreateSut();
+        var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
+        var categoryId = Guid.NewGuid();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordCreditCardPurchaseAsync(DateOnly.FromDateTime(DateTime.Today), 60m, loan.Id, categoryId, null, null, "Groceries", null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(500m, loan.AmountOwed);
+    }
+
+    [Fact]
     public async Task RecordCreditCardPurchaseAsync_AndCashExpense_TogetherCrossBudget_ThatNeitherAloneWouldCross()
     {
         // Regression guard for the GetByDateRangeAndCategoryAsync fix (Infrastructure section 3):
@@ -361,6 +379,24 @@ public sealed class TransactionEntryServiceTests
         Assert.Empty(transactions.All);
         Assert.Equal(1000m, checking.Balance);
         Assert.Equal(500m, card.AmountOwed);
+    }
+
+    [Fact]
+    public async Task RecordCreditCardPaymentAsync_CreditAccountIsALoan_ThrowsAndDoesNotRecordTransaction()
+    {
+        // Bug fix regression guard: a Loan must never be accepted by the card-only payment flow —
+        // RegisterPayment exists on the shared CreditAccount base, so without this guard a Loan would
+        // silently accept a payment via the wrong code path (never calling Loan.AdvanceSchedule),
+        // leaving NextPaymentDate/RequiredPayment stale forever.
+        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordCreditCardPaymentAsync(DateOnly.FromDateTime(DateTime.Today), 300m, checking.Id, loan.Id, "Card payment", null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(500m, loan.AmountOwed);
     }
 
     [Fact]
@@ -557,6 +593,16 @@ public sealed class TransactionEntryServiceTests
                 .OfType<CreditCardPayment>()
                 .Where(p => p.Date >= from && p.Date <= to && p.CreditAccountId == creditAccountId)
                 .ToList());
+
+        public Task<IReadOnlyList<CreditCardPayment>> GetCreditCardPaymentsUpToDateForCreditAccountsAsync(
+            DateOnly to, IEnumerable<Guid> creditAccountIds, CancellationToken ct = default)
+        {
+            var ids = creditAccountIds.ToList();
+            return Task.FromResult<IReadOnlyList<CreditCardPayment>>(_transactions
+                .OfType<CreditCardPayment>()
+                .Where(p => p.Date <= to && ids.Contains(p.CreditAccountId))
+                .ToList());
+        }
 
         public Task AddAsync(Transaction entity, CancellationToken ct = default)
         {

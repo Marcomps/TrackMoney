@@ -8,7 +8,9 @@ namespace TrackTraceMoney.Application.CreditAccounts;
 /// <list type="number">
 /// <item>Red: overdue AND the minimum payment itself wasn't met (NOT the pay-in-full amount — carrying
 /// a revolving balance past the due date after paying at least the minimum is normal and must fall
-/// through to Orange, not Red).</item>
+/// through to Orange, not Red). A recorded <c>$0</c> minimum is handled deliberately: it only counts as
+/// "met" when nothing is owed, so an overdue card with a <c>$0</c> minimum and a real balance still
+/// unpaid is still Red, not a false Green.</item>
 /// <item>Orange: a partial payment was made (paid at least the minimum but not the full pay-in-full
 /// amount) OR utilization is at/above 80% — either condition alone is enough, checked before Yellow's
 /// due-date proximity so high utilization or a partial payment always outranks "due soon".</item>
@@ -43,7 +45,12 @@ public sealed class CreditCardHealthEvaluator : ICreditCardHealthEvaluator
 
         var dueDate = card.GetPaymentDueDateForCycleEndingOn(latestStatement.CycleEndDate);
         var isOverdue = today > dueDate;
-        var paidAtLeastMinimum = paymentsMadeThisCycle >= latestStatement.MinimumPayment;
+        // A $0 minimum must not get a free pass: "paymentsMadeThisCycle >= 0" is trivially true, which
+        // would otherwise let a fully unpaid, overdue balance read as "minimum met". When the recorded
+        // minimum is $0, only treat it as met if there's genuinely nothing left to owe.
+        var paidAtLeastMinimum = latestStatement.MinimumPayment > 0
+            ? paymentsMadeThisCycle >= latestStatement.MinimumPayment
+            : card.AmountOwed <= 0;
         var paidInFull = paymentsMadeThisCycle >= latestStatement.PayInFullAmount;
 
         CreditCardHealthStatus status;

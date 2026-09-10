@@ -412,6 +412,9 @@
   <data name="AddTransaction_ValidationCurrencyMismatch" xml:space="preserve">
     <value>La cuenta origen y destino deben tener la misma moneda.</value>
   </data>
+  <data name="AddTransaction_ValidationServiceError" xml:space="preserve">
+    <value>No se pudo guardar este movimiento. Verifica el monto e inténtalo de nuevo.</value>
+  </data>
   <data name="AddTransaction_NoneOption" xml:space="preserve">
     <value>Ninguna</value>
   </data>

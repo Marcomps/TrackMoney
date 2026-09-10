@@ -61,6 +61,11 @@ public sealed partial class SnowballPlanViewModel : ObservableObject
         {
             var creditAccounts = await _creditAccountRepository.GetActiveAsync();
 
+            // Batched instead of one GetLatestForCardAsync call per card in the loop below (finding 10
+            // of the Phase 2 checkpoint review) — one query for every card's latest statement up front.
+            var cardIds = creditAccounts.OfType<CreditCard>().Select(c => c.Id).ToList();
+            var latestStatementsByCard = await _statementRepository.GetLatestForCardsAsync(cardIds);
+
             var debtsByCurrency = new Dictionary<CurrencyCode, List<SnowballDebtInput>>();
             var excludedCards = new List<ExcludedCardListItem>();
 
@@ -74,8 +79,7 @@ public sealed partial class SnowballPlanViewModel : ObservableObject
                         break;
 
                     case CreditCard card:
-                        var latestStatement = await _statementRepository.GetLatestForCardAsync(card.Id);
-                        if (latestStatement is null)
+                        if (!latestStatementsByCard.TryGetValue(card.Id, out var latestStatement))
                         {
                             excludedCards.Add(new ExcludedCardListItem(card.Id, card.Name, card.AmountOwed));
                             break;

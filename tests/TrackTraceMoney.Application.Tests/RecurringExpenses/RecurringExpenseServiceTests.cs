@@ -237,6 +237,16 @@ public sealed class RecurringExpenseServiceTests
                 .Where(p => p.Date >= from && p.Date <= to && p.CreditAccountId == creditAccountId)
                 .ToList());
 
+        public Task<IReadOnlyList<CreditCardPayment>> GetCreditCardPaymentsUpToDateForCreditAccountsAsync(
+            DateOnly to, IEnumerable<Guid> creditAccountIds, CancellationToken ct = default)
+        {
+            var ids = creditAccountIds.ToList();
+            return Task.FromResult<IReadOnlyList<CreditCardPayment>>(_transactions
+                .OfType<CreditCardPayment>()
+                .Where(p => p.Date <= to && ids.Contains(p.CreditAccountId))
+                .ToList());
+        }
+
         public Task AddAsync(Transaction entity, CancellationToken ct = default)
         {
             _transactions.Add(entity);

@@ -81,6 +81,20 @@ public interface IDbAccessGate
     Task<IDisposable> AcquireAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// Synchronous counterpart to <see cref="AcquireAsync"/>, for the rare caller that must stay
+    /// synchronous — currently only <see cref="RepositoryBase{TEntity}.Remove"/>. EF Core's
+    /// <c>DbContext</c> is documented as unsafe to touch from more than one "operation" at a time
+    /// regardless of whether that operation is an awaited I/O call or a synchronous, in-memory
+    /// change-tracker mutation (<c>Add</c>/<c>Remove</c>/<c>Attach</c> all read and write the same
+    /// <c>StateManager</c> structures an in-flight query or <c>SaveChanges</c> is concurrently
+    /// populating/reading) — see this interface's containing type's remarks. Blocks the calling
+    /// thread until the gate is free. Honors the same ambient-scope short-circuit as
+    /// <see cref="AcquireAsync"/>, so a call made from inside an <see cref="EnterAmbientScope"/>
+    /// region never blocks.
+    /// </summary>
+    IDisposable Acquire();
+
+    /// <summary>
     /// Marks the remainder of the current synchronous continuation — and everything it subsequently
     /// awaits — as already holding this gate, so nested calls to <see cref="AcquireAsync"/> made from
     /// within that continuation return immediately instead of deadlocking against an outer acquisition
@@ -103,6 +117,15 @@ internal sealed class DbAccessGate : IDbAccessGate
             return NoopScope.Instance;
 
         await _semaphore.WaitAsync(ct).ConfigureAwait(false);
+        return new SemaphoreReleaseScope(_semaphore);
+    }
+
+    public IDisposable Acquire()
+    {
+        if (_ambientlyHeld.Value)
+            return NoopScope.Instance;
+
+        _semaphore.Wait();
         return new SemaphoreReleaseScope(_semaphore);
     }
 
