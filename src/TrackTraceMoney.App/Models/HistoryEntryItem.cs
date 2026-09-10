@@ -78,6 +78,16 @@ public sealed record HistoryEntryItem(
                 [payment.SourceAccountId, payment.CreditAccountId],
                 null,
                 []),
+            LoanPayment payment => new HistoryEntryItem(
+                payment.Id,
+                payment.Date,
+                payment.Amount,
+                TransactionType.LoanPayment,
+                payment.Description,
+                accountLabel,
+                [payment.SourceAccountId, payment.CreditAccountId],
+                null,
+                []),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

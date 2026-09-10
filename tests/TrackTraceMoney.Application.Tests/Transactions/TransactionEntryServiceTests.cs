@@ -363,6 +363,109 @@ public sealed class TransactionEntryServiceTests
         Assert.Equal(500m, card.AmountOwed);
     }
 
+    [Fact]
+    public async Task RecordLoanPaymentAsync_DebitsSourceAndReducesDebt_AndAdvancesSchedule_ExactlyOnce()
+    {
+        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
+
+        var nextPaymentDate = new DateOnly(2026, 10, 10);
+
+        await service.RecordLoanPaymentAsync(
+            DateOnly.FromDateTime(DateTime.Today), 300m, checking.Id, loan.Id, nextPaymentDate, 150m, "Loan payment", null);
+
+        Assert.Equal(700m, checking.Balance);
+        Assert.Equal(200m, loan.AmountOwed);
+        Assert.Equal(nextPaymentDate, loan.NextPaymentDate);
+        Assert.Equal(150m, loan.RequiredPayment);
+        var recorded = Assert.Single(transactions.All);
+        Assert.IsType<LoanPayment>(recorded);
+    }
+
+    [Fact]
+    public async Task RecordLoanPaymentAsync_NeverCountsAsSpend_AndNeverTriggersBudgetNotification()
+    {
+        // Mirrors RecordCreditCardPaymentAsync's equivalent test: push a category's budget right up to
+        // its limit, then record a loan payment (unrelated — loan payments have no category at all) and
+        // assert zero additional notifications and CountsAsExpense == false on the persisted transaction.
+        var (service, accounts, creditAccounts, transactions, budgets, categories, notifier) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
+        var category = categories.Add(Category.CreateUserDefined("Dining"));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
+
+        await service.RecordExpenseAsync(today, 100m, checking.Id, category.Id, null, null, "At the limit", null);
+        var callsBeforePayment = notifier.Calls.Count;
+
+        await service.RecordLoanPaymentAsync(today, 60m, checking.Id, loan.Id, today.AddMonths(1), 60m, "Loan payment", null);
+
+        Assert.Equal(callsBeforePayment, notifier.Calls.Count);
+        var recorded = transactions.All.OfType<LoanPayment>().Single();
+        Assert.False(recorded.CountsAsExpense);
+    }
+
+    [Fact]
+    public async Task RecordLoanPaymentAsync_AcrossDifferentCurrencies_ThrowsAndDoesNotMutateEitherSide()
+    {
+        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.MXN, currentBalance: 500m));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordLoanPaymentAsync(
+                DateOnly.FromDateTime(DateTime.Today), 300m, checking.Id, loan.Id, DateOnly.FromDateTime(DateTime.Today.AddMonths(1)), 150m, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(1000m, checking.Balance);
+        Assert.Equal(500m, loan.AmountOwed);
+    }
+
+    [Fact]
+    public async Task RecordLoanPaymentAsync_Overpayment_ThrowsAndDoesNotMutateEitherSide()
+    {
+        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 200m));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordLoanPaymentAsync(
+                DateOnly.FromDateTime(DateTime.Today), 300m, checking.Id, loan.Id, DateOnly.FromDateTime(DateTime.Today.AddMonths(1)), 150m, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(1000m, checking.Balance);
+        Assert.Equal(200m, loan.AmountOwed);
+    }
+
+    [Fact]
+    public async Task RecordLoanPaymentAsync_WrongCreditAccountType_Throws()
+    {
+        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordLoanPaymentAsync(
+                DateOnly.FromDateTime(DateTime.Today), 100m, checking.Id, card.Id, DateOnly.FromDateTime(DateTime.Today.AddMonths(1)), 150m, null, null));
+
+        Assert.Empty(transactions.All);
+    }
+
+    private static Loan CreateLoan(CurrencyCode currency, decimal currentBalance) =>
+        new(
+            "Car Loan",
+            currency,
+            "Bank",
+            LoanKind.AutoLoan,
+            originalAmount: 1000m,
+            currentBalance: currentBalance,
+            interestRate: 10m,
+            rateType: LoanRateType.Fixed,
+            monthlyInstallment: 100m,
+            nextPaymentDate: DateOnly.FromDateTime(DateTime.Today),
+            requiredPayment: 100m);
+
     private sealed class InMemoryAccountRepository : IFinancialAccountRepository
     {
         private readonly Dictionary<Guid, FinancialAccount> _accounts = new();

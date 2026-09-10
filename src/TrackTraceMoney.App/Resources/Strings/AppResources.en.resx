@@ -334,6 +334,9 @@
   <data name="TransactionType_CreditCardPayment" xml:space="preserve">
     <value>Card payment</value>
   </data>
+  <data name="TransactionType_LoanPayment" xml:space="preserve">
+    <value>Loan payment</value>
+  </data>
   <data name="AddTransaction_Title" xml:space="preserve">
     <value>New transaction</value>
   </data>
@@ -357,6 +360,15 @@
   </data>
   <data name="AddTransaction_CardLabel" xml:space="preserve">
     <value>Card</value>
+  </data>
+  <data name="AddTransaction_LoanLabel" xml:space="preserve">
+    <value>Loan</value>
+  </data>
+  <data name="AddTransaction_NextPaymentDateLabel" xml:space="preserve">
+    <value>Next payment date</value>
+  </data>
+  <data name="AddTransaction_RequiredPaymentLabel" xml:space="preserve">
+    <value>Required payment</value>
   </data>
   <data name="AddTransaction_CategoryLabel" xml:space="preserve">
     <value>Category</value>
@@ -384,6 +396,9 @@
   </data>
   <data name="AddTransaction_ValidationAmountInvalid" xml:space="preserve">
     <value>Amount must be a valid number greater than zero.</value>
+  </data>
+  <data name="AddTransaction_ValidationRequiredPaymentInvalid" xml:space="preserve">
+    <value>Required payment must be a valid number greater than zero.</value>
   </data>
   <data name="AddTransaction_ValidationAccountRequired" xml:space="preserve">
     <value>You must select an account.</value>

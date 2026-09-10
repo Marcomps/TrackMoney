@@ -119,4 +119,20 @@ public sealed class Loan : CreditAccount
         RequiredPayment = requiredPayment;
         Fees = fees;
     }
+
+    /// <summary>
+    /// Advances this loan's forward-looking schedule after a payment is recorded (README §19). Called by
+    /// LoanPayment's recording flow, never invoked standalone — both values are supplied by the caller
+    /// (ultimately user-entered on the Add Transaction screen), mirroring RequiredPayment's existing
+    /// "always user-entered, never derived" invariant. Does not touch AmountOwed — that's
+    /// CreditAccount.RegisterPayment's job, called separately.
+    /// </summary>
+    public void AdvanceSchedule(DateOnly nextPaymentDate, decimal requiredPayment)
+    {
+        if (requiredPayment <= 0)
+            throw new ArgumentOutOfRangeException(nameof(requiredPayment), "Required payment must be positive.");
+
+        NextPaymentDate = nextPaymentDate;
+        RequiredPayment = requiredPayment;
+    }
 }

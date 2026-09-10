@@ -69,4 +69,22 @@ public interface ITransactionEntryService
         string? description,
         string? notes,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Records a payment against a loan's debt (README §19, §46's "Card payment" rule family, generalized
+    /// to loans). Decreases the source FinancialAccount's balance and the Loan's AmountOwed, and advances
+    /// the loan's forward-looking schedule (NextPaymentDate/RequiredPayment) to the caller-supplied values.
+    /// Never counts as spend — do not wire budget/ISpendingCalculator/ILocalNotifier machinery onto this
+    /// method (CLAUDE.md's #1 correctness risk, inverse direction, same as RecordCreditCardPaymentAsync).
+    /// </summary>
+    Task RecordLoanPaymentAsync(
+        DateOnly date,
+        decimal amount,
+        Guid sourceAccountId,
+        Guid loanAccountId,
+        DateOnly nextPaymentDate,
+        decimal requiredPayment,
+        string? description,
+        string? notes,
+        CancellationToken ct = default);
 }

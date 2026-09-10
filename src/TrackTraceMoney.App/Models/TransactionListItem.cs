@@ -54,6 +54,13 @@ public sealed record TransactionListItem(
                 TransactionType.CreditCardPayment,
                 payment.Description,
                 accountLabel),
+            LoanPayment payment => new TransactionListItem(
+                payment.Id,
+                payment.Date,
+                payment.Amount,
+                TransactionType.LoanPayment,
+                payment.Description,
+                accountLabel),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

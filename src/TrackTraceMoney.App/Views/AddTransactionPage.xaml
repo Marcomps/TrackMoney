@@ -65,6 +65,20 @@
                 <Picker ItemsSource="{Binding CreditCardOptions}" SelectedItem="{Binding SelectedCardPaymentTarget}" />
             </VerticalStackLayout>
 
+            <VerticalStackLayout IsVisible="{Binding IsLoanPayment}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddTransaction_SourceAccountLabel}" />
+                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedLoanPaymentSource}" />
+
+                <Label Text="{x:Static resources:AppResources.AddTransaction_LoanLabel}" />
+                <Picker ItemsSource="{Binding LoanOptions}" SelectedItem="{Binding SelectedLoanPaymentTarget}" />
+
+                <Label Text="{x:Static resources:AppResources.AddTransaction_NextPaymentDateLabel}" />
+                <DatePicker Date="{Binding LoanNextPaymentDate}" />
+
+                <Label Text="{x:Static resources:AppResources.AddTransaction_RequiredPaymentLabel}" />
+                <Entry Text="{Binding RequiredPaymentText}" Keyboard="Numeric" />
+            </VerticalStackLayout>
+
             <Label Text="{x:Static resources:AppResources.AddTransaction_DescriptionLabel}" />
             <Entry Text="{Binding Description}" />
 

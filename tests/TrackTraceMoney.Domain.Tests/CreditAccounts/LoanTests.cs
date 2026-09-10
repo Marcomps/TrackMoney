@@ -124,4 +124,34 @@ public sealed class LoanTests
 
         Assert.Throws<InvalidOperationException>(() => loan.RegisterPayment(200.01m));
     }
+
+    [Fact]
+    public void AdvanceSchedule_UpdatesNextPaymentDateAndRequiredPayment_ToExactlyTheSuppliedValues()
+    {
+        var loan = CreateLoan(nextPaymentDate: new DateOnly(2026, 10, 1), requiredPayment: 150m);
+        var nextPaymentDate = new DateOnly(2026, 11, 1);
+
+        loan.AdvanceSchedule(nextPaymentDate, 175m);
+
+        Assert.Equal(nextPaymentDate, loan.NextPaymentDate);
+        Assert.Equal(175m, loan.RequiredPayment);
+    }
+
+    [Fact]
+    public void AdvanceSchedule_WithNonPositiveRequiredPayment_Throws()
+    {
+        var loan = CreateLoan();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => loan.AdvanceSchedule(new DateOnly(2026, 11, 1), 0m));
+    }
+
+    [Fact]
+    public void AdvanceSchedule_DoesNotMutateAmountOwed()
+    {
+        var loan = CreateLoan(currentBalance: 3250m);
+
+        loan.AdvanceSchedule(new DateOnly(2026, 11, 1), 175m);
+
+        Assert.Equal(3250m, loan.AmountOwed);
+    }
 }

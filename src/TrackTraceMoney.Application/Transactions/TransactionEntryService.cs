@@ -1,5 +1,6 @@
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Reporting;
+using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.Application.Transactions;
@@ -216,6 +217,42 @@ public sealed class TransactionEntryService : ITransactionEntryService
         // Credit side first: RegisterPayment's overpayment guard is the stricter/newer invariant — if it
         // throws, the source account must not have been mutated yet.
         creditAccount.RegisterPayment(amount);
+        sourceAccount.Debit(amount);
+
+        await _transactionRepository.AddAsync(payment, ct);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    public async Task RecordLoanPaymentAsync(
+        DateOnly date,
+        decimal amount,
+        Guid sourceAccountId,
+        Guid loanAccountId,
+        DateOnly nextPaymentDate,
+        decimal requiredPayment,
+        string? description,
+        string? notes,
+        CancellationToken ct = default)
+    {
+        var sourceAccount = await _accountRepository.GetByIdAsync(sourceAccountId, ct)
+            ?? throw new InvalidOperationException($"Account '{sourceAccountId}' was not found.");
+
+        var creditAccount = await _creditAccountRepository.GetByIdAsync(loanAccountId, ct)
+            ?? throw new InvalidOperationException($"Credit account '{loanAccountId}' was not found.");
+
+        if (creditAccount is not Loan loan)
+            throw new InvalidOperationException($"Credit account '{loanAccountId}' is not a loan.");
+
+        if (sourceAccount.Currency != loan.Currency)
+            throw new InvalidOperationException(
+                $"Cannot pay a loan with an account in a different currency ({sourceAccount.Currency} -> {loan.Currency}) without currency conversion support.");
+
+        var payment = new LoanPayment(date, amount, sourceAccountId, loanAccountId, description, notes);
+
+        // Credit side first: RegisterPayment's overpayment guard is the stricter/newer invariant — if it
+        // throws, the source account must not have been mutated yet. Same ordering as CreditCardPayment.
+        loan.RegisterPayment(amount);
+        loan.AdvanceSchedule(nextPaymentDate, requiredPayment);
         sourceAccount.Debit(amount);
 
         await _transactionRepository.AddAsync(payment, ct);

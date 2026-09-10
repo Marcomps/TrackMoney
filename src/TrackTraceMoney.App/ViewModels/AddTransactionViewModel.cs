@@ -7,6 +7,7 @@ using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Transactions;
+using TrackTraceMoney.Domain.CreditAccounts;
 
 namespace TrackTraceMoney.App.ViewModels;
 
@@ -18,11 +19,21 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private readonly ICategoryRepository _categoryRepository;
     private readonly IPersonRepository _personRepository;
 
+    /// <summary>
+    /// Raw <c>Loan</c> entities backing <see cref="LoanOptions"/>, kept alongside it (not folded into
+    /// <see cref="NamedOption"/>) since <c>OnSelectedLoanPaymentTargetChanged</c> needs
+    /// <c>NextPaymentDate</c>/<c>MonthlyInstallment</c> to prefill the schedule fields, and those are
+    /// loan-specific — extending the shared <see cref="NamedOption"/> record for one screen's prefill
+    /// need would leak loan-only fields into every other picker consumer.
+    /// </summary>
+    private IReadOnlyList<Loan> _loans = [];
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsExpense))]
     [NotifyPropertyChangedFor(nameof(IsIncome))]
     [NotifyPropertyChangedFor(nameof(IsTransfer))]
     [NotifyPropertyChangedFor(nameof(IsCreditCardPayment))]
+    [NotifyPropertyChangedFor(nameof(IsLoanPayment))]
     private TransactionType selectedType = TransactionType.Expense;
 
     [ObservableProperty]
@@ -57,6 +68,18 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 
     [ObservableProperty]
     private NamedOption? selectedCardPaymentTarget;
+
+    [ObservableProperty]
+    private NamedOption? selectedLoanPaymentSource;
+
+    [ObservableProperty]
+    private NamedOption? selectedLoanPaymentTarget;
+
+    [ObservableProperty]
+    private DateTime loanNextPaymentDate = DateTime.Today;
+
+    [ObservableProperty]
+    private string requiredPaymentText = string.Empty;
 
     [ObservableProperty]
     private string? description;
@@ -95,6 +118,12 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     /// </summary>
     public ObservableCollection<NamedOption> CreditCardOptions { get; } = [];
 
+    /// <summary>
+    /// Backs ONLY the LoanPayment block's Loan picker — loans only, no prefix (the screen's own "Loan"
+    /// field label already conveys that), mirroring <see cref="CreditCardOptions"/>'s pattern.
+    /// </summary>
+    public ObservableCollection<NamedOption> LoanOptions { get; } = [];
+
     public ObservableCollection<NamedOption> Categories { get; } = [];
 
     public ObservableCollection<NamedOption> People { get; } = [];
@@ -106,6 +135,8 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     public bool IsTransfer => SelectedType == TransactionType.Transfer;
 
     public bool IsCreditCardPayment => SelectedType == TransactionType.CreditCardPayment;
+
+    public bool IsLoanPayment => SelectedType == TransactionType.LoanPayment;
 
     public AddTransactionViewModel(
         ITransactionEntryService transactionEntryService,
@@ -145,6 +176,11 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         foreach (var creditAccount in creditAccounts)
             CreditCardOptions.Add(new NamedOption(creditAccount.Id, creditAccount.Name, creditAccount.Currency, IsCreditAccount: true));
 
+        _loans = creditAccounts.OfType<Loan>().ToList();
+        LoanOptions.Clear();
+        foreach (var loan in _loans)
+            LoanOptions.Add(new NamedOption(loan.Id, loan.Name, loan.Currency, IsCreditAccount: true));
+
         Categories.Clear();
         foreach (var category in categories)
             Categories.Add(new NamedOption(category.Id, SystemCategoryKeyToLabelConverter.GetDisplayName(category)));
@@ -153,6 +189,17 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         People.Add(new NamedOption(Guid.Empty, AppResources.AddTransaction_NoneOption));
         foreach (var person in people)
             People.Add(new NamedOption(person.Id, person.Name));
+    }
+
+    partial void OnSelectedLoanPaymentTargetChanged(NamedOption? value)
+    {
+        var loan = _loans.FirstOrDefault(l => l.Id == value?.Id);
+        if (loan is null)
+            return;
+
+        // UI-suggested defaults only — the user can still edit both before saving; never enforced.
+        LoanNextPaymentDate = loan.NextPaymentDate.AddMonths(1).ToDateTime(TimeOnly.MinValue);
+        RequiredPaymentText = loan.MonthlyInstallment.ToString(CultureInfo.CurrentCulture);
     }
 
     [RelayCommand]
@@ -281,6 +328,36 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         amount,
                         SelectedCardPaymentSource.Id,
                         SelectedCardPaymentTarget.Id,
+                        Description,
+                        Notes);
+                    break;
+
+                case TransactionType.LoanPayment:
+                    if (SelectedLoanPaymentSource is null || SelectedLoanPaymentTarget is null)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationAccountRequired;
+                        return;
+                    }
+
+                    if (SelectedLoanPaymentSource.Currency != SelectedLoanPaymentTarget.Currency)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationCurrencyMismatch;
+                        return;
+                    }
+
+                    if (!decimal.TryParse(RequiredPaymentText, NumberStyles.Number, CultureInfo.CurrentCulture, out var requiredPayment) || requiredPayment <= 0)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationRequiredPaymentInvalid;
+                        return;
+                    }
+
+                    await _transactionEntryService.RecordLoanPaymentAsync(
+                        date,
+                        amount,
+                        SelectedLoanPaymentSource.Id,
+                        SelectedLoanPaymentTarget.Id,
+                        DateOnly.FromDateTime(LoanNextPaymentDate),
+                        requiredPayment,
                         Description,
                         Notes);
                     break;
