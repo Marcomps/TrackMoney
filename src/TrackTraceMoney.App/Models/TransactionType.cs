@@ -7,5 +7,7 @@ public enum TransactionType
     Transfer,
     CreditCardPurchase,
     CreditCardPayment,
-    LoanPayment
+    LoanPayment,
+    InvestmentContribution,
+    InvestmentWithdrawal
 }

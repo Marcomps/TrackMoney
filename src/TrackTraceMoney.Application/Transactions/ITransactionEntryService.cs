@@ -87,4 +87,36 @@ public interface ITransactionEntryService
         string? description,
         string? notes,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Records money moved from a funding <see cref="Domain.Accounts.FinancialAccount"/> into an
+    /// <see cref="Domain.Accounts.InvestmentFund"/> (README §45's "📈 Investment contribution" quick
+    /// action). Debits the funding account, credits the fund's balance, and updates the fund's running
+    /// <see cref="Domain.Accounts.InvestmentFund.Contributions"/> total. Never counts as spend.
+    /// </summary>
+    Task RecordInvestmentContributionAsync(
+        DateOnly date,
+        decimal amount,
+        Guid sourceAccountId,
+        Guid investmentFundId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Records money moved from an <see cref="Domain.Accounts.InvestmentFund"/> into a receiving
+    /// <see cref="Domain.Accounts.FinancialAccount"/> (README §45's "💰 Investment withdrawal" quick
+    /// action). Debits the fund's balance (allowed to go negative — no overdraft guard, mirroring
+    /// <see cref="Domain.Accounts.InvestmentFund.RecordWithdrawal"/>'s deliberately lax convention),
+    /// credits the receiving account, and updates the fund's running
+    /// <see cref="Domain.Accounts.InvestmentFund.Withdrawals"/> total. Never counts as spend.
+    /// </summary>
+    Task RecordInvestmentWithdrawalAsync(
+        DateOnly date,
+        decimal amount,
+        Guid investmentFundId,
+        Guid destinationAccountId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default);
 }

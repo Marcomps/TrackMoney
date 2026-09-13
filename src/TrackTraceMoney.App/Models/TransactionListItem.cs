@@ -61,6 +61,20 @@ public sealed record TransactionListItem(
                 TransactionType.LoanPayment,
                 payment.Description,
                 accountLabel),
+            InvestmentContribution contribution => new TransactionListItem(
+                contribution.Id,
+                contribution.Date,
+                contribution.Amount,
+                TransactionType.InvestmentContribution,
+                contribution.Description,
+                accountLabel),
+            InvestmentWithdrawal withdrawal => new TransactionListItem(
+                withdrawal.Id,
+                withdrawal.Date,
+                withdrawal.Amount,
+                TransactionType.InvestmentWithdrawal,
+                withdrawal.Description,
+                accountLabel),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

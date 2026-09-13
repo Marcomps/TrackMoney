@@ -79,6 +79,22 @@
                 <Entry Text="{Binding RequiredPaymentText}" Keyboard="Numeric" />
             </VerticalStackLayout>
 
+            <VerticalStackLayout IsVisible="{Binding IsInvestmentContribution}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddTransaction_SourceAccountLabel}" />
+                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedInvestmentContributionSource}" />
+
+                <Label Text="{x:Static resources:AppResources.AddTransaction_FundLabel}" />
+                <Picker ItemsSource="{Binding InvestmentFundOptions}" SelectedItem="{Binding SelectedInvestmentContributionFund}" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding IsInvestmentWithdrawal}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddTransaction_FundLabel}" />
+                <Picker ItemsSource="{Binding InvestmentFundOptions}" SelectedItem="{Binding SelectedInvestmentWithdrawalFund}" />
+
+                <Label Text="{x:Static resources:AppResources.AddTransaction_DestinationAccountLabel}" />
+                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedInvestmentWithdrawalDestination}" />
+            </VerticalStackLayout>
+
             <Label Text="{x:Static resources:AppResources.AddTransaction_DescriptionLabel}" />
             <Entry Text="{Binding Description}" />
 

@@ -337,6 +337,12 @@
   <data name="TransactionType_LoanPayment" xml:space="preserve">
     <value>Loan payment</value>
   </data>
+  <data name="TransactionType_InvestmentContribution" xml:space="preserve">
+    <value>Investment contribution</value>
+  </data>
+  <data name="TransactionType_InvestmentWithdrawal" xml:space="preserve">
+    <value>Investment withdrawal</value>
+  </data>
   <data name="AddTransaction_Title" xml:space="preserve">
     <value>New transaction</value>
   </data>
@@ -363,6 +369,9 @@
   </data>
   <data name="AddTransaction_LoanLabel" xml:space="preserve">
     <value>Loan</value>
+  </data>
+  <data name="AddTransaction_FundLabel" xml:space="preserve">
+    <value>Investment fund</value>
   </data>
   <data name="AddTransaction_NextPaymentDateLabel" xml:space="preserve">
     <value>Next payment date</value>

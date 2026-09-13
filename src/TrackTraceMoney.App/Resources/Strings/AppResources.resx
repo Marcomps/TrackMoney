@@ -337,6 +337,12 @@
   <data name="TransactionType_LoanPayment" xml:space="preserve">
     <value>Pago de préstamo</value>
   </data>
+  <data name="TransactionType_InvestmentContribution" xml:space="preserve">
+    <value>Aportación a fondo de inversión</value>
+  </data>
+  <data name="TransactionType_InvestmentWithdrawal" xml:space="preserve">
+    <value>Retiro de fondo de inversión</value>
+  </data>
   <data name="AddTransaction_Title" xml:space="preserve">
     <value>Nuevo movimiento</value>
   </data>
@@ -363,6 +369,9 @@
   </data>
   <data name="AddTransaction_LoanLabel" xml:space="preserve">
     <value>Préstamo</value>
+  </data>
+  <data name="AddTransaction_FundLabel" xml:space="preserve">
+    <value>Fondo de inversión</value>
   </data>
   <data name="AddTransaction_NextPaymentDateLabel" xml:space="preserve">
     <value>Próximo pago</value>

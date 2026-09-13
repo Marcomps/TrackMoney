@@ -488,6 +488,194 @@ public sealed class TransactionEntryServiceTests
         Assert.Empty(transactions.All);
     }
 
+    [Fact]
+    public async Task RecordInvestmentContributionAsync_DebitsSourceAndCreditsFund_AndUpdatesContributionsTotal_ExactlyOnce()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD, contributions: 2000m, openingBalance: 2084.50m));
+
+        await service.RecordInvestmentContributionAsync(
+            DateOnly.FromDateTime(DateTime.Today), 500m, checking.Id, fund.Id, "Monthly contribution", null);
+
+        Assert.Equal(500m, checking.Balance);
+        Assert.Equal(2584.50m, fund.Balance);
+        Assert.Equal(2500m, fund.Contributions);
+        var recorded = Assert.Single(transactions.All);
+        Assert.IsType<InvestmentContribution>(recorded);
+        Assert.False(recorded.CountsAsExpense);
+        Assert.False(recorded.CountsAsIncome);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentContributionAsync_DestinationIsNotAnInvestmentFund_ThrowsAndDoesNotRecordTransaction()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var savings = accounts.Add(new BankAccount("Savings", CurrencyCode.USD, openingBalance: 0m));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordInvestmentContributionAsync(DateOnly.FromDateTime(DateTime.Today), 500m, checking.Id, savings.Id, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(1000m, checking.Balance);
+        Assert.Equal(0m, savings.Balance);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentContributionAsync_SameAccountForSourceAndFund_ThrowsAndDoesNotRecordTransaction()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.RecordInvestmentContributionAsync(DateOnly.FromDateTime(DateTime.Today), 500m, fund.Id, fund.Id, null, null));
+
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentContributionAsync_AcrossDifferentCurrencies_ThrowsAndDoesNotMutateEitherSide()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.MXN));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordInvestmentContributionAsync(DateOnly.FromDateTime(DateTime.Today), 500m, checking.Id, fund.Id, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(1000m, checking.Balance);
+        Assert.Equal(2084.50m, fund.Balance);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentContributionAsync_NeverTriggersBudgetNotification()
+    {
+        var (service, accounts, _, transactions, budgets, categories, notifier) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
+        var category = categories.Add(Category.CreateUserDefined("Dining"));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
+
+        await service.RecordExpenseAsync(today, 100m, checking.Id, category.Id, null, null, "At the limit", null);
+        var callsBeforeContribution = notifier.Calls.Count;
+
+        await service.RecordInvestmentContributionAsync(today, 500m, checking.Id, fund.Id, null, null);
+
+        Assert.Equal(callsBeforeContribution, notifier.Calls.Count);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentWithdrawalAsync_DebitsFundAndCreditsDestination_AndUpdatesWithdrawalsTotal_ExactlyOnce()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD, contributions: 2000m, openingBalance: 2084.50m));
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+
+        await service.RecordInvestmentWithdrawalAsync(
+            DateOnly.FromDateTime(DateTime.Today), 84.50m, fund.Id, checking.Id, "Cash out", null);
+
+        Assert.Equal(2000m, fund.Balance);
+        Assert.Equal(84.50m, fund.Withdrawals);
+        Assert.Equal(84.50m, checking.Balance);
+        var recorded = Assert.Single(transactions.All);
+        Assert.IsType<InvestmentWithdrawal>(recorded);
+        Assert.False(recorded.CountsAsExpense);
+        Assert.False(recorded.CountsAsIncome);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentWithdrawalAsync_AllowsFundBalanceToGoNegative_NoOverdraftGuard()
+    {
+        // Decision under test: unlike CreditAccount.RegisterPayment's overpayment guard, an
+        // InvestmentFund withdrawal must NOT be blocked from taking the fund's Balance negative — this
+        // proves the no-guard decision was implemented deliberately, not accidentally guarded against.
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD, contributions: 100m, openingBalance: 100m));
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+
+        await service.RecordInvestmentWithdrawalAsync(DateOnly.FromDateTime(DateTime.Today), 250m, fund.Id, checking.Id, null, null);
+
+        Assert.Equal(-150m, fund.Balance);
+        Assert.Equal(250m, fund.Withdrawals);
+        Assert.Equal(250m, checking.Balance);
+        Assert.Single(transactions.All);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentWithdrawalAsync_SourceIsNotAnInvestmentFund_ThrowsAndDoesNotRecordTransaction()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+        var savings = accounts.Add(new BankAccount("Savings", CurrencyCode.USD, openingBalance: 0m));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordInvestmentWithdrawalAsync(DateOnly.FromDateTime(DateTime.Today), 500m, checking.Id, savings.Id, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(1000m, checking.Balance);
+        Assert.Equal(0m, savings.Balance);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentWithdrawalAsync_SameAccountForFundAndDestination_ThrowsAndDoesNotRecordTransaction()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.RecordInvestmentWithdrawalAsync(DateOnly.FromDateTime(DateTime.Today), 500m, fund.Id, fund.Id, null, null));
+
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentWithdrawalAsync_AcrossDifferentCurrencies_ThrowsAndDoesNotMutateEitherSide()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
+        var checking = accounts.Add(new BankAccount("Checking MXN", CurrencyCode.MXN, openingBalance: 0m));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordInvestmentWithdrawalAsync(DateOnly.FromDateTime(DateTime.Today), 500m, fund.Id, checking.Id, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(2084.50m, fund.Balance);
+        Assert.Equal(0m, checking.Balance);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentWithdrawalAsync_NeverTriggersBudgetNotification()
+    {
+        var (service, accounts, _, transactions, budgets, categories, notifier) = CreateSut();
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 500m));
+        var category = categories.Add(Category.CreateUserDefined("Dining"));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
+
+        await service.RecordExpenseAsync(today, 100m, checking.Id, category.Id, null, null, "At the limit", null);
+        var callsBeforeWithdrawal = notifier.Calls.Count;
+
+        await service.RecordInvestmentWithdrawalAsync(today, 50m, fund.Id, checking.Id, null, null);
+
+        Assert.Equal(callsBeforeWithdrawal, notifier.Calls.Count);
+    }
+
+    private static InvestmentFund CreateInvestmentFund(
+        CurrencyCode currency,
+        decimal contributions = 2000m,
+        decimal openingBalance = 2084.50m) =>
+        new(
+            "Growth Fund",
+            currency,
+            "Example Asset Management",
+            new DateOnly(2026, 1, 1),
+            contributions,
+            openingBalance);
+
     private static Loan CreateLoan(CurrencyCode currency, decimal currentBalance) =>
         new(
             "Car Loan",

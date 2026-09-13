@@ -88,6 +88,26 @@ public sealed record HistoryEntryItem(
                 [payment.SourceAccountId, payment.CreditAccountId],
                 null,
                 []),
+            InvestmentContribution contribution => new HistoryEntryItem(
+                contribution.Id,
+                contribution.Date,
+                contribution.Amount,
+                TransactionType.InvestmentContribution,
+                contribution.Description,
+                accountLabel,
+                [contribution.SourceAccountId, contribution.DestinationAccountId],
+                null,
+                []),
+            InvestmentWithdrawal withdrawal => new HistoryEntryItem(
+                withdrawal.Id,
+                withdrawal.Date,
+                withdrawal.Amount,
+                TransactionType.InvestmentWithdrawal,
+                withdrawal.Description,
+                accountLabel,
+                [withdrawal.SourceAccountId, withdrawal.DestinationAccountId],
+                null,
+                []),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

@@ -1,5 +1,6 @@
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Reporting;
+using TrackTraceMoney.Domain.Accounts;
 using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.Transactions;
 
@@ -262,6 +263,73 @@ public sealed class TransactionEntryService : ITransactionEntryService
         sourceAccount.Debit(amount);
 
         await _transactionRepository.AddAsync(payment, ct);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    public async Task RecordInvestmentContributionAsync(
+        DateOnly date,
+        decimal amount,
+        Guid sourceAccountId,
+        Guid investmentFundId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default)
+    {
+        var sourceAccount = await _accountRepository.GetByIdAsync(sourceAccountId, ct)
+            ?? throw new InvalidOperationException($"Account '{sourceAccountId}' was not found.");
+
+        var fundAccount = await _accountRepository.GetByIdAsync(investmentFundId, ct)
+            ?? throw new InvalidOperationException($"Account '{investmentFundId}' was not found.");
+
+        if (fundAccount is not InvestmentFund fund)
+            throw new InvalidOperationException($"Account '{investmentFundId}' is not an investment fund.");
+
+        // README §6/§10: same cross-currency rejection as RecordTransferAsync — no conversion feature
+        // in scope, so a numeric amount can't be safely applied to accounts in different currencies.
+        if (sourceAccount.Currency != fund.Currency)
+            throw new InvalidOperationException(
+                $"Cannot contribute to a fund with an account in a different currency ({sourceAccount.Currency} -> {fund.Currency}) without currency conversion support.");
+
+        var contribution = new InvestmentContribution(date, amount, sourceAccountId, investmentFundId, description, notes);
+
+        sourceAccount.Debit(amount);
+        fund.RecordContribution(amount);
+
+        await _transactionRepository.AddAsync(contribution, ct);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    public async Task RecordInvestmentWithdrawalAsync(
+        DateOnly date,
+        decimal amount,
+        Guid investmentFundId,
+        Guid destinationAccountId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default)
+    {
+        var fundAccount = await _accountRepository.GetByIdAsync(investmentFundId, ct)
+            ?? throw new InvalidOperationException($"Account '{investmentFundId}' was not found.");
+
+        if (fundAccount is not InvestmentFund fund)
+            throw new InvalidOperationException($"Account '{investmentFundId}' is not an investment fund.");
+
+        var destinationAccount = await _accountRepository.GetByIdAsync(destinationAccountId, ct)
+            ?? throw new InvalidOperationException($"Account '{destinationAccountId}' was not found.");
+
+        if (fund.Currency != destinationAccount.Currency)
+            throw new InvalidOperationException(
+                $"Cannot withdraw from a fund into an account in a different currency ({fund.Currency} -> {destinationAccount.Currency}) without currency conversion support.");
+
+        var withdrawal = new InvestmentWithdrawal(date, amount, investmentFundId, destinationAccountId, description, notes);
+
+        // No overdraft guard here — InvestmentFund.RecordWithdrawal deliberately mirrors Debit's lax
+        // convention (asset-side accounts in this codebase never get liability-side guards like
+        // CreditAccount.RegisterPayment's). Do not add one.
+        fund.RecordWithdrawal(amount);
+        destinationAccount.Credit(amount);
+
+        await _transactionRepository.AddAsync(withdrawal, ct);
         await _transactionRepository.SaveChangesAsync(ct);
     }
 }

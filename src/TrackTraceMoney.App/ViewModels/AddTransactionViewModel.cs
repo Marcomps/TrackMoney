@@ -7,6 +7,7 @@ using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Transactions;
+using TrackTraceMoney.Domain.Accounts;
 using TrackTraceMoney.Domain.CreditAccounts;
 
 namespace TrackTraceMoney.App.ViewModels;
@@ -34,6 +35,8 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsTransfer))]
     [NotifyPropertyChangedFor(nameof(IsCreditCardPayment))]
     [NotifyPropertyChangedFor(nameof(IsLoanPayment))]
+    [NotifyPropertyChangedFor(nameof(IsInvestmentContribution))]
+    [NotifyPropertyChangedFor(nameof(IsInvestmentWithdrawal))]
     private TransactionType selectedType = TransactionType.Expense;
 
     [ObservableProperty]
@@ -82,6 +85,18 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private string requiredPaymentText = string.Empty;
 
     [ObservableProperty]
+    private NamedOption? selectedInvestmentContributionSource;
+
+    [ObservableProperty]
+    private NamedOption? selectedInvestmentContributionFund;
+
+    [ObservableProperty]
+    private NamedOption? selectedInvestmentWithdrawalFund;
+
+    [ObservableProperty]
+    private NamedOption? selectedInvestmentWithdrawalDestination;
+
+    [ObservableProperty]
     private string? description;
 
     [ObservableProperty]
@@ -124,6 +139,12 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     /// </summary>
     public ObservableCollection<NamedOption> LoanOptions { get; } = [];
 
+    /// <summary>
+    /// Backs ONLY the InvestmentContribution/InvestmentWithdrawal blocks' fund picker — investment
+    /// funds only, mirroring <see cref="LoanOptions"/>'s pattern.
+    /// </summary>
+    public ObservableCollection<NamedOption> InvestmentFundOptions { get; } = [];
+
     public ObservableCollection<NamedOption> Categories { get; } = [];
 
     public ObservableCollection<NamedOption> People { get; } = [];
@@ -137,6 +158,10 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     public bool IsCreditCardPayment => SelectedType == TransactionType.CreditCardPayment;
 
     public bool IsLoanPayment => SelectedType == TransactionType.LoanPayment;
+
+    public bool IsInvestmentContribution => SelectedType == TransactionType.InvestmentContribution;
+
+    public bool IsInvestmentWithdrawal => SelectedType == TransactionType.InvestmentWithdrawal;
 
     public AddTransactionViewModel(
         ITransactionEntryService transactionEntryService,
@@ -160,9 +185,19 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         var categories = await _categoryRepository.GetAllAsync();
         var people = await _personRepository.GetAllAsync();
 
+        // InvestmentFund is deliberately excluded here — this collection backs Transfer's source/
+        // destination pickers and Income's destination picker, and moving money into/out of a fund
+        // through a plain Transfer/Income would bypass InvestmentFund.RecordContribution/
+        // RecordWithdrawal, silently corrupting Contributions/Withdrawals (and therefore Gain/
+        // ReturnPercentage) forever. Fund movements must go through the dedicated Investment
+        // contribution/withdrawal blocks below instead.
         Accounts.Clear();
-        foreach (var account in accounts)
+        foreach (var account in accounts.Where(a => a is not InvestmentFund))
             Accounts.Add(new NamedOption(account.Id, account.Name, account.Currency));
+
+        InvestmentFundOptions.Clear();
+        foreach (var fund in accounts.OfType<InvestmentFund>())
+            InvestmentFundOptions.Add(new NamedOption(fund.Id, fund.Name, fund.Currency));
 
         // README §14's own example uses a "💳 " prefix for cards (e.g. "💳 BAC Card"); the Picker
         // renders via NamedOption.ToString(), so no ItemDisplayBinding is needed for this prefix.
@@ -358,6 +393,50 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         SelectedLoanPaymentTarget.Id,
                         DateOnly.FromDateTime(LoanNextPaymentDate),
                         requiredPayment,
+                        Description,
+                        Notes);
+                    break;
+
+                case TransactionType.InvestmentContribution:
+                    if (SelectedInvestmentContributionSource is null || SelectedInvestmentContributionFund is null)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationAccountRequired;
+                        return;
+                    }
+
+                    if (SelectedInvestmentContributionSource.Currency != SelectedInvestmentContributionFund.Currency)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationCurrencyMismatch;
+                        return;
+                    }
+
+                    await _transactionEntryService.RecordInvestmentContributionAsync(
+                        date,
+                        amount,
+                        SelectedInvestmentContributionSource.Id,
+                        SelectedInvestmentContributionFund.Id,
+                        Description,
+                        Notes);
+                    break;
+
+                case TransactionType.InvestmentWithdrawal:
+                    if (SelectedInvestmentWithdrawalFund is null || SelectedInvestmentWithdrawalDestination is null)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationAccountRequired;
+                        return;
+                    }
+
+                    if (SelectedInvestmentWithdrawalFund.Currency != SelectedInvestmentWithdrawalDestination.Currency)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationCurrencyMismatch;
+                        return;
+                    }
+
+                    await _transactionEntryService.RecordInvestmentWithdrawalAsync(
+                        date,
+                        amount,
+                        SelectedInvestmentWithdrawalFund.Id,
+                        SelectedInvestmentWithdrawalDestination.Id,
                         Description,
                         Notes);
                     break;
