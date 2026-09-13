@@ -36,6 +36,38 @@
                     </CollectionView>
                 </VerticalStackLayout>
 
+                <!-- Net worth tile (README §24): sum of ALL active FinancialAccount balances minus active
+                     CreditAccount debt, per currency — never blended across currencies, never derived from
+                     CountsAsAvailableBalance (unlike Tile 1 above). -->
+                <VerticalStackLayout Spacing="8">
+                    <Label FontSize="18" FontAttributes="Bold"
+                           Text="{x:Static resources:AppResources.Dashboard_NetWorthSectionTitle}" />
+                    <CollectionView ItemsSource="{Binding NetWorthByCurrency}" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:NetWorthTileItem">
+                                <VerticalStackLayout Spacing="4" Padding="0,4">
+                                    <Label Text="{Binding Currency}" FontSize="16" FontAttributes="Bold" />
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AssetsLabel}" FontSize="16" />
+                                        <Label Grid.Column="1" Text="{Binding TotalAssets, StringFormat='{0:N2}'}" FontSize="16" />
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_LiabilitiesLabel}" FontSize="16" />
+                                        <Label Grid.Column="1" Text="{Binding TotalLiabilities, StringFormat='{0:N2}'}" FontSize="16" />
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_NetWorthLabel}" FontSize="16" FontAttributes="Bold" />
+                                        <Label Grid.Column="1" Text="{Binding NetWorth, StringFormat='{0:N2}'}" FontSize="16" FontAttributes="Bold" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    <Button Text="{x:Static resources:AppResources.Dashboard_NetWorthViewHistoryButton}"
+                            Command="{Binding GoToNetWorthHistoryCommand}"
+                            HorizontalOptions="Fill" />
+                </VerticalStackLayout>
+
                 <!-- Tile 2: income / expenses / available this month — one block per currency, never blended -->
                 <VerticalStackLayout Spacing="8">
                     <CollectionView ItemsSource="{Binding IncomeExpenseSummaries}" SelectionMode="None">

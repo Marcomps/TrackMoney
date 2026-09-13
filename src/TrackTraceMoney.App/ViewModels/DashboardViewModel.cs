@@ -4,8 +4,10 @@ using CommunityToolkit.Mvvm.Input;
 using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
+using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Budgets;
+using TrackTraceMoney.Application.NetWorth;
 using TrackTraceMoney.Application.Reporting;
 
 namespace TrackTraceMoney.App.ViewModels;
@@ -21,6 +23,8 @@ public sealed partial class DashboardViewModel : ObservableObject
     private readonly ISpendingCalculator _spendingCalculator;
     private readonly IIncomeCalculator _incomeCalculator;
     private readonly IBudgetEvaluator _budgetEvaluator;
+    private readonly INetWorthCalculator _netWorthCalculator;
+    private readonly INetWorthSnapshotService _netWorthSnapshotService;
 
     [ObservableProperty]
     private bool isBusy;
@@ -42,6 +46,8 @@ public sealed partial class DashboardViewModel : ObservableObject
 
     public ObservableCollection<RecurringExpenseListItem> UpcomingPayments { get; } = [];
 
+    public ObservableCollection<NetWorthTileItem> NetWorthByCurrency { get; } = [];
+
     public bool HasOverBudgetCategories => OverBudgetCategories.Count > 0;
 
     public bool ShowOverBudgetEmpty => HasLoaded && !HasOverBudgetCategories;
@@ -59,7 +65,9 @@ public sealed partial class DashboardViewModel : ObservableObject
         IRecurringExpenseRepository recurringExpenseRepository,
         ISpendingCalculator spendingCalculator,
         IIncomeCalculator incomeCalculator,
-        IBudgetEvaluator budgetEvaluator)
+        IBudgetEvaluator budgetEvaluator,
+        INetWorthCalculator netWorthCalculator,
+        INetWorthSnapshotService netWorthSnapshotService)
     {
         _accountRepository = accountRepository;
         _creditAccountRepository = creditAccountRepository;
@@ -70,6 +78,8 @@ public sealed partial class DashboardViewModel : ObservableObject
         _spendingCalculator = spendingCalculator;
         _incomeCalculator = incomeCalculator;
         _budgetEvaluator = budgetEvaluator;
+        _netWorthCalculator = netWorthCalculator;
+        _netWorthSnapshotService = netWorthSnapshotService;
     }
 
     [RelayCommand]
@@ -166,6 +176,24 @@ public sealed partial class DashboardViewModel : ObservableObject
                 UpcomingPayments.Add(RecurringExpenseListItem.FromDomain(recurringExpense, categoryName, accountName));
             }
 
+            // Net worth tile (README §24) — sum of ALL active FinancialAccount balances (regardless of
+            // CountsAsAvailableBalance, unlike Tile 1 above) minus active CreditAccount debt, per
+            // currency, never blended across currencies. Computed here directly from the active accounts
+            // already fetched (plus a fresh active-only credit account fetch, since Tile 2 above needs
+            // ALL credit accounts, not active-only) so the tile never needs to re-read the snapshot table
+            // that RecordSnapshotAsync below writes to.
+            var activeCreditAccounts = await _creditAccountRepository.GetActiveAsync();
+            var netWorthSummary = _netWorthCalculator.Calculate(accounts, activeCreditAccounts);
+
+            NetWorthByCurrency.Clear();
+            foreach (var byCurrency in netWorthSummary.ByCurrency.Values)
+                NetWorthByCurrency.Add(NetWorthTileItem.FromDomain(byCurrency));
+
+            // Side effect: advances the net worth evolution timeline (README §24) by upserting today's
+            // snapshot per currency. No manual "record" button exists — every Dashboard load is the only
+            // trigger.
+            await _netWorthSnapshotService.RecordSnapshotAsync(today);
+
             HasLoaded = true;
             OnPropertyChanged(nameof(HasOverBudgetCategories));
             OnPropertyChanged(nameof(ShowOverBudgetEmpty));
@@ -185,5 +213,11 @@ public sealed partial class DashboardViewModel : ObservableObject
         // route (see AppShell.xaml) rather than the page type name — it's reached by switching tabs
         // (an absolute "//" route), unlike the "AddXxxPage" pages pushed via Routing.RegisterRoute.
         await Shell.Current.GoToAsync("//RecurringExpensesList");
+    }
+
+    [RelayCommand]
+    private static async Task GoToNetWorthHistoryAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(NetWorthPage));
     }
 }

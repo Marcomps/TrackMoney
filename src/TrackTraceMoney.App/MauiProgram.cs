@@ -8,6 +8,7 @@ using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Budgets;
 using TrackTraceMoney.Application.CreditAccounts;
+using TrackTraceMoney.Application.NetWorth;
 using TrackTraceMoney.Application.RecurringExpenses;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Application.Transactions;
@@ -35,8 +36,12 @@ public static class MauiProgram
 		builder.Services.AddTrackTraceMoneyInfrastructure($"Data Source={dbPath}");
 
 		builder.Services.AddSingleton<IIncomeCalculator, IncomeCalculator>();
+		builder.Services.AddSingleton<INetWorthCalculator, NetWorthCalculator>();
+		builder.Services.AddScoped<INetWorthSnapshotService, NetWorthSnapshotService>();
 		builder.Services.AddTransient<DashboardViewModel>();
 		builder.Services.AddTransient<DashboardPage>();
+		builder.Services.AddTransient<NetWorthViewModel>();
+		builder.Services.AddTransient<NetWorthPage>();
 
 		builder.Services.AddTransient<AccountsListViewModel>();
 		builder.Services.AddTransient<AccountsListPage>();

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.NetWorthPage"
+             x:DataType="viewModels:NetWorthViewModel"
+             Title="{x:Static resources:AppResources.NetWorth_Title}">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+
+                <Label Text="{x:Static resources:AppResources.NetWorth_CurrencyLabel}" />
+                <Picker ItemsSource="{Binding AvailableCurrencies}"
+                        SelectedItem="{Binding SelectedCurrency}" />
+
+                <Label Text="{x:Static resources:AppResources.NetWorth_NoHistoryYet}"
+                       IsVisible="{Binding IsEmpty}" />
+
+                <Grid ColumnDefinitions="*,*,*,*" Padding="0,8">
+                    <Label Grid.Column="0" Text="{x:Static resources:AppResources.NetWorth_DateColumnHeader}" FontAttributes="Bold" />
+                    <Label Grid.Column="1" Text="{x:Static resources:AppResources.NetWorth_AssetsColumnHeader}" FontAttributes="Bold" />
+                    <Label Grid.Column="2" Text="{x:Static resources:AppResources.NetWorth_LiabilitiesColumnHeader}" FontAttributes="Bold" />
+                    <Label Grid.Column="3" Text="{x:Static resources:AppResources.NetWorth_NetWorthColumnHeader}" FontAttributes="Bold" />
+                </Grid>
+
+                <CollectionView ItemsSource="{Binding Rows}" SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:NetWorthSnapshotListItem">
+                            <Grid ColumnDefinitions="*,*,*,*" Padding="0,4">
+                                <Label Grid.Column="0" Text="{Binding AsOfDate}" />
+                                <Label Grid.Column="1" Text="{Binding TotalAssets, StringFormat='{0:N2}'}" />
+                                <Label Grid.Column="2" Text="{Binding TotalLiabilities, StringFormat='{0:N2}'}" />
+                                <Label Grid.Column="3" Text="{Binding NetWorth, StringFormat='{0:N2}'}" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

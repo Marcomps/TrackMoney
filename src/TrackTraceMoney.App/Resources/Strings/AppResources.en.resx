@@ -661,6 +661,42 @@
   <data name="Dashboard_UpcomingPaymentsGoToButton" xml:space="preserve">
     <value>View recurring expenses</value>
   </data>
+  <data name="Dashboard_NetWorthSectionTitle" xml:space="preserve">
+    <value>Net worth</value>
+  </data>
+  <data name="Dashboard_AssetsLabel" xml:space="preserve">
+    <value>Assets</value>
+  </data>
+  <data name="Dashboard_LiabilitiesLabel" xml:space="preserve">
+    <value>Liabilities</value>
+  </data>
+  <data name="Dashboard_NetWorthLabel" xml:space="preserve">
+    <value>Net worth</value>
+  </data>
+  <data name="Dashboard_NetWorthViewHistoryButton" xml:space="preserve">
+    <value>View history</value>
+  </data>
+  <data name="NetWorth_Title" xml:space="preserve">
+    <value>Net Worth</value>
+  </data>
+  <data name="NetWorth_CurrencyLabel" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="NetWorth_NoHistoryYet" xml:space="preserve">
+    <value>No net worth history yet for this currency.</value>
+  </data>
+  <data name="NetWorth_DateColumnHeader" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="NetWorth_AssetsColumnHeader" xml:space="preserve">
+    <value>Assets</value>
+  </data>
+  <data name="NetWorth_LiabilitiesColumnHeader" xml:space="preserve">
+    <value>Liabilities</value>
+  </data>
+  <data name="NetWorth_NetWorthColumnHeader" xml:space="preserve">
+    <value>Net Worth</value>
+  </data>
   <data name="Transactions_ViewHistoryButton" xml:space="preserve">
     <value>View history</value>
   </data>

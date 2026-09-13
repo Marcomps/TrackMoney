@@ -3,6 +3,7 @@ using TrackTraceMoney.Domain.Accounts;
 using TrackTraceMoney.Domain.Budgets;
 using TrackTraceMoney.Domain.Categories;
 using TrackTraceMoney.Domain.CreditAccounts;
+using TrackTraceMoney.Domain.NetWorth;
 using TrackTraceMoney.Domain.People;
 using TrackTraceMoney.Domain.RecurringExpenses;
 using TrackTraceMoney.Domain.Transactions;
@@ -28,6 +29,8 @@ public sealed class TrackTraceMoneyDbContext : DbContext
     public DbSet<CreditCardStatement> CreditCardStatements => Set<CreditCardStatement>();
 
     public DbSet<InvestmentValuation> InvestmentValuations => Set<InvestmentValuation>();
+
+    public DbSet<NetWorthSnapshot> NetWorthSnapshots => Set<NetWorthSnapshot>();
 
     public TrackTraceMoneyDbContext(DbContextOptions<TrackTraceMoneyDbContext> options)
         : base(options)
