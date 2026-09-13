@@ -75,6 +75,13 @@ public sealed record TransactionListItem(
                 TransactionType.InvestmentWithdrawal,
                 withdrawal.Description,
                 accountLabel),
+            InterestIncome interestIncome => new TransactionListItem(
+                interestIncome.Id,
+                interestIncome.Date,
+                interestIncome.Amount,
+                TransactionType.InterestIncome,
+                interestIncome.Description,
+                accountLabel),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

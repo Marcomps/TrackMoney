@@ -332,4 +332,26 @@ public sealed class TransactionEntryService : ITransactionEntryService
         await _transactionRepository.AddAsync(withdrawal, ct);
         await _transactionRepository.SaveChangesAsync(ct);
     }
+
+    public async Task RecordInterestIncomeAsync(
+        DateOnly date,
+        decimal amount,
+        Guid termDepositId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default)
+    {
+        var account = await _accountRepository.GetByIdAsync(termDepositId, ct)
+            ?? throw new InvalidOperationException($"Account '{termDepositId}' was not found.");
+
+        if (account is not TermDeposit termDeposit)
+            throw new InvalidOperationException($"Account '{termDepositId}' is not a term deposit.");
+
+        var interestIncome = new InterestIncome(date, amount, termDepositId, description, notes);
+
+        termDeposit.RecordInterestReceived(amount);
+
+        await _transactionRepository.AddAsync(interestIncome, ct);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
 }

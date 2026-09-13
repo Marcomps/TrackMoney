@@ -664,6 +664,62 @@ public sealed class TransactionEntryServiceTests
         Assert.Equal(callsBeforeWithdrawal, notifier.Calls.Count);
     }
 
+    [Fact]
+    public async Task RecordInterestIncomeAsync_CreditsBalanceAndInterestReceived_AndCountsAsIncome_ExactlyOnce()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var termDeposit = (TermDeposit)accounts.Add(CreateTermDeposit(CurrencyCode.USD, openingBalance: 10000m));
+
+        await service.RecordInterestIncomeAsync(
+            DateOnly.FromDateTime(DateTime.Today), 41.67m, termDeposit.Id, "Monthly interest", null);
+
+        Assert.Equal(10041.67m, termDeposit.Balance);
+        Assert.Equal(41.67m, termDeposit.InterestReceived);
+        var recorded = Assert.Single(transactions.All);
+        Assert.IsType<InterestIncome>(recorded);
+        Assert.True(recorded.CountsAsIncome);
+        Assert.False(recorded.CountsAsExpense);
+    }
+
+    [Fact]
+    public async Task RecordInterestIncomeAsync_AccountIsNotATermDeposit_ThrowsAndDoesNotRecordTransaction()
+    {
+        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordInterestIncomeAsync(DateOnly.FromDateTime(DateTime.Today), 41.67m, checking.Id, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(1000m, checking.Balance);
+    }
+
+    [Fact]
+    public async Task RecordInterestIncomeAsync_UnknownAccount_ThrowsAndDoesNotRecordTransaction()
+    {
+        var (service, _, _, transactions, _, _, _) = CreateSut();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordInterestIncomeAsync(DateOnly.FromDateTime(DateTime.Today), 41.67m, Guid.NewGuid(), null, null));
+
+        Assert.Empty(transactions.All);
+    }
+
+    private static TermDeposit CreateTermDeposit(CurrencyCode currency, decimal openingBalance = 10000m) =>
+        new(
+            "12-Month CD",
+            currency,
+            "Bank of Example",
+            initialPrincipal: 10000m,
+            openingBalance,
+            rate: 0.05m,
+            TermDepositRateType.Nominal,
+            startDate: new DateOnly(2026, 1, 1),
+            maturityDate: new DateOnly(2027, 1, 1),
+            TermDepositInterestFrequency.Monthly,
+            isCompounding: true,
+            autoRenewal: false);
+
     private static InvestmentFund CreateInvestmentFund(
         CurrencyCode currency,
         decimal contributions = 2000m,

@@ -108,6 +108,16 @@ public sealed record HistoryEntryItem(
                 [withdrawal.SourceAccountId, withdrawal.DestinationAccountId],
                 null,
                 []),
+            InterestIncome interestIncome => new HistoryEntryItem(
+                interestIncome.Id,
+                interestIncome.Date,
+                interestIncome.Amount,
+                TransactionType.InterestIncome,
+                interestIncome.Description,
+                accountLabel,
+                [interestIncome.DestinationAccountId],
+                null,
+                []),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

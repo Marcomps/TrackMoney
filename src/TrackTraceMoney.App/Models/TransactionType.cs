@@ -9,5 +9,6 @@ public enum TransactionType
     CreditCardPayment,
     LoanPayment,
     InvestmentContribution,
-    InvestmentWithdrawal
+    InvestmentWithdrawal,
+    InterestIncome
 }

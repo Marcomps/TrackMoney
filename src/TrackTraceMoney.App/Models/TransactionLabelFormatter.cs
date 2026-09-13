@@ -31,6 +31,8 @@ internal static class TransactionLabelFormatter
                 $"{NameOf(accountNames, contribution.SourceAccountId)} → 📈 {NameOf(accountNames, contribution.DestinationAccountId)}",
             InvestmentWithdrawal withdrawal =>
                 $"💰 {NameOf(accountNames, withdrawal.SourceAccountId)} → {NameOf(accountNames, withdrawal.DestinationAccountId)}",
+            InterestIncome interestIncome =>
+                $"🪙 {NameOf(accountNames, interestIncome.DestinationAccountId)}",
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
 

@@ -23,6 +23,7 @@ public sealed class TransactionTypeToLabelConverter : EnumToLabelConverter<Trans
         TransactionType.LoanPayment => AppResources.TransactionType_LoanPayment,
         TransactionType.InvestmentContribution => AppResources.TransactionType_InvestmentContribution,
         TransactionType.InvestmentWithdrawal => AppResources.TransactionType_InvestmentWithdrawal,
+        TransactionType.InterestIncome => AppResources.TransactionType_InterestIncome,
         _ => string.Empty
     };
 }

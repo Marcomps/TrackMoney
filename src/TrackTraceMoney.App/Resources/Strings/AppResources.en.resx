@@ -343,6 +343,9 @@
   <data name="TransactionType_InvestmentWithdrawal" xml:space="preserve">
     <value>Investment withdrawal</value>
   </data>
+  <data name="TransactionType_InterestIncome" xml:space="preserve">
+    <value>Interest income</value>
+  </data>
   <data name="AddTransaction_Title" xml:space="preserve">
     <value>New transaction</value>
   </data>

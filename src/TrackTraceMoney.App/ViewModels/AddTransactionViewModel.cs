@@ -49,6 +49,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private NamedOption? selectedAccount;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsIncomeCategoryAndPersonVisible))]
     private NamedOption? selectedDestinationAccount;
 
     [ObservableProperty]
@@ -111,10 +112,28 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     // CreditCardPurchase is deliberately excluded: a card purchase is entered through the Expense
     // block below (README §11's "Payment method" field), not as its own top-level Type — this Picker
     // must keep mirroring README §45's quick-action menu, which has no separate "Card purchase" item.
+    // InterestIncome is likewise excluded: it's auto-detected from the Income block's destination
+    // account being a term deposit (see IsIncomeCategoryAndPersonVisible/SaveAsync), not a user-chosen
+    // top-level Type — README §45 has no separate "Interest income" quick action either.
     public IReadOnlyList<TransactionType> AvailableTypes { get; } =
-        Enum.GetValues<TransactionType>().Where(t => t != TransactionType.CreditCardPurchase).ToList();
+        Enum.GetValues<TransactionType>()
+            .Where(t => t != TransactionType.CreditCardPurchase && t != TransactionType.InterestIncome)
+            .ToList();
 
     public ObservableCollection<NamedOption> Accounts { get; } = [];
+
+    /// <summary>
+    /// Backs ONLY the Transfer block's destination picker — same base set as <see cref="Accounts"/>
+    /// (both hierarchies already exclude <c>InvestmentFund</c>) but additionally excludes
+    /// <c>TermDeposit</c>: unlike Transfer's source side (kept selectable via <see cref="Accounts"/>,
+    /// needed for moving a matured deposit's proceeds out — no "close term deposit" flow exists yet),
+    /// there's no legitimate "fund an open term deposit via transfer" use case (README §22), and doing
+    /// so would bypass <c>TermDeposit.RecordInterestReceived</c> tracking, the same desync risk as the
+    /// InvestmentFund bug this collection's sibling already guards against. Income's destination picker
+    /// keeps using <see cref="Accounts"/> unchanged — a term deposit IS a valid Income destination,
+    /// since that's how interest gets routed (see <c>SaveAsync</c>'s Income branch).
+    /// </summary>
+    public ObservableCollection<NamedOption> TransferDestinationAccounts { get; } = [];
 
     /// <summary>
     /// Backs ONLY the Expense block's Account picker — includes both <c>FinancialAccount</c>s and
@@ -163,6 +182,14 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 
     public bool IsInvestmentWithdrawal => SelectedType == TransactionType.InvestmentWithdrawal;
 
+    /// <summary>
+    /// Hides the Income block's Category/Person pickers when the selected destination account is a
+    /// term deposit — an <see cref="Domain.Transactions.InterestIncome"/> transaction has no
+    /// category/person, its meaning is unambiguous from its type alone (same precedent as
+    /// Transfer/InvestmentContribution).
+    /// </summary>
+    public bool IsIncomeCategoryAndPersonVisible => SelectedDestinationAccount is not { IsTermDeposit: true };
+
     public AddTransactionViewModel(
         ITransactionEntryService transactionEntryService,
         IFinancialAccountRepository accountRepository,
@@ -193,7 +220,14 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         // contribution/withdrawal blocks below instead.
         Accounts.Clear();
         foreach (var account in accounts.Where(a => a is not InvestmentFund))
-            Accounts.Add(new NamedOption(account.Id, account.Name, account.Currency));
+            Accounts.Add(new NamedOption(account.Id, account.Name, account.Currency, IsTermDeposit: account is TermDeposit));
+
+        // TermDeposit is additionally excluded here (on top of InvestmentFund) — see this collection's
+        // doc comment for why Transfer's destination side differs from its source side and from
+        // Income's destination side.
+        TransferDestinationAccounts.Clear();
+        foreach (var account in accounts.Where(a => a is not InvestmentFund and not TermDeposit))
+            TransferDestinationAccounts.Add(new NamedOption(account.Id, account.Name, account.Currency));
 
         InvestmentFundOptions.Clear();
         foreach (var fund in accounts.OfType<InvestmentFund>())
@@ -299,6 +333,20 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                     {
                         ErrorMessage = AppResources.AddTransaction_ValidationAccountRequired;
                         return;
+                    }
+
+                    if (SelectedDestinationAccount.IsTermDeposit)
+                    {
+                        // A term deposit's Income destination is interest, not categorizable income —
+                        // no Category/Person on InterestIncome (same precedent as Transfer/
+                        // InvestmentContribution's typed, unambiguous meaning).
+                        await _transactionEntryService.RecordInterestIncomeAsync(
+                            date,
+                            amount,
+                            SelectedDestinationAccount.Id,
+                            Description,
+                            Notes);
+                        break;
                     }
 
                     if (SelectedCategory is null)

@@ -119,4 +119,19 @@ public interface ITransactionEntryService
         string? description,
         string? notes,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Records interest actually credited to a <see cref="Domain.Accounts.TermDeposit"/> (README §22,
+    /// Phase 3 slice 4). Credits the term deposit's balance and updates its running
+    /// <see cref="Domain.Accounts.TermDeposit.InterestReceived"/> total. Counts as income (unlike
+    /// Transfer/InvestmentContribution) since the money is new, not moved between the user's own
+    /// tracked accounts. No cross-currency guard needed — only one account is involved.
+    /// </summary>
+    Task RecordInterestIncomeAsync(
+        DateOnly date,
+        decimal amount,
+        Guid termDepositId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default);
 }

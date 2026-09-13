@@ -343,6 +343,9 @@
   <data name="TransactionType_InvestmentWithdrawal" xml:space="preserve">
     <value>Retiro de fondo de inversión</value>
   </data>
+  <data name="TransactionType_InterestIncome" xml:space="preserve">
+    <value>Interés recibido</value>
+  </data>
   <data name="AddTransaction_Title" xml:space="preserve">
     <value>Nuevo movimiento</value>
   </data>
