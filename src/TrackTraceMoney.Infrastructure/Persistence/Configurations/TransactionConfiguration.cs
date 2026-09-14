@@ -32,6 +32,7 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
             .HasValue<LoanPayment>("LoanPayment")
             .HasValue<InvestmentContribution>("InvestmentContribution")
             .HasValue<InvestmentWithdrawal>("InvestmentWithdrawal")
-            .HasValue<InterestIncome>("InterestIncome");
+            .HasValue<InterestIncome>("InterestIncome")
+            .HasValue<Reimbursement>("Reimbursement");
     }
 }

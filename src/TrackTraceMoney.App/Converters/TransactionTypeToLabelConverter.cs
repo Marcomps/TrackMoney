@@ -24,6 +24,7 @@ public sealed class TransactionTypeToLabelConverter : EnumToLabelConverter<Trans
         TransactionType.InvestmentContribution => AppResources.TransactionType_InvestmentContribution,
         TransactionType.InvestmentWithdrawal => AppResources.TransactionType_InvestmentWithdrawal,
         TransactionType.InterestIncome => AppResources.TransactionType_InterestIncome,
+        TransactionType.Reimbursement => AppResources.TransactionType_Reimbursement,
         _ => string.Empty
     };
 }

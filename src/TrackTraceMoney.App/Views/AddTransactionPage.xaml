@@ -120,6 +120,14 @@
                 <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedInvestmentWithdrawalDestination}" />
             </VerticalStackLayout>
 
+            <VerticalStackLayout IsVisible="{Binding IsReimbursement}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddTransaction_PendingExpensePickerLabel}" />
+                <Picker ItemsSource="{Binding PendingReimbursableExpenses}" SelectedItem="{Binding SelectedPendingReimbursableExpense}" />
+
+                <Label Text="{x:Static resources:AppResources.AddTransaction_DestinationAccountLabel}" />
+                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedReimbursementDestinationAccount}" />
+            </VerticalStackLayout>
+
             <Label Text="{x:Static resources:AppResources.AddTransaction_DescriptionLabel}" />
             <Entry Text="{Binding Description}" />
 

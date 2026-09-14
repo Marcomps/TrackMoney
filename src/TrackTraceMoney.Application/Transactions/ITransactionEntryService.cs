@@ -169,4 +169,28 @@ public interface ITransactionEntryService
         string? description,
         string? notes,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Records money actually received back for a medical expense (README §27/§28, Phase 3 slice 7).
+    /// Only supported when the linked transaction has a <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/>
+    /// currently <see cref="Domain.MedicalExpenses.MedicalReimbursementStatus.Pending"/> — flips it to
+    /// <see cref="Domain.MedicalExpenses.MedicalReimbursementStatus.Reimbursed"/> with the actual amount
+    /// received (which may differ from the original estimate) and credits the destination account. Counts
+    /// as income, never as spend — the original expense already counted as spend and is never mutated here.
+    /// </summary>
+    Task RecordMedicalReimbursementAsync(
+        DateOnly date,
+        decimal actualAmountReceived,
+        Guid linkedTransactionId,
+        Guid destinationAccountId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Marks a pending medical reimbursement as rejected (README §27/§28) — no money moves and no new
+    /// <see cref="Domain.Transactions.Transaction"/> is created, only the linked
+    /// <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/>'s status changes.
+    /// </summary>
+    Task RejectMedicalReimbursementAsync(Guid linkedTransactionId, CancellationToken ct = default);
 }

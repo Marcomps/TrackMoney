@@ -496,4 +496,50 @@ public sealed class TransactionEntryService : ITransactionEntryService
         await _transactionRepository.AddAsync(interestIncome, ct);
         await _transactionRepository.SaveChangesAsync(ct);
     }
+
+    public async Task RecordMedicalReimbursementAsync(
+        DateOnly date,
+        decimal actualAmountReceived,
+        Guid linkedTransactionId,
+        Guid destinationAccountId,
+        string? description,
+        string? notes,
+        CancellationToken ct = default)
+    {
+        _ = await _transactionRepository.GetByIdAsync(linkedTransactionId, ct)
+            ?? throw new InvalidOperationException($"Transaction '{linkedTransactionId}' was not found.");
+
+        var detail = await _medicalExpenseDetailRepository.GetForTransactionAsync(linkedTransactionId, ct)
+            ?? throw new InvalidOperationException(
+                $"Transaction '{linkedTransactionId}' has no medical expense detail; reimbursements are only supported for medical expenses in this version.");
+
+        if (detail.Status != MedicalReimbursementStatus.Pending)
+            throw new InvalidOperationException(
+                $"Transaction '{linkedTransactionId}' is not pending reimbursement (current status: {detail.Status}).");
+
+        var destinationAccount = await _accountRepository.GetByIdAsync(destinationAccountId, ct)
+            ?? throw new InvalidOperationException($"Account '{destinationAccountId}' was not found.");
+
+        var reimbursement = new Reimbursement(date, actualAmountReceived, destinationAccountId, linkedTransactionId, description, notes);
+
+        // Order matters: MarkReimbursed can still throw (actualAmountReceived > GrossAmount) — run it
+        // BEFORE crediting the account so a thrown exception never leaves the account's in-memory
+        // Balance mutated ahead of an aborted save.
+        detail.MarkReimbursed(actualAmountReceived);
+        destinationAccount.Credit(actualAmountReceived);
+
+        await _transactionRepository.AddAsync(reimbursement, ct);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    public async Task RejectMedicalReimbursementAsync(Guid linkedTransactionId, CancellationToken ct = default)
+    {
+        var detail = await _medicalExpenseDetailRepository.GetForTransactionAsync(linkedTransactionId, ct)
+            ?? throw new InvalidOperationException(
+                $"Transaction '{linkedTransactionId}' has no medical expense detail; reimbursements are only supported for medical expenses in this version.");
+
+        detail.MarkRejected(); // throws InvalidOperationException itself if Status != Pending
+
+        await _medicalExpenseDetailRepository.SaveChangesAsync(ct);
+    }
 }

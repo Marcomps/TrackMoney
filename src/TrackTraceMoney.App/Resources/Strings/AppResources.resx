@@ -346,6 +346,9 @@
   <data name="TransactionType_InterestIncome" xml:space="preserve">
     <value>Interés recibido</value>
   </data>
+  <data name="TransactionType_Reimbursement" xml:space="preserve">
+    <value>Reembolso</value>
+  </data>
   <data name="AddTransaction_Title" xml:space="preserve">
     <value>Nuevo movimiento</value>
   </data>
@@ -375,6 +378,9 @@
   </data>
   <data name="AddTransaction_FundLabel" xml:space="preserve">
     <value>Fondo de inversión</value>
+  </data>
+  <data name="AddTransaction_PendingExpensePickerLabel" xml:space="preserve">
+    <value>Gasto médico pendiente de reembolso</value>
   </data>
   <data name="AddTransaction_NextPaymentDateLabel" xml:space="preserve">
     <value>Próximo pago</value>
@@ -1184,6 +1190,48 @@
     <value>Guardar</value>
   </data>
   <data name="RecordInvestmentValuation_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="MedicalExpenseDetail_Title" xml:space="preserve">
+    <value>Gasto médico</value>
+  </data>
+  <data name="MedicalExpenseDetail_OriginalAmountLabel" xml:space="preserve">
+    <value>Monto pagado</value>
+  </data>
+  <data name="MedicalExpenseDetail_OriginalDateLabel" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="MedicalExpenseDetail_CategoryLabel" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="MedicalExpenseDetail_ProviderLabel" xml:space="preserve">
+    <value>Aseguradora</value>
+  </data>
+  <data name="MedicalExpenseDetail_GrossAmountLabel" xml:space="preserve">
+    <value>Monto total (antes del seguro)</value>
+  </data>
+  <data name="MedicalExpenseDetail_CoveredAmountLabel" xml:space="preserve">
+    <value>Monto cubierto por el seguro</value>
+  </data>
+  <data name="MedicalExpenseDetail_StatusLabel" xml:space="preserve">
+    <value>Estado del reembolso</value>
+  </data>
+  <data name="MedicalExpenseDetail_RecordReimbursementButton" xml:space="preserve">
+    <value>Registrar reembolso</value>
+  </data>
+  <data name="MedicalExpenseDetail_MarkRejectedButton" xml:space="preserve">
+    <value>Marcar como rechazado</value>
+  </data>
+  <data name="MedicalExpenseDetail_ConfirmRejectTitle" xml:space="preserve">
+    <value>Rechazar reembolso</value>
+  </data>
+  <data name="MedicalExpenseDetail_ConfirmRejectMessage" xml:space="preserve">
+    <value>¿Confirmas que la aseguradora rechazó este reembolso? Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="MedicalExpenseDetail_ConfirmRejectAccept" xml:space="preserve">
+    <value>Rechazar</value>
+  </data>
+  <data name="MedicalExpenseDetail_ConfirmRejectCancel" xml:space="preserve">
     <value>Cancelar</value>
   </data>
 </root>

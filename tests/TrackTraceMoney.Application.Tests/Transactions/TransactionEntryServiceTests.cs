@@ -900,6 +900,228 @@ public sealed class TransactionEntryServiceTests
         Assert.Empty(transactions.All);
     }
 
+    [Fact]
+    public async Task RecordMedicalReimbursementAsync_HappyPath_PersistsReimbursement_CreditsAccount_AndMarksDetailReimbursedWithActualAmount()
+    {
+        var (service, accounts, _, transactions, _, categories, _, medicalExpenseDetails) = CreateSut();
+        var wallet = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var bank = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+        var category = categories.Add(Category.CreateUserDefined("Health"));
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 30m, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalExpenseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 80m, wallet.Id, category.Id, null, null, "Doctor visit", null, medicalInfo);
+        var originalExpense = Assert.Single(transactions.All);
+        var detail = Assert.Single(medicalExpenseDetails.All);
+        Assert.Equal(MedicalReimbursementStatus.Pending, detail.Status);
+
+        // Actual amount received differs from the original $30 estimate — proves the real amount, not
+        // the estimate, is what gets stored.
+        await service.RecordMedicalReimbursementAsync(
+            DateOnly.FromDateTime(DateTime.Today), 25m, originalExpense.Id, bank.Id, "Reimbursement", null);
+
+        Assert.Equal(25m, bank.Balance);
+        var reimbursement = Assert.Single(transactions.All.OfType<Reimbursement>());
+        Assert.Equal(originalExpense.Id, reimbursement.LinkedTransactionId);
+        Assert.Equal(bank.Id, reimbursement.DestinationAccountId);
+        Assert.True(reimbursement.CountsAsIncome);
+        Assert.False(reimbursement.CountsAsExpense);
+
+        Assert.Equal(MedicalReimbursementStatus.Reimbursed, detail.Status);
+        Assert.Equal(25m, detail.InsuranceCoveredAmount);
+
+        // The original expense must never be mutated (CLAUDE.md's reimbursement rule).
+        Assert.Equal(420m, wallet.Balance);
+        Assert.Equal(80m, originalExpense.Amount);
+    }
+
+    [Fact]
+    public async Task RecordMedicalReimbursementAsync_UnknownLinkedTransaction_Throws()
+    {
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var bank = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordMedicalReimbursementAsync(
+                DateOnly.FromDateTime(DateTime.Today), 25m, Guid.NewGuid(), bank.Id, null, null));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(0m, bank.Balance);
+    }
+
+    [Fact]
+    public async Task RecordMedicalReimbursementAsync_LinkedTransactionHasNoMedicalExpenseDetail_Throws()
+    {
+        var (service, accounts, _, transactions, _, categories, _, _) = CreateSut();
+        var wallet = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var bank = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+        var category = categories.Add(Category.CreateUserDefined("Dining"));
+
+        await service.RecordExpenseAsync(DateOnly.FromDateTime(DateTime.Today), 40m, wallet.Id, category.Id, null, null, "Groceries", null);
+        var plainExpense = Assert.Single(transactions.All);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordMedicalReimbursementAsync(
+                DateOnly.FromDateTime(DateTime.Today), 25m, plainExpense.Id, bank.Id, null, null));
+
+        Assert.Equal(0m, bank.Balance);
+        Assert.Single(transactions.All);
+    }
+
+    [Theory]
+    [InlineData(MedicalReimbursementStatus.None)]
+    [InlineData(MedicalReimbursementStatus.PaidDirectly)]
+    [InlineData(MedicalReimbursementStatus.Reimbursed)]
+    [InlineData(MedicalReimbursementStatus.Rejected)]
+    public async Task RecordMedicalReimbursementAsync_LinkedDetailNotPending_Throws(MedicalReimbursementStatus status)
+    {
+        var (service, accounts, _, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var bank = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+
+        // A plain (non-service) transaction, added directly so RecordMedicalReimbursementAsync's own
+        // "linked transaction exists" lookup succeeds and the test isolates the status guard below.
+        var linkedTransaction = new Expense(DateOnly.FromDateTime(DateTime.Today), 80m, Guid.NewGuid(), Guid.NewGuid(), null, null, "Doctor visit", null);
+        await transactions.AddAsync(linkedTransaction);
+
+        var (grossAmount, insuranceCoveredAmount, initialStatus) = status switch
+        {
+            MedicalReimbursementStatus.None => ((decimal?)null, (decimal?)null, MedicalReimbursementStatus.None),
+            MedicalReimbursementStatus.PaidDirectly => (110m, 30m, MedicalReimbursementStatus.PaidDirectly),
+            _ => (80m, 30m, MedicalReimbursementStatus.Pending)
+        };
+
+        var detail = new MedicalExpenseDetail(linkedTransaction.Id, "Acme Insurance", grossAmount, insuranceCoveredAmount, initialStatus);
+        if (status == MedicalReimbursementStatus.Reimbursed)
+            detail.MarkReimbursed(30m);
+        else if (status == MedicalReimbursementStatus.Rejected)
+            detail.MarkRejected();
+
+        await medicalExpenseDetails.AddAsync(detail);
+
+        var transactionCountBefore = transactions.All.Count;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordMedicalReimbursementAsync(
+                DateOnly.FromDateTime(DateTime.Today), 25m, detail.TransactionId, bank.Id, null, null));
+
+        Assert.Equal(0m, bank.Balance);
+        Assert.Equal(transactionCountBefore, transactions.All.Count);
+        Assert.Equal(status, detail.Status);
+    }
+
+    [Fact]
+    public async Task RecordMedicalReimbursementAsync_UnknownDestinationAccount_Throws()
+    {
+        var (service, accounts, _, transactions, _, categories, _, medicalExpenseDetails) = CreateSut();
+        var wallet = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var category = categories.Add(Category.CreateUserDefined("Health"));
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 30m, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalExpenseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 80m, wallet.Id, category.Id, null, null, "Doctor visit", null, medicalInfo);
+        var originalExpense = Assert.Single(transactions.All);
+        var detail = Assert.Single(medicalExpenseDetails.All);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordMedicalReimbursementAsync(
+                DateOnly.FromDateTime(DateTime.Today), 25m, originalExpense.Id, Guid.NewGuid(), null, null));
+
+        Assert.Single(transactions.All);
+        Assert.Equal(MedicalReimbursementStatus.Pending, detail.Status);
+    }
+
+    [Fact]
+    public async Task RecordMedicalReimbursementAsync_PartialReimbursement_LessThanOriginalEstimate_Succeeds()
+    {
+        // Proves a partial reimbursement (actual < the original InsuranceCoveredAmount estimate) is not
+        // blocked — MarkReimbursed only rejects amounts greater than GrossAmount, never less.
+        var (service, accounts, _, transactions, _, categories, _, medicalExpenseDetails) = CreateSut();
+        var wallet = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var bank = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+        var category = categories.Add(Category.CreateUserDefined("Health"));
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 30m, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalExpenseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 80m, wallet.Id, category.Id, null, null, "Doctor visit", null, medicalInfo);
+        var originalExpense = Assert.Single(transactions.All);
+        var detail = Assert.Single(medicalExpenseDetails.All);
+
+        await service.RecordMedicalReimbursementAsync(
+            DateOnly.FromDateTime(DateTime.Today), 10m, originalExpense.Id, bank.Id, null, null);
+
+        Assert.Equal(10m, bank.Balance);
+        Assert.Equal(MedicalReimbursementStatus.Reimbursed, detail.Status);
+        Assert.Equal(10m, detail.InsuranceCoveredAmount);
+    }
+
+    [Fact]
+    public async Task RecordMedicalReimbursementAsync_AmountGreaterThanGrossAmount_ThrowsAndLeavesAccountBalanceUnchanged()
+    {
+        // Proves the mutation-ordering fix: MarkReimbursed's own guard must run BEFORE Credit, so a
+        // thrown exception never leaves the destination account's Balance mutated.
+        var (service, accounts, _, transactions, _, categories, _, medicalExpenseDetails) = CreateSut();
+        var wallet = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var bank = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+        var category = categories.Add(Category.CreateUserDefined("Health"));
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 30m, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalExpenseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 80m, wallet.Id, category.Id, null, null, "Doctor visit", null, medicalInfo);
+        var originalExpense = Assert.Single(transactions.All);
+        var detail = Assert.Single(medicalExpenseDetails.All);
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            service.RecordMedicalReimbursementAsync(
+                DateOnly.FromDateTime(DateTime.Today), 999m, originalExpense.Id, bank.Id, null, null));
+
+        Assert.Equal(0m, bank.Balance);
+        Assert.Equal(MedicalReimbursementStatus.Pending, detail.Status);
+        Assert.Single(transactions.All);
+    }
+
+    [Fact]
+    public async Task RejectMedicalReimbursementAsync_HappyPath_FlipsStatusToRejected_AndCreatesZeroTransactions()
+    {
+        var (service, accounts, _, transactions, _, categories, _, medicalExpenseDetails) = CreateSut();
+        var wallet = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var category = categories.Add(Category.CreateUserDefined("Health"));
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 30m, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalExpenseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 80m, wallet.Id, category.Id, null, null, "Doctor visit", null, medicalInfo);
+        var originalExpense = Assert.Single(transactions.All);
+        var detail = Assert.Single(medicalExpenseDetails.All);
+        var transactionCountBefore = transactions.All.Count;
+
+        await service.RejectMedicalReimbursementAsync(originalExpense.Id);
+
+        Assert.Equal(MedicalReimbursementStatus.Rejected, detail.Status);
+        Assert.Equal(transactionCountBefore, transactions.All.Count);
+    }
+
+    [Fact]
+    public async Task RejectMedicalReimbursementAsync_NoLinkedDetail_Throws()
+    {
+        var (service, _, _, _, _, _, _, _) = CreateSut();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RejectMedicalReimbursementAsync(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task RejectMedicalReimbursementAsync_DetailNotPending_Throws()
+    {
+        var (service, accounts, _, transactions, _, categories, _, medicalExpenseDetails) = CreateSut();
+        var wallet = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var category = categories.Add(Category.CreateUserDefined("Dining"));
+
+        await service.RecordExpenseAsync(DateOnly.FromDateTime(DateTime.Today), 40m, wallet.Id, category.Id, null, null, "Groceries", null);
+        var plainExpense = Assert.Single(transactions.All);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RejectMedicalReimbursementAsync(plainExpense.Id));
+    }
+
     private static TermDeposit CreateTermDeposit(CurrencyCode currency, decimal openingBalance = 10000m) =>
         new(
             "12-Month CD",

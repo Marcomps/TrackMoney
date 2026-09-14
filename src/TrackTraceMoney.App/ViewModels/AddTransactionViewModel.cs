@@ -9,9 +9,12 @@ using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Transactions;
 using TrackTraceMoney.Domain.Accounts;
 using TrackTraceMoney.Domain.CreditAccounts;
+using TrackTraceMoney.Domain.MedicalExpenses;
+using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.App.ViewModels;
 
+[QueryProperty(nameof(LinkedTransactionId), "linkedTransactionId")]
 public sealed partial class AddTransactionViewModel : ObservableObject
 {
     private readonly ITransactionEntryService _transactionEntryService;
@@ -19,6 +22,8 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IPersonRepository _personRepository;
+    private readonly ITransactionRepository _transactionRepository;
+    private readonly IMedicalExpenseDetailRepository _medicalExpenseDetailRepository;
 
     /// <summary>
     /// Raw <c>Loan</c> entities backing <see cref="LoanOptions"/>, kept alongside it (not folded into
@@ -37,6 +42,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsLoanPayment))]
     [NotifyPropertyChangedFor(nameof(IsInvestmentContribution))]
     [NotifyPropertyChangedFor(nameof(IsInvestmentWithdrawal))]
+    [NotifyPropertyChangedFor(nameof(IsReimbursement))]
     private TransactionType selectedType = TransactionType.Expense;
 
     [ObservableProperty]
@@ -113,6 +119,25 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private NamedOption? selectedInvestmentWithdrawalDestination;
 
     [ObservableProperty]
+    private PendingReimbursableExpenseOption? selectedPendingReimbursableExpense;
+
+    [ObservableProperty]
+    private NamedOption? selectedReimbursementDestinationAccount;
+
+    /// <summary>
+    /// Set via <c>AddTransactionPage</c>'s <c>[QueryProperty]</c> plumbing when navigating from
+    /// <c>MedicalExpenseDetailPage</c>'s "Record reimbursement" button (README §27/§28, Phase 3 slice
+    /// 7) — pre-selects <see cref="SelectedType"/> and <see cref="SelectedPendingReimbursableExpense"/>
+    /// once <see cref="PendingReimbursableExpenses"/> has loaded. Bound as a plain string, not
+    /// <c>Guid?</c>, mirroring <c>RecordCreditCardStatementViewModel.StatementId</c>'s documented reason:
+    /// MAUI Shell query parameters always arrive as strings and this codebase has no nullable-Guid
+    /// <c>[QueryProperty]</c> precedent to rely on — parsed defensively, absent/unparseable simply means
+    /// "no pre-selection", the same degraded-but-safe behavior as navigating here directly.
+    /// </summary>
+    [ObservableProperty]
+    private string? linkedTransactionId;
+
+    [ObservableProperty]
     private string? description;
 
     [ObservableProperty]
@@ -179,6 +204,15 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     /// </summary>
     public ObservableCollection<NamedOption> InvestmentFundOptions { get; } = [];
 
+    /// <summary>
+    /// Backs ONLY the Reimbursement block's expense picker — every transaction whose linked
+    /// <see cref="MedicalExpenseDetail"/> is currently <see cref="MedicalReimbursementStatus.Pending"/>
+    /// (README §27/§28, Phase 3 slice 7). Built from a single <c>GetAllAsync</c> query each for
+    /// transactions and medical expense details plus an in-memory join, the same anti-N+1 pattern
+    /// <c>HistoryViewModel</c> already uses for its full-history load, rather than one lookup per detail.
+    /// </summary>
+    public ObservableCollection<PendingReimbursableExpenseOption> PendingReimbursableExpenses { get; } = [];
+
     public ObservableCollection<NamedOption> Categories { get; } = [];
 
     public ObservableCollection<NamedOption> People { get; } = [];
@@ -197,6 +231,8 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 
     public bool IsInvestmentWithdrawal => SelectedType == TransactionType.InvestmentWithdrawal;
 
+    public bool IsReimbursement => SelectedType == TransactionType.Reimbursement;
+
     /// <summary>
     /// Hides the Income block's Category/Person pickers when the selected destination account is a
     /// term deposit — an <see cref="Domain.Transactions.InterestIncome"/> transaction has no
@@ -210,13 +246,17 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         IFinancialAccountRepository accountRepository,
         ICreditAccountRepository creditAccountRepository,
         ICategoryRepository categoryRepository,
-        IPersonRepository personRepository)
+        IPersonRepository personRepository,
+        ITransactionRepository transactionRepository,
+        IMedicalExpenseDetailRepository medicalExpenseDetailRepository)
     {
         _transactionEntryService = transactionEntryService;
         _accountRepository = accountRepository;
         _creditAccountRepository = creditAccountRepository;
         _categoryRepository = categoryRepository;
         _personRepository = personRepository;
+        _transactionRepository = transactionRepository;
+        _medicalExpenseDetailRepository = medicalExpenseDetailRepository;
     }
 
     [RelayCommand]
@@ -273,6 +313,46 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         People.Add(new NamedOption(Guid.Empty, AppResources.AddTransaction_NoneOption));
         foreach (var person in people)
             People.Add(new NamedOption(person.Id, person.Name));
+
+        // Single query each for transactions/medical details plus an in-memory join, instead of one
+        // GetForTransactionAsync call per pending detail — see PendingReimbursableExpenses's doc comment.
+        var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
+        var allTransactions = await _transactionRepository.GetAllAsync();
+        var transactionsById = allTransactions.ToDictionary(t => t.Id);
+        var allMedicalDetails = await _medicalExpenseDetailRepository.GetAllAsync();
+
+        PendingReimbursableExpenses.Clear();
+        foreach (var detail in allMedicalDetails.Where(d => d.Status == MedicalReimbursementStatus.Pending))
+        {
+            if (!transactionsById.TryGetValue(detail.TransactionId, out var transaction))
+                continue;
+
+            PendingReimbursableExpenses.Add(new PendingReimbursableExpenseOption(
+                transaction.Id,
+                BuildPendingExpenseLabel(transaction, categoryNames)));
+        }
+
+        // Pre-select the linked expense (and switch to the Reimbursement type) when navigated here from
+        // MedicalExpenseDetailPage's "Record reimbursement" button — see LinkedTransactionId's doc comment.
+        if (Guid.TryParse(LinkedTransactionId, out var linkedTransactionId))
+        {
+            var preselected = PendingReimbursableExpenses.FirstOrDefault(o => o.TransactionId == linkedTransactionId);
+            if (preselected is not null)
+            {
+                SelectedType = TransactionType.Reimbursement;
+                SelectedPendingReimbursableExpense = preselected;
+            }
+        }
+    }
+
+    private static string BuildPendingExpenseLabel(Transaction transaction, IReadOnlyDictionary<Guid, string> categoryNames)
+    {
+        var categoryLabel = transaction.SpendCategoryId is { } categoryId && categoryNames.TryGetValue(categoryId, out var name)
+            ? name
+            : string.Empty;
+        var descriptor = !string.IsNullOrWhiteSpace(transaction.Description) ? transaction.Description : categoryLabel;
+
+        return $"{transaction.Date.ToString("d", CultureInfo.CurrentCulture)} · {descriptor} · {transaction.Amount.ToString("N2", CultureInfo.CurrentCulture)}";
     }
 
     partial void OnSelectedLoanPaymentTargetChanged(NamedOption? value)
@@ -546,6 +626,22 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         amount,
                         SelectedInvestmentWithdrawalFund.Id,
                         SelectedInvestmentWithdrawalDestination.Id,
+                        Description,
+                        Notes);
+                    break;
+
+                case TransactionType.Reimbursement:
+                    if (SelectedPendingReimbursableExpense is null || SelectedReimbursementDestinationAccount is null)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationAccountRequired;
+                        return;
+                    }
+
+                    await _transactionEntryService.RecordMedicalReimbursementAsync(
+                        date,
+                        amount,
+                        SelectedPendingReimbursableExpense.TransactionId,
+                        SelectedReimbursementDestinationAccount.Id,
                         Description,
                         Notes);
                     break;

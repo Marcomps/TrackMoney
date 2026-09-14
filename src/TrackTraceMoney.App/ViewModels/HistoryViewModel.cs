@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
+using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 
 namespace TrackTraceMoney.App.ViewModels;
@@ -226,5 +227,21 @@ public sealed partial class HistoryViewModel : ObservableObject
             GroupedEntries.Add(group);
 
         OnPropertyChanged(nameof(IsEmpty));
+    }
+
+    /// <summary>
+    /// Opens <see cref="MedicalExpenseDetailPage"/> for a row's underlying transaction. The tap gesture
+    /// in <c>HistoryPage.xaml</c> is wired on every row (this codebase has no established
+    /// null-to-bool XAML converter to conditionally disable a <c>GestureRecognizer</c>), so the
+    /// non-null <see cref="HistoryEntryItem.MedicalStatusBadge"/> check happens here instead — a tap on
+    /// a badge-less row (no linked <c>MedicalExpenseDetail</c> at all) is a no-op.
+    /// </summary>
+    [RelayCommand]
+    private static async Task OpenMedicalExpenseDetailAsync(HistoryEntryItem? entry)
+    {
+        if (entry?.MedicalStatusBadge is null)
+            return;
+
+        await Shell.Current.GoToAsync($"{nameof(MedicalExpenseDetailPage)}?transactionId={entry.Id}");
     }
 }

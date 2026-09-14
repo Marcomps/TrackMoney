@@ -82,6 +82,13 @@ public sealed record TransactionListItem(
                 TransactionType.InterestIncome,
                 interestIncome.Description,
                 accountLabel),
+            Reimbursement reimbursement => new TransactionListItem(
+                reimbursement.Id,
+                reimbursement.Date,
+                reimbursement.Amount,
+                TransactionType.Reimbursement,
+                reimbursement.Description,
+                accountLabel),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
     }

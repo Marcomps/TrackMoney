@@ -126,6 +126,16 @@ public sealed record HistoryEntryItem(
                 [interestIncome.DestinationAccountId],
                 null,
                 []),
+            Reimbursement reimbursement => new HistoryEntryItem(
+                reimbursement.Id,
+                reimbursement.Date,
+                reimbursement.Amount,
+                TransactionType.Reimbursement,
+                reimbursement.Description,
+                accountLabel,
+                [reimbursement.DestinationAccountId],
+                null,
+                []),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
 

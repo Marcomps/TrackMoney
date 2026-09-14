@@ -10,5 +10,6 @@ public enum TransactionType
     LoanPayment,
     InvestmentContribution,
     InvestmentWithdrawal,
-    InterestIncome
+    InterestIncome,
+    Reimbursement
 }

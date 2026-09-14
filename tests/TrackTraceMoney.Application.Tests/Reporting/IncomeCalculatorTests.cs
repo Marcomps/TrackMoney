@@ -42,6 +42,25 @@ public sealed class IncomeCalculatorTests
     }
 
     [Fact]
+    public void Calculate_IncomeInterestIncomeAndReimbursement_SameCurrency_SumTogether()
+    {
+        // Phase 3 slice 7: Reimbursement must sum into income totals alongside Income/InterestIncome —
+        // same CountsAsIncome/IncomeAccountId-driven aggregation, no type-specific pattern matching
+        // needed in production code (CLAUDE.md's non-obvious-domain-rules section).
+        var account = new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m);
+        var categoryId = Guid.NewGuid();
+        var income = new Income(DateOnly.FromDateTime(DateTime.Today), 500m, account.Id, categoryId);
+        var interestIncome = new InterestIncome(DateOnly.FromDateTime(DateTime.Today), 41.67m, account.Id);
+        var reimbursement = new Reimbursement(DateOnly.FromDateTime(DateTime.Today), 30m, account.Id, Guid.NewGuid());
+
+        var currencyMap = AccountCurrencyMapBuilder.Build([account], []);
+
+        var summary = new IncomeCalculator().Calculate([income, interestIncome, reimbursement], currencyMap);
+
+        Assert.Equal(571.67m, summary.TotalIncomeByCurrency[CurrencyCode.USD]);
+    }
+
+    [Fact]
     public void Calculate_TransferAndInvestmentContribution_NeverCountAsIncome()
     {
         var source = new BankAccount("Checking", CurrencyCode.USD, openingBalance: 100m);

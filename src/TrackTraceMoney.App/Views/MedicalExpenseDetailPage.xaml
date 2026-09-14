@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.MedicalExpenseDetailPage"
+             x:DataType="viewModels:MedicalExpenseDetailViewModel"
+             Title="{x:Static resources:AppResources.MedicalExpenseDetail_Title}">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+
+                <Label Text="{x:Static resources:AppResources.MedicalExpenseDetail_OriginalAmountLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding OriginalAmount, StringFormat='{0:N2}'}" FontSize="16" />
+
+                <Label Text="{x:Static resources:AppResources.MedicalExpenseDetail_OriginalDateLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding OriginalDate}" />
+
+                <Label Text="{x:Static resources:AppResources.MedicalExpenseDetail_CategoryLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding CategoryName}" />
+
+                <Label Text="{x:Static resources:AppResources.MedicalExpenseDetail_ProviderLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding InsuranceProvider}" />
+
+                <Label Text="{x:Static resources:AppResources.MedicalExpenseDetail_GrossAmountLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding GrossAmount, StringFormat='{0:N2}'}" />
+
+                <Label Text="{x:Static resources:AppResources.MedicalExpenseDetail_CoveredAmountLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding CoveredAmount, StringFormat='{0:N2}'}" />
+
+                <Label Text="{x:Static resources:AppResources.MedicalExpenseDetail_StatusLabel}" FontAttributes="Bold" />
+                <Label Text="{Binding StatusLabel}" />
+
+                <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+                <VerticalStackLayout IsVisible="{Binding IsPending}" Spacing="12" Margin="0,12,0,0">
+                    <Button Text="{x:Static resources:AppResources.MedicalExpenseDetail_RecordReimbursementButton}"
+                            Command="{Binding RecordReimbursementCommand}"
+                            HorizontalOptions="Fill" />
+
+                    <Button Text="{x:Static resources:AppResources.MedicalExpenseDetail_MarkRejectedButton}"
+                            Command="{Binding MarkRejectedCommand}"
+                            HorizontalOptions="Fill" />
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>
