@@ -8,6 +8,7 @@ using TrackTraceMoney.Domain.Categories;
 using TrackTraceMoney.Domain.Common;
 using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.Enums;
+using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.RecurringExpenses;
 using TrackTraceMoney.Domain.Transactions;
 
@@ -36,7 +37,8 @@ public sealed class RecurringExpenseServiceTests
         var budgets = new InMemoryBudgetRepository();
         var categories = new InMemoryCategoryRepository();
         var notifier = new FakeLocalNotifier();
-        var transactionEntryService = new TransactionEntryService(transactions, accounts, creditAccounts, budgets, categories, new SpendingCalculator(), notifier);
+        var medicalExpenseDetails = new InMemoryMedicalExpenseDetailRepository();
+        var transactionEntryService = new TransactionEntryService(transactions, accounts, creditAccounts, budgets, categories, new SpendingCalculator(), notifier, medicalExpenseDetails);
 
         var recurringExpenses = new InMemoryRecurringExpenseRepository { ThrowOnSaveChanges = throwOnRecurringExpenseSave };
         var unitOfWork = new FakeUnitOfWork();
@@ -326,6 +328,39 @@ public sealed class RecurringExpenseServiceTests
         }
 
         public void Remove(Category entity) => _categories.Remove(entity.Id);
+
+        public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class InMemoryMedicalExpenseDetailRepository : IMedicalExpenseDetailRepository
+    {
+        private readonly Dictionary<Guid, MedicalExpenseDetail> _details = new();
+
+        public Task<MedicalExpenseDetail?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+            Task.FromResult(_details.GetValueOrDefault(id));
+
+        public Task<IReadOnlyList<MedicalExpenseDetail>> GetAllAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<MedicalExpenseDetail>>(_details.Values.ToList());
+
+        public Task<MedicalExpenseDetail?> GetForTransactionAsync(Guid transactionId, CancellationToken ct = default) =>
+            Task.FromResult(_details.Values.FirstOrDefault(d => d.TransactionId == transactionId));
+
+        public Task<IReadOnlyDictionary<Guid, MedicalExpenseDetail>> GetForTransactionsAsync(IEnumerable<Guid> transactionIds, CancellationToken ct = default)
+        {
+            var ids = transactionIds.ToList();
+            IReadOnlyDictionary<Guid, MedicalExpenseDetail> result = _details.Values
+                .Where(d => ids.Contains(d.TransactionId))
+                .ToDictionary(d => d.TransactionId);
+            return Task.FromResult(result);
+        }
+
+        public Task AddAsync(MedicalExpenseDetail entity, CancellationToken ct = default)
+        {
+            _details[entity.Id] = entity;
+            return Task.CompletedTask;
+        }
+
+        public void Remove(MedicalExpenseDetail entity) => _details.Remove(entity.Id);
 
         public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
     }

@@ -1,3 +1,5 @@
+using TrackTraceMoney.App.Resources.Strings;
+using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.App.Models;
@@ -7,6 +9,9 @@ namespace TrackTraceMoney.App.Models;
 /// <see cref="TransactionListItem"/> plus the raw filter keys (accounts/category/people involved)
 /// needed for client-side filtering — this app filters in-memory over the full local transaction
 /// set rather than pushing filters down to SQLite, since offline-first MVP volume doesn't need it.
+/// <see cref="MedicalStatusBadge"/> (README §25/§26/§27/§29) is only ever non-null for
+/// Pending/Reimbursed/Rejected — None/PaidDirectly and transactions with no
+/// <see cref="MedicalExpenseDetail"/> row at all never show a badge.
 /// </summary>
 public sealed record HistoryEntryItem(
     Guid Id,
@@ -17,16 +22,19 @@ public sealed record HistoryEntryItem(
     string AccountLabel,
     IReadOnlyList<Guid> AccountIds,
     Guid? CategoryId,
-    IReadOnlyList<Guid> PersonIds)
+    IReadOnlyList<Guid> PersonIds,
+    string? MedicalStatusBadge = null)
 {
     public static HistoryEntryItem FromDomain(
         Transaction transaction,
         IReadOnlyDictionary<Guid, string> accountNames,
-        IReadOnlyDictionary<Guid, string> categoryNames)
+        IReadOnlyDictionary<Guid, string> categoryNames,
+        MedicalReimbursementStatus? medicalStatus = null)
     {
         var accountLabel = TransactionLabelFormatter.BuildLabel(transaction, accountNames, categoryNames);
+        var medicalStatusBadge = GetMedicalStatusBadge(medicalStatus);
 
-        return transaction switch
+        var item = transaction switch
         {
             Expense expense => new HistoryEntryItem(
                 expense.Id,
@@ -120,8 +128,23 @@ public sealed record HistoryEntryItem(
                 []),
             _ => throw new NotSupportedException($"Unknown transaction type '{transaction.GetType().Name}'.")
         };
+
+        return item with { MedicalStatusBadge = medicalStatusBadge };
     }
 
     private static IReadOnlyList<Guid> BuildPersonIds(params Guid?[] personIds) =>
         personIds.Where(id => id.HasValue).Select(id => id!.Value).ToList();
+
+    /// <summary>
+    /// Only Pending/Reimbursed/Rejected ever get a badge — <see cref="MedicalReimbursementStatus.None"/>/
+    /// <see cref="MedicalReimbursementStatus.PaidDirectly"/> and "no detail row at all" (a null
+    /// <paramref name="status"/>) both resolve to no badge (README §25/§26/§27/§29).
+    /// </summary>
+    private static string? GetMedicalStatusBadge(MedicalReimbursementStatus? status) => status switch
+    {
+        MedicalReimbursementStatus.Pending => AppResources.History_MedicalStatusPending,
+        MedicalReimbursementStatus.Reimbursed => AppResources.History_MedicalStatusReimbursed,
+        MedicalReimbursementStatus.Rejected => AppResources.History_MedicalStatusRejected,
+        _ => null
+    };
 }

@@ -7,6 +7,7 @@ using TrackTraceMoney.Domain.Categories;
 using TrackTraceMoney.Domain.Common;
 using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.Enums;
+using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.Application.Tests.Transactions;
@@ -25,7 +26,8 @@ public sealed class TransactionEntryServiceTests
         InMemoryTransactionRepository Transactions,
         InMemoryBudgetRepository Budgets,
         InMemoryCategoryRepository Categories,
-        FakeLocalNotifier Notifier) CreateSut()
+        FakeLocalNotifier Notifier,
+        InMemoryMedicalExpenseDetailRepository MedicalExpenseDetails) CreateSut()
     {
         var accounts = new InMemoryAccountRepository();
         var creditAccounts = new InMemoryCreditAccountRepository();
@@ -33,14 +35,15 @@ public sealed class TransactionEntryServiceTests
         var budgets = new InMemoryBudgetRepository();
         var categories = new InMemoryCategoryRepository();
         var notifier = new FakeLocalNotifier();
-        var service = new TransactionEntryService(transactions, accounts, creditAccounts, budgets, categories, new SpendingCalculator(), notifier);
-        return (service, accounts, creditAccounts, transactions, budgets, categories, notifier);
+        var medicalExpenseDetails = new InMemoryMedicalExpenseDetailRepository();
+        var service = new TransactionEntryService(transactions, accounts, creditAccounts, budgets, categories, new SpendingCalculator(), notifier, medicalExpenseDetails);
+        return (service, accounts, creditAccounts, transactions, budgets, categories, notifier, medicalExpenseDetails);
     }
 
     [Fact]
     public async Task RecordExpenseAsync_DebitsAccountExactlyOnce_AndCountsAsSpend()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
         var categoryId = Guid.NewGuid();
 
@@ -55,7 +58,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordIncomeAsync_CreditsAccountExactlyOnce_AndDoesNotCountAsSpend()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
         var categoryId = Guid.NewGuid();
 
@@ -69,7 +72,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordTransferAsync_MovesFundsExactlyOnceEachSide_AndNeverCountsAsSpend()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var source = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 200m));
         var destination = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
 
@@ -88,7 +91,7 @@ public sealed class TransactionEntryServiceTests
         // README §6/§10: currency is explicit per account; nothing may assume a single global
         // currency. Without conversion support, applying the same numeric amount to both a USD and
         // a MXN account would silently corrupt both balances by a large real-world factor.
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var usdSource = accounts.Add(new CashAccount("USD Wallet", CurrencyCode.USD, openingBalance: 100m));
         var mxnDestination = accounts.Add(new BankAccount("MXN Checking", CurrencyCode.MXN, openingBalance: 0m));
 
@@ -107,7 +110,7 @@ public sealed class TransactionEntryServiceTests
         // Regression guard for the #1 risk called out in CLAUDE.md: booking an expense against an
         // account and then moving money via a Transfer (standing in for a later "payment" leg, e.g.
         // paying off a card in a later phase) must leave exactly one CountsAsExpense=true record.
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 500m));
         var savings = accounts.Add(new BankAccount("Savings", CurrencyCode.USD, openingBalance: 0m));
         var categoryId = Guid.NewGuid();
@@ -124,7 +127,7 @@ public sealed class TransactionEntryServiceTests
     {
         // README §34/§37: the notification is a reactive trigger fired on the crossing transition —
         // an expense that stays at/below the budget must not notify at all.
-        var (service, accounts, _, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, accounts, _, transactions, budgets, categories, notifier, _) = CreateSut();
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
         var today = DateOnly.FromDateTime(DateTime.Today);
@@ -146,7 +149,7 @@ public sealed class TransactionEntryServiceTests
     {
         // Only the crossing transition notifies — a second expense in an already-over-budget category
         // must not fire a second notification.
-        var (service, accounts, _, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, accounts, _, transactions, budgets, categories, notifier, _) = CreateSut();
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 1000m));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
         var today = DateOnly.FromDateTime(DateTime.Today);
@@ -166,7 +169,7 @@ public sealed class TransactionEntryServiceTests
         // QA-confirmed bug: a $90 MXN expense must never be summed together with USD spend when
         // evaluating a budget denominated in USD — only same-currency spend may ever cross a budget's
         // limit (CLAUDE.md: currency is explicit per account/transaction, never blended).
-        var (service, accounts, _, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, accounts, _, transactions, budgets, categories, notifier, _) = CreateSut();
         var usdAccount = accounts.Add(new CashAccount("USD Wallet", CurrencyCode.USD, openingBalance: 1000m));
         var mxnAccount = accounts.Add(new CashAccount("MXN Wallet", CurrencyCode.MXN, openingBalance: 5000m));
         var category = categories.Add(Category.CreateUserDefined("Food"));
@@ -189,7 +192,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordExpenseAsync_WithNoBudgetForCategoryAndMonth_NeverAttemptsNotification()
     {
-        var (service, accounts, _, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, accounts, _, transactions, budgets, categories, notifier, _) = CreateSut();
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
         var categoryId = Guid.NewGuid();
 
@@ -202,7 +205,7 @@ public sealed class TransactionEntryServiceTests
     public async Task RecordCreditCardPurchaseAsync_IncreasesCardDebt_AndCountsAsSpend()
     {
         // CLAUDE.md's #1 correctness risk: the purchase is the expense and must increase card debt.
-        var (service, _, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, _, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var categoryId = Guid.NewGuid();
 
@@ -220,7 +223,7 @@ public sealed class TransactionEntryServiceTests
     {
         // A card purchase must never touch a FinancialAccount's balance — only the card's debt moves.
         // The later payment (a future CreditCardPayment slice) is what debits a bank account.
-        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 500m));
         var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var categoryId = Guid.NewGuid();
@@ -233,7 +236,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordCreditCardPurchaseAsync_CrossingBudgetLimit_TriggersExactlyOneNotification()
     {
-        var (service, _, creditAccounts, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, _, creditAccounts, transactions, budgets, categories, notifier, _) = CreateSut();
         var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
         var today = DateOnly.FromDateTime(DateTime.Today);
@@ -253,7 +256,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordCreditCardPurchaseAsync_UnknownCreditAccount_ThrowsAndDoesNotRecordTransaction()
     {
-        var (service, _, _, transactions, _, _, _) = CreateSut();
+        var (service, _, _, transactions, _, _, _, _) = CreateSut();
         var categoryId = Guid.NewGuid();
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -269,7 +272,7 @@ public sealed class TransactionEntryServiceTests
         // RegisterCharge exists on the shared CreditAccount base, so without this guard a Loan would
         // silently accept a charge via the wrong code path (never calling Loan.AdvanceSchedule),
         // leaving NextPaymentDate/RequiredPayment stale forever.
-        var (service, _, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, _, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
         var categoryId = Guid.NewGuid();
 
@@ -287,7 +290,7 @@ public sealed class TransactionEntryServiceTests
         // production code previously only queried Expense, so a card purchase preceding a cash Expense
         // in the same category/month would be invisible to the budget-crossing check's "spentBefore"
         // calculation. Neither $60 nor $50 alone crosses the $100 budget, but together they must.
-        var (service, accounts, creditAccounts, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, budgets, categories, notifier, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 500m));
         var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
@@ -309,9 +312,201 @@ public sealed class TransactionEntryServiceTests
     }
 
     [Fact]
+    public async Task RecordMedicalExpenseAsync_NoInsurance_CreatesDetailWithAllFieldsNull()
+    {
+        var (service, accounts, _, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var categoryId = Guid.NewGuid();
+        var medicalInfo = new MedicalInsuranceInput(null, null, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalExpenseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 80m, account.Id, categoryId, null, null, "Doctor visit", null, medicalInfo);
+
+        Assert.Equal(420m, account.Balance);
+        var recorded = Assert.Single(transactions.All);
+        Assert.True(recorded.CountsAsExpense);
+
+        var detail = Assert.Single(medicalExpenseDetails.All);
+        Assert.Equal(recorded.Id, detail.TransactionId);
+        Assert.Equal(MedicalReimbursementStatus.None, detail.Status);
+        Assert.Null(detail.InsuranceProvider);
+        Assert.Null(detail.GrossAmount);
+        Assert.Null(detail.InsuranceCoveredAmount);
+    }
+
+    [Fact]
+    public async Task RecordMedicalExpenseAsync_PendingReimbursement_GrossAmountEqualsAmountPaid()
+    {
+        var (service, accounts, _, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var categoryId = Guid.NewGuid();
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 30m, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalExpenseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 80m, account.Id, categoryId, null, null, "Doctor visit", null, medicalInfo);
+
+        Assert.Equal(420m, account.Balance);
+        var recorded = Assert.Single(transactions.All);
+
+        var detail = Assert.Single(medicalExpenseDetails.All);
+        Assert.Equal(recorded.Id, detail.TransactionId);
+        Assert.Equal(MedicalReimbursementStatus.Pending, detail.Status);
+        Assert.Equal("Acme Insurance", detail.InsuranceProvider);
+        Assert.Equal(80m, detail.GrossAmount);
+        Assert.Equal(30m, detail.InsuranceCoveredAmount);
+    }
+
+    [Fact]
+    public async Task RecordMedicalExpenseAsync_InsurancePaidProviderDirectly_GrossAmountIncludesInsurancePortion()
+    {
+        var (service, accounts, _, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var categoryId = Guid.NewGuid();
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 30m, InsurancePaidProviderDirectly: true);
+
+        await service.RecordMedicalExpenseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 80m, account.Id, categoryId, null, null, "Doctor visit", null, medicalInfo);
+
+        Assert.Equal(420m, account.Balance);
+        var recorded = Assert.Single(transactions.All);
+
+        var detail = Assert.Single(medicalExpenseDetails.All);
+        Assert.Equal(recorded.Id, detail.TransactionId);
+        Assert.Equal(MedicalReimbursementStatus.PaidDirectly, detail.Status);
+        Assert.Equal(110m, detail.GrossAmount);
+        Assert.Equal(30m, detail.InsuranceCoveredAmount);
+    }
+
+    [Fact]
+    public async Task RecordMedicalExpenseAsync_CrossingBudgetLimit_TriggersExactlyOneNotification()
+    {
+        // Same crossing-transition notification as plain RecordExpenseAsync — a medical expense must
+        // still count as spend and notify identically (README §34/§37; CLAUDE.md's #1 risk).
+        var (service, accounts, _, transactions, budgets, categories, notifier, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var category = categories.Add(Category.CreateUserDefined("Health"));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
+        var medicalInfo = new MedicalInsuranceInput(null, null, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalExpenseAsync(today, 80m, account.Id, category.Id, null, null, "Checkup", null, medicalInfo);
+        Assert.Empty(notifier.Calls);
+
+        await service.RecordMedicalExpenseAsync(today, 50m, account.Id, category.Id, null, null, "Follow-up", null, medicalInfo);
+
+        var call = Assert.Single(notifier.Calls);
+        Assert.Equal(category.Id, call.Category.Id);
+        Assert.Equal(100m, call.BudgetAmount);
+        Assert.Equal(30m, call.AmountOver);
+    }
+
+    [Fact]
+    public async Task RecordExpenseAsync_PlainExpense_CreatesZeroMedicalExpenseDetailRows()
+    {
+        // Regression guard: a plain (non-medical) expense must never create a MedicalExpenseDetail row.
+        var (service, accounts, _, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var categoryId = Guid.NewGuid();
+
+        await service.RecordExpenseAsync(DateOnly.FromDateTime(DateTime.Today), 40m, account.Id, categoryId, null, null, "Groceries", null);
+
+        Assert.Empty(medicalExpenseDetails.All);
+    }
+
+    [Fact]
+    public async Task RecordMedicalCreditCardPurchaseAsync_PendingReimbursement_IncreasesCardDebt_AndCreatesDetail()
+    {
+        var (service, _, creditAccounts, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var categoryId = Guid.NewGuid();
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 20m, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalCreditCardPurchaseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 60m, card.Id, categoryId, null, null, "Pharmacy", null, medicalInfo);
+
+        Assert.Equal(60m, card.AmountOwed);
+        var recorded = Assert.Single(transactions.All);
+        Assert.True(recorded.CountsAsExpense);
+        Assert.IsType<CreditCardPurchase>(recorded);
+
+        var detail = Assert.Single(medicalExpenseDetails.All);
+        Assert.Equal(recorded.Id, detail.TransactionId);
+        Assert.Equal(MedicalReimbursementStatus.Pending, detail.Status);
+        Assert.Equal(60m, detail.GrossAmount);
+    }
+
+    [Fact]
+    public async Task RecordMedicalCreditCardPurchaseAsync_InsurancePaidProviderDirectly_GrossAmountIncludesInsurancePortion()
+    {
+        var (service, _, creditAccounts, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var categoryId = Guid.NewGuid();
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 20m, InsurancePaidProviderDirectly: true);
+
+        await service.RecordMedicalCreditCardPurchaseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 60m, card.Id, categoryId, null, null, "Pharmacy", null, medicalInfo);
+
+        Assert.Equal(60m, card.AmountOwed);
+        var detail = Assert.Single(medicalExpenseDetails.All);
+        Assert.Equal(MedicalReimbursementStatus.PaidDirectly, detail.Status);
+        Assert.Equal(80m, detail.GrossAmount);
+    }
+
+    [Fact]
+    public async Task RecordMedicalCreditCardPurchaseAsync_CrossingBudgetLimit_TriggersExactlyOneNotification()
+    {
+        var (service, _, creditAccounts, transactions, budgets, categories, notifier, _) = CreateSut();
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var category = categories.Add(Category.CreateUserDefined("Health"));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
+        var medicalInfo = new MedicalInsuranceInput(null, null, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalCreditCardPurchaseAsync(today, 80m, card.Id, category.Id, null, null, "Checkup", null, medicalInfo);
+        Assert.Empty(notifier.Calls);
+
+        await service.RecordMedicalCreditCardPurchaseAsync(today, 50m, card.Id, category.Id, null, null, "Follow-up", null, medicalInfo);
+
+        var call = Assert.Single(notifier.Calls);
+        Assert.Equal(category.Id, call.Category.Id);
+        Assert.Equal(100m, call.BudgetAmount);
+        Assert.Equal(30m, call.AmountOver);
+    }
+
+    [Fact]
+    public async Task RecordMedicalCreditCardPurchaseAsync_CreditAccountIsALoan_ThrowsAndDoesNotRecordTransaction()
+    {
+        var (service, _, creditAccounts, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
+        var categoryId = Guid.NewGuid();
+        var medicalInfo = new MedicalInsuranceInput(null, null, InsurancePaidProviderDirectly: false);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordMedicalCreditCardPurchaseAsync(
+                DateOnly.FromDateTime(DateTime.Today), 60m, loan.Id, categoryId, null, null, "Pharmacy", null, medicalInfo));
+
+        Assert.Empty(transactions.All);
+        Assert.Empty(medicalExpenseDetails.All);
+        Assert.Equal(500m, loan.AmountOwed);
+    }
+
+    [Fact]
+    public async Task RecordCreditCardPurchaseAsync_PlainPurchase_CreatesZeroMedicalExpenseDetailRows()
+    {
+        // Regression guard: a plain (non-medical) card purchase must never create a MedicalExpenseDetail row.
+        var (service, _, creditAccounts, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var categoryId = Guid.NewGuid();
+
+        await service.RecordCreditCardPurchaseAsync(DateOnly.FromDateTime(DateTime.Today), 60m, card.Id, categoryId, null, null, "Groceries", null);
+
+        Assert.Empty(medicalExpenseDetails.All);
+    }
+
+    [Fact]
     public async Task RecordCreditCardPaymentAsync_DebitsSourceAndReducesDebt_ExactlyOnce()
     {
-        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         card.RegisterCharge(500m);
@@ -330,7 +525,7 @@ public sealed class TransactionEntryServiceTests
         // THE critical test for this slice: the purchase already counted as spend; the payment must
         // not count again, and must never touch budget/notification machinery at all (CLAUDE.md's #1
         // correctness risk, inverse direction — do not wire ISpendingCalculator/ILocalNotifier here).
-        var (service, accounts, creditAccounts, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, budgets, categories, notifier, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
@@ -352,7 +547,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordCreditCardPaymentAsync_Overpayment_ThrowsAndDoesNotMutateEitherSide()
     {
-        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         card.RegisterCharge(200m);
@@ -368,7 +563,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordCreditCardPaymentAsync_AcrossDifferentCurrencies_ThrowsAndDoesNotMutateEitherSide()
     {
-        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var card = creditAccounts.Add(new CreditCard("Tarjeta MXN", CurrencyCode.MXN, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         card.RegisterCharge(500m);
@@ -388,7 +583,7 @@ public sealed class TransactionEntryServiceTests
         // RegisterPayment exists on the shared CreditAccount base, so without this guard a Loan would
         // silently accept a payment via the wrong code path (never calling Loan.AdvanceSchedule),
         // leaving NextPaymentDate/RequiredPayment stale forever.
-        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
 
@@ -402,7 +597,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordLoanPaymentAsync_DebitsSourceAndReducesDebt_AndAdvancesSchedule_ExactlyOnce()
     {
-        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
 
@@ -425,7 +620,7 @@ public sealed class TransactionEntryServiceTests
         // Mirrors RecordCreditCardPaymentAsync's equivalent test: push a category's budget right up to
         // its limit, then record a loan payment (unrelated — loan payments have no category at all) and
         // assert zero additional notifications and CountsAsExpense == false on the persisted transaction.
-        var (service, accounts, creditAccounts, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, budgets, categories, notifier, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
@@ -445,7 +640,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordLoanPaymentAsync_AcrossDifferentCurrencies_ThrowsAndDoesNotMutateEitherSide()
     {
-        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.MXN, currentBalance: 500m));
 
@@ -461,7 +656,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordLoanPaymentAsync_Overpayment_ThrowsAndDoesNotMutateEitherSide()
     {
-        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 200m));
 
@@ -477,7 +672,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordLoanPaymentAsync_WrongCreditAccountType_Throws()
     {
-        var (service, accounts, creditAccounts, transactions, _, _, _) = CreateSut();
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
 
@@ -491,7 +686,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentContributionAsync_DebitsSourceAndCreditsFund_AndUpdatesContributionsTotal_ExactlyOnce()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD, contributions: 2000m, openingBalance: 2084.50m));
 
@@ -510,7 +705,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentContributionAsync_DestinationIsNotAnInvestmentFund_ThrowsAndDoesNotRecordTransaction()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var savings = accounts.Add(new BankAccount("Savings", CurrencyCode.USD, openingBalance: 0m));
 
@@ -525,7 +720,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentContributionAsync_SameAccountForSourceAndFund_ThrowsAndDoesNotRecordTransaction()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
@@ -537,7 +732,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentContributionAsync_AcrossDifferentCurrencies_ThrowsAndDoesNotMutateEitherSide()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.MXN));
 
@@ -552,7 +747,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentContributionAsync_NeverTriggersBudgetNotification()
     {
-        var (service, accounts, _, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, accounts, _, transactions, budgets, categories, notifier, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
@@ -570,7 +765,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentWithdrawalAsync_DebitsFundAndCreditsDestination_AndUpdatesWithdrawalsTotal_ExactlyOnce()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD, contributions: 2000m, openingBalance: 2084.50m));
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
 
@@ -592,7 +787,7 @@ public sealed class TransactionEntryServiceTests
         // Decision under test: unlike CreditAccount.RegisterPayment's overpayment guard, an
         // InvestmentFund withdrawal must NOT be blocked from taking the fund's Balance negative — this
         // proves the no-guard decision was implemented deliberately, not accidentally guarded against.
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD, contributions: 100m, openingBalance: 100m));
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
 
@@ -607,7 +802,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentWithdrawalAsync_SourceIsNotAnInvestmentFund_ThrowsAndDoesNotRecordTransaction()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
         var savings = accounts.Add(new BankAccount("Savings", CurrencyCode.USD, openingBalance: 0m));
 
@@ -622,7 +817,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentWithdrawalAsync_SameAccountForFundAndDestination_ThrowsAndDoesNotRecordTransaction()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
@@ -634,7 +829,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentWithdrawalAsync_AcrossDifferentCurrencies_ThrowsAndDoesNotMutateEitherSide()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
         var checking = accounts.Add(new BankAccount("Checking MXN", CurrencyCode.MXN, openingBalance: 0m));
 
@@ -649,7 +844,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInvestmentWithdrawalAsync_NeverTriggersBudgetNotification()
     {
-        var (service, accounts, _, transactions, budgets, categories, notifier) = CreateSut();
+        var (service, accounts, _, transactions, budgets, categories, notifier, _) = CreateSut();
         var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 500m));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
@@ -667,7 +862,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInterestIncomeAsync_CreditsBalanceAndInterestReceived_AndCountsAsIncome_ExactlyOnce()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var termDeposit = (TermDeposit)accounts.Add(CreateTermDeposit(CurrencyCode.USD, openingBalance: 10000m));
 
         await service.RecordInterestIncomeAsync(
@@ -684,7 +879,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInterestIncomeAsync_AccountIsNotATermDeposit_ThrowsAndDoesNotRecordTransaction()
     {
-        var (service, accounts, _, transactions, _, _, _) = CreateSut();
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -697,7 +892,7 @@ public sealed class TransactionEntryServiceTests
     [Fact]
     public async Task RecordInterestIncomeAsync_UnknownAccount_ThrowsAndDoesNotRecordTransaction()
     {
-        var (service, _, _, transactions, _, _, _) = CreateSut();
+        var (service, _, _, transactions, _, _, _, _) = CreateSut();
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.RecordInterestIncomeAsync(DateOnly.FromDateTime(DateTime.Today), 41.67m, Guid.NewGuid(), null, null));
@@ -915,6 +1110,41 @@ public sealed class TransactionEntryServiceTests
         }
 
         public void Remove(Category entity) => _categories.Remove(entity.Id);
+
+        public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class InMemoryMedicalExpenseDetailRepository : IMedicalExpenseDetailRepository
+    {
+        private readonly Dictionary<Guid, MedicalExpenseDetail> _details = new();
+
+        public IReadOnlyList<MedicalExpenseDetail> All => _details.Values.ToList();
+
+        public Task<MedicalExpenseDetail?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+            Task.FromResult(_details.GetValueOrDefault(id));
+
+        public Task<IReadOnlyList<MedicalExpenseDetail>> GetAllAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<MedicalExpenseDetail>>(_details.Values.ToList());
+
+        public Task<MedicalExpenseDetail?> GetForTransactionAsync(Guid transactionId, CancellationToken ct = default) =>
+            Task.FromResult(_details.Values.FirstOrDefault(d => d.TransactionId == transactionId));
+
+        public Task<IReadOnlyDictionary<Guid, MedicalExpenseDetail>> GetForTransactionsAsync(IEnumerable<Guid> transactionIds, CancellationToken ct = default)
+        {
+            var ids = transactionIds.ToList();
+            IReadOnlyDictionary<Guid, MedicalExpenseDetail> result = _details.Values
+                .Where(d => ids.Contains(d.TransactionId))
+                .ToDictionary(d => d.TransactionId);
+            return Task.FromResult(result);
+        }
+
+        public Task AddAsync(MedicalExpenseDetail entity, CancellationToken ct = default)
+        {
+            _details[entity.Id] = entity;
+            return Task.CompletedTask;
+        }
+
+        public void Remove(MedicalExpenseDetail entity) => _details.Remove(entity.Id);
 
         public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
     }

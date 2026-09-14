@@ -25,6 +25,7 @@ public sealed partial class HistoryViewModel : ObservableObject
     private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IPersonRepository _personRepository;
+    private readonly IMedicalExpenseDetailRepository _medicalExpenseDetailRepository;
 
     private List<HistoryEntryItem> _allEntries = [];
 
@@ -76,13 +77,15 @@ public sealed partial class HistoryViewModel : ObservableObject
         IFinancialAccountRepository accountRepository,
         ICreditAccountRepository creditAccountRepository,
         ICategoryRepository categoryRepository,
-        IPersonRepository personRepository)
+        IPersonRepository personRepository,
+        IMedicalExpenseDetailRepository medicalExpenseDetailRepository)
     {
         _transactionRepository = transactionRepository;
         _accountRepository = accountRepository;
         _creditAccountRepository = creditAccountRepository;
         _categoryRepository = categoryRepository;
         _personRepository = personRepository;
+        _medicalExpenseDetailRepository = medicalExpenseDetailRepository;
 
         TypeOptions.Add(new TransactionTypeFilterOption(null, AppResources.History_AllTypesOption));
         foreach (var type in Enum.GetValues<TransactionType>())
@@ -109,8 +112,18 @@ public sealed partial class HistoryViewModel : ObservableObject
             var accountNames = AccountNameMapBuilder.Build(accounts, creditAccounts);
             var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
 
+            // Batched instead of one GetForTransactionAsync call per row below (same anti-N+1 pattern as
+            // the Phase 2 checkpoint's batch-fetch fixes) — a single query for every transaction id on
+            // this screen, since History shows the full local history, not just one page.
+            var transactionIds = transactions.Select(t => t.Id).ToList();
+            var medicalDetailsByTransaction = await _medicalExpenseDetailRepository.GetForTransactionsAsync(transactionIds);
+
             _allEntries = transactions
-                .Select(t => HistoryEntryItem.FromDomain(t, accountNames, categoryNames))
+                .Select(t => HistoryEntryItem.FromDomain(
+                    t,
+                    accountNames,
+                    categoryNames,
+                    medicalDetailsByTransaction.TryGetValue(t.Id, out var detail) ? detail.Status : null))
                 .ToList();
 
             AccountOptions.Clear();

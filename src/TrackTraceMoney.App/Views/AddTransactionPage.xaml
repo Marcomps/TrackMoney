@@ -36,6 +36,29 @@
 
                 <Label Text="{x:Static resources:AppResources.AddTransaction_BeneficiaryLabel}" />
                 <Picker ItemsSource="{Binding People}" SelectedItem="{Binding SelectedBeneficiary}" />
+
+                <CheckBox IsChecked="{Binding IsMedicalExpense}" />
+                <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalExpenseCheckbox}" />
+
+                <VerticalStackLayout IsVisible="{Binding IsMedicalExpense}" Spacing="12">
+                    <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalInsuranceProviderLabel}" />
+                    <Entry Text="{Binding MedicalInsuranceProvider}" />
+
+                    <CheckBox IsChecked="{Binding HasInsuranceCoverage}" />
+                    <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalHasInsuranceCheckbox}" />
+
+                    <VerticalStackLayout IsVisible="{Binding HasInsuranceCoverage}" Spacing="12">
+                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalInsuranceCoveredLabel}" />
+                        <Entry Text="{Binding MedicalInsuranceCoveredAmountText}" Keyboard="Numeric" />
+
+                        <!-- Unchecked (default) = AddTransaction_MedicalFlowPending, checked = AddTransaction_MedicalFlowPaidDirectly.
+                             Both labels are shown together (rather than switching one Label's text via a
+                             bool-to-string converter) so the meaning of each state is always visible. -->
+                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalFlowPending}" FontSize="12" Opacity="0.7" />
+                        <CheckBox IsChecked="{Binding InsurancePaidProviderDirectly}" />
+                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalFlowPaidDirectly}" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
             </VerticalStackLayout>
 
             <VerticalStackLayout IsVisible="{Binding IsIncome}" Spacing="12">

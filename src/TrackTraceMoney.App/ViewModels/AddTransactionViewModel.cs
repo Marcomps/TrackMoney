@@ -65,6 +65,21 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private NamedOption? selectedBeneficiary;
 
     [ObservableProperty]
+    private bool isMedicalExpense;
+
+    [ObservableProperty]
+    private string? medicalInsuranceProvider;
+
+    [ObservableProperty]
+    private bool hasInsuranceCoverage;
+
+    [ObservableProperty]
+    private string medicalInsuranceCoveredAmountText = string.Empty;
+
+    [ObservableProperty]
+    private bool insurancePaidProviderDirectly;
+
+    [ObservableProperty]
     private NamedOption? selectedPerson;
 
     [ObservableProperty]
@@ -302,7 +317,53 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         return;
                     }
 
-                    if (SelectedAccount.IsCreditAccount)
+                    if (IsMedicalExpense)
+                    {
+                        decimal? medicalInsuranceCoveredAmount = null;
+                        if (HasInsuranceCoverage)
+                        {
+                            if (!decimal.TryParse(MedicalInsuranceCoveredAmountText, NumberStyles.Number, CultureInfo.CurrentCulture, out var parsedCoveredAmount) || parsedCoveredAmount <= 0)
+                            {
+                                ErrorMessage = AppResources.AddTransaction_ValidationMedicalCoveredInvalid;
+                                return;
+                            }
+
+                            medicalInsuranceCoveredAmount = parsedCoveredAmount;
+                        }
+
+                        var medicalInfo = new MedicalInsuranceInput(
+                            MedicalInsuranceProvider,
+                            medicalInsuranceCoveredAmount,
+                            InsurancePaidProviderDirectly);
+
+                        if (SelectedAccount.IsCreditAccount)
+                        {
+                            await _transactionEntryService.RecordMedicalCreditCardPurchaseAsync(
+                                date,
+                                amount,
+                                SelectedAccount.Id,
+                                SelectedCategory.Id,
+                                AsNullableId(SelectedPayer),
+                                AsNullableId(SelectedBeneficiary),
+                                Description,
+                                Notes,
+                                medicalInfo);
+                        }
+                        else
+                        {
+                            await _transactionEntryService.RecordMedicalExpenseAsync(
+                                date,
+                                amount,
+                                SelectedAccount.Id,
+                                SelectedCategory.Id,
+                                AsNullableId(SelectedPayer),
+                                AsNullableId(SelectedBeneficiary),
+                                Description,
+                                Notes,
+                                medicalInfo);
+                        }
+                    }
+                    else if (SelectedAccount.IsCreditAccount)
                     {
                         await _transactionEntryService.RecordCreditCardPurchaseAsync(
                             date,

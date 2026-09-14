@@ -391,6 +391,24 @@
   <data name="AddTransaction_BeneficiaryLabel" xml:space="preserve">
     <value>Who it was for (optional)</value>
   </data>
+  <data name="AddTransaction_MedicalExpenseCheckbox" xml:space="preserve">
+    <value>🩺 Medical expense</value>
+  </data>
+  <data name="AddTransaction_MedicalInsuranceProviderLabel" xml:space="preserve">
+    <value>Insurance provider</value>
+  </data>
+  <data name="AddTransaction_MedicalHasInsuranceCheckbox" xml:space="preserve">
+    <value>Insurance covers part of this cost</value>
+  </data>
+  <data name="AddTransaction_MedicalInsuranceCoveredLabel" xml:space="preserve">
+    <value>Amount covered by insurance</value>
+  </data>
+  <data name="AddTransaction_MedicalFlowPending" xml:space="preserve">
+    <value>I paid, waiting to be reimbursed</value>
+  </data>
+  <data name="AddTransaction_MedicalFlowPaidDirectly" xml:space="preserve">
+    <value>Insurance already paid the provider</value>
+  </data>
   <data name="AddTransaction_PersonLabel" xml:space="preserve">
     <value>Person (optional)</value>
   </data>
@@ -423,6 +441,9 @@
   </data>
   <data name="AddTransaction_ValidationCurrencyMismatch" xml:space="preserve">
     <value>Source and destination accounts must use the same currency.</value>
+  </data>
+  <data name="AddTransaction_ValidationMedicalCoveredInvalid" xml:space="preserve">
+    <value>Enter a valid amount covered by insurance.</value>
   </data>
   <data name="AddTransaction_ValidationServiceError" xml:space="preserve">
     <value>Couldn't save this transaction. Please check the amount and try again.</value>
@@ -717,6 +738,15 @@
   </data>
   <data name="History_AllTypesOption" xml:space="preserve">
     <value>All types</value>
+  </data>
+  <data name="History_MedicalStatusPending" xml:space="preserve">
+    <value>🟡 Reimbursement pending</value>
+  </data>
+  <data name="History_MedicalStatusReimbursed" xml:space="preserve">
+    <value>🟢 Reimbursed</value>
+  </data>
+  <data name="History_MedicalStatusRejected" xml:space="preserve">
+    <value>🔴 Rejected</value>
   </data>
   <data name="History_AccountFilterLabel" xml:space="preserve">
     <value>Account</value>

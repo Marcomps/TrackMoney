@@ -56,6 +56,41 @@ public interface ITransactionEntryService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Records a medical <see cref="Domain.Transactions.Expense"/> (README §25/§26/§27/§29). Identical
+    /// balance mutation and budget-crossing notification behavior to <see cref="RecordExpenseAsync"/> —
+    /// a medical expense still counts as spend exactly like any other — plus it additionally persists a
+    /// <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/> linked to the new expense.
+    /// </summary>
+    Task RecordMedicalExpenseAsync(
+        DateOnly date,
+        decimal amount,
+        Guid accountId,
+        Guid categoryId,
+        Guid? payerPersonId,
+        Guid? beneficiaryPersonId,
+        string? description,
+        string? notes,
+        MedicalInsuranceInput medicalInfo,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Records a medical <see cref="Domain.Transactions.CreditCardPurchase"/> (README §25/§26/§27/§29).
+    /// Identical behavior to <see cref="RecordCreditCardPurchaseAsync"/> (including its
+    /// <c>is not CreditCard</c> guard) plus a linked <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/>.
+    /// </summary>
+    Task RecordMedicalCreditCardPurchaseAsync(
+        DateOnly date,
+        decimal amount,
+        Guid creditAccountId,
+        Guid categoryId,
+        Guid? payerPersonId,
+        Guid? beneficiaryPersonId,
+        string? description,
+        string? notes,
+        MedicalInsuranceInput medicalInfo,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Records a payment against a credit card's debt (README §16, §46). Decreases the source
     /// FinancialAccount's balance and the CreditAccount's AmountOwed. Never counts as spend — the
     /// original CreditCardPurchase was the expense; this is only debt settlement. Do not wire budget/

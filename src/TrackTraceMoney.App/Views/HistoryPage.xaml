@@ -72,11 +72,18 @@
                 </CollectionView.GroupHeaderTemplate>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:HistoryEntryItem">
-                        <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                        <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
                             <Label Grid.Row="0" Grid.Column="0" Text="{Binding AccountLabel}" FontSize="16" />
                             <Label Grid.Row="1" Grid.Column="0"
                                    Text="{Binding Description}"
                                    FontSize="12" Opacity="0.7" />
+                            <!-- No converter needed: MedicalStatusBadge is null for None/PaidDirectly and for
+                                 transactions with no MedicalExpenseDetail row at all, and a null Text renders
+                                 as an empty (zero-height, Auto-sized) row — see HistoryEntryItem's doc comment
+                                 for exactly which statuses produce a non-null badge. -->
+                            <Label Grid.Row="2" Grid.Column="0"
+                                   Text="{Binding MedicalStatusBadge}"
+                                   FontSize="12" />
                             <Label Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
                                    VerticalOptions="Center"
                                    Text="{Binding Amount, StringFormat='{0:N2}'}" />

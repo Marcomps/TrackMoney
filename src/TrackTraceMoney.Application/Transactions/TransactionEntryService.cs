@@ -2,6 +2,7 @@ using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Domain.Accounts;
 using TrackTraceMoney.Domain.CreditAccounts;
+using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.Application.Transactions;
@@ -15,6 +16,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
     private readonly ICategoryRepository _categoryRepository;
     private readonly ISpendingCalculator _spendingCalculator;
     private readonly ILocalNotifier _localNotifier;
+    private readonly IMedicalExpenseDetailRepository _medicalExpenseDetailRepository;
 
     public TransactionEntryService(
         ITransactionRepository transactionRepository,
@@ -23,7 +25,8 @@ public sealed class TransactionEntryService : ITransactionEntryService
         IBudgetRepository budgetRepository,
         ICategoryRepository categoryRepository,
         ISpendingCalculator spendingCalculator,
-        ILocalNotifier localNotifier)
+        ILocalNotifier localNotifier,
+        IMedicalExpenseDetailRepository medicalExpenseDetailRepository)
     {
         _transactionRepository = transactionRepository;
         _accountRepository = accountRepository;
@@ -32,6 +35,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
         _categoryRepository = categoryRepository;
         _spendingCalculator = spendingCalculator;
         _localNotifier = localNotifier;
+        _medicalExpenseDetailRepository = medicalExpenseDetailRepository;
     }
 
     public async Task RecordExpenseAsync(
@@ -193,6 +197,144 @@ public sealed class TransactionEntryService : ITransactionEntryService
                     await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
             }
         }
+    }
+
+    public async Task RecordMedicalExpenseAsync(
+        DateOnly date,
+        decimal amount,
+        Guid accountId,
+        Guid categoryId,
+        Guid? payerPersonId,
+        Guid? beneficiaryPersonId,
+        string? description,
+        string? notes,
+        MedicalInsuranceInput medicalInfo,
+        CancellationToken ct = default)
+    {
+        var account = await _accountRepository.GetByIdAsync(accountId, ct)
+            ?? throw new InvalidOperationException($"Account '{accountId}' was not found.");
+
+        // Same budget-crossing check as RecordExpenseAsync — see its comment above. A medical expense
+        // still counts as spend exactly like any other, so this must fire unconditionally, not be
+        // special-cased away.
+        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, account.Currency, ct);
+        decimal spentBefore = 0m;
+        if (budget is not null)
+        {
+            var startOfMonth = new DateOnly(date.Year, date.Month, 1);
+            var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
+            var accounts = await _accountRepository.GetAllAsync(ct);
+            var creditAccounts = await _creditAccountRepository.GetAllAsync(ct);
+            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
+            var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
+            spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
+        }
+
+        var expense = new Expense(date, amount, accountId, categoryId, beneficiaryPersonId, payerPersonId, description, notes);
+
+        account.Debit(amount);
+
+        await _transactionRepository.AddAsync(expense, ct);
+
+        var detail = BuildMedicalDetail(expense.Id, amount, medicalInfo);
+        await _medicalExpenseDetailRepository.AddAsync(detail, ct);
+
+        await _transactionRepository.SaveChangesAsync(ct);
+
+        if (budget is not null)
+        {
+            var wasOverBudget = spentBefore > budget.Amount;
+            var newSpent = spentBefore + amount;
+            var isOverBudget = newSpent > budget.Amount;
+
+            if (!wasOverBudget && isOverBudget)
+            {
+                var category = await _categoryRepository.GetByIdAsync(categoryId, ct);
+                if (category is not null)
+                    await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
+            }
+        }
+    }
+
+    public async Task RecordMedicalCreditCardPurchaseAsync(
+        DateOnly date,
+        decimal amount,
+        Guid creditAccountId,
+        Guid categoryId,
+        Guid? payerPersonId,
+        Guid? beneficiaryPersonId,
+        string? description,
+        string? notes,
+        MedicalInsuranceInput medicalInfo,
+        CancellationToken ct = default)
+    {
+        var creditAccount = await _creditAccountRepository.GetByIdAsync(creditAccountId, ct)
+            ?? throw new InvalidOperationException($"Credit account '{creditAccountId}' was not found.");
+
+        if (creditAccount is not CreditCard)
+            throw new InvalidOperationException($"Credit account '{creditAccountId}' is not a credit card.");
+
+        // Same budget-crossing check as RecordCreditCardPurchaseAsync — see its comment above.
+        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, creditAccount.Currency, ct);
+        decimal spentBefore = 0m;
+        if (budget is not null)
+        {
+            var startOfMonth = new DateOnly(date.Year, date.Month, 1);
+            var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
+            var accounts = await _accountRepository.GetAllAsync(ct);
+            var creditAccounts = await _creditAccountRepository.GetAllAsync(ct);
+            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
+            var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
+            spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
+        }
+
+        var purchase = new CreditCardPurchase(date, amount, creditAccountId, categoryId, beneficiaryPersonId, payerPersonId, description, notes);
+
+        creditAccount.RegisterCharge(amount);
+
+        await _transactionRepository.AddAsync(purchase, ct);
+
+        var detail = BuildMedicalDetail(purchase.Id, amount, medicalInfo);
+        await _medicalExpenseDetailRepository.AddAsync(detail, ct);
+
+        await _transactionRepository.SaveChangesAsync(ct);
+
+        if (budget is not null)
+        {
+            var wasOverBudget = spentBefore > budget.Amount;
+            var newSpent = spentBefore + amount;
+            var isOverBudget = newSpent > budget.Amount;
+
+            if (!wasOverBudget && isOverBudget)
+            {
+                var category = await _categoryRepository.GetByIdAsync(categoryId, ct);
+                if (category is not null)
+                    await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Shared by <see cref="RecordMedicalExpenseAsync"/>/<see cref="RecordMedicalCreditCardPurchaseAsync"/>.
+    /// <paramref name="amount"/> is always what the account/card actually moved (net of insurance that
+    /// paid the provider directly) — <see cref="MedicalExpenseDetail.GrossAmount"/> reconstructs the
+    /// pre-insurance total only for display/record-keeping, it never corrects the transaction's own Amount.
+    /// </summary>
+    private static MedicalExpenseDetail BuildMedicalDetail(Guid transactionId, decimal amount, MedicalInsuranceInput medicalInfo)
+    {
+        decimal? grossAmount = null;
+        var status = MedicalReimbursementStatus.None;
+        if (medicalInfo.InsuranceCoveredAmount is > 0m)
+        {
+            grossAmount = medicalInfo.InsurancePaidProviderDirectly
+                ? amount + medicalInfo.InsuranceCoveredAmount.Value
+                : amount;
+            status = medicalInfo.InsurancePaidProviderDirectly
+                ? MedicalReimbursementStatus.PaidDirectly
+                : MedicalReimbursementStatus.Pending;
+        }
+
+        return new MedicalExpenseDetail(transactionId, medicalInfo.InsuranceProvider, grossAmount, medicalInfo.InsuranceCoveredAmount, status);
     }
 
     public async Task RecordCreditCardPaymentAsync(
