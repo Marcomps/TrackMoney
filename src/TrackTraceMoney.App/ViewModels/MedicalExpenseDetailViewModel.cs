@@ -107,7 +107,7 @@ public sealed partial class MedicalExpenseDetailViewModel : ObservableObject
             GrossAmount = detail.GrossAmount;
             CoveredAmount = detail.InsuranceCoveredAmount;
             Status = detail.Status;
-            StatusLabel = GetStatusLabel(detail.Status);
+            StatusLabel = MedicalReimbursementStatusToLabelConverter.GetDisplayName(detail.Status);
 
             HasLoaded = true;
         }
@@ -152,12 +152,4 @@ public sealed partial class MedicalExpenseDetailViewModel : ObservableObject
 
         await LoadAsync();
     }
-
-    private static string GetStatusLabel(MedicalReimbursementStatus status) => status switch
-    {
-        MedicalReimbursementStatus.Pending => AppResources.History_MedicalStatusPending,
-        MedicalReimbursementStatus.Reimbursed => AppResources.History_MedicalStatusReimbursed,
-        MedicalReimbursementStatus.Rejected => AppResources.History_MedicalStatusRejected,
-        _ => string.Empty
-    };
 }

@@ -1,4 +1,4 @@
-using TrackTraceMoney.App.Resources.Strings;
+using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.Transactions;
 
@@ -148,13 +148,13 @@ public sealed record HistoryEntryItem(
     /// <summary>
     /// Only Pending/Reimbursed/Rejected ever get a badge — <see cref="MedicalReimbursementStatus.None"/>/
     /// <see cref="MedicalReimbursementStatus.PaidDirectly"/> and "no detail row at all" (a null
-    /// <paramref name="status"/>) both resolve to no badge (README §25/§26/§27/§29).
+    /// <paramref name="status"/>) both resolve to no badge (README §25/§26/§27/§29). Delegates to the
+    /// shared <see cref="MedicalReimbursementStatusToLabelConverter.GetDisplayName"/> (which itself
+    /// returns empty for None/PaidDirectly) and only converts that empty string to null for the "no
+    /// detail row" case, so this and <c>MedicalExpenseDetailViewModel.LoadAsync</c> stay in sync.
     /// </summary>
-    private static string? GetMedicalStatusBadge(MedicalReimbursementStatus? status) => status switch
-    {
-        MedicalReimbursementStatus.Pending => AppResources.History_MedicalStatusPending,
-        MedicalReimbursementStatus.Reimbursed => AppResources.History_MedicalStatusReimbursed,
-        MedicalReimbursementStatus.Rejected => AppResources.History_MedicalStatusRejected,
-        _ => null
-    };
+    private static string? GetMedicalStatusBadge(MedicalReimbursementStatus? status) =>
+        status is { } value && MedicalReimbursementStatusToLabelConverter.GetDisplayName(value) is { Length: > 0 } label
+            ? label
+            : null;
 }

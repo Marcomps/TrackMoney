@@ -176,12 +176,27 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     public ObservableCollection<NamedOption> TransferDestinationAccounts { get; } = [];
 
     /// <summary>
+    /// Backs the CreditCardPayment/LoanPayment/InvestmentContribution blocks' source-account pickers —
+    /// same base set as <see cref="Accounts"/> (excludes <c>InvestmentFund</c>) but additionally excludes
+    /// <c>TermDeposit</c>, mirroring <see cref="TransferDestinationAccounts"/>'s rationale: a term deposit
+    /// is locked until maturity and there is no legitimate "pay a card/loan/fund a contribution directly
+    /// from a term deposit" use case (README §22/§30). Unlike Transfer's source side (still <see cref="Accounts"/>,
+    /// deliberately kept — see <see cref="TransferDestinationAccounts"/>'s doc comment), none of these
+    /// three flows have the "move a matured deposit's proceeds out" justification, so both sides here are
+    /// restricted. <c>TransactionEntryService</c> enforces the same restriction server-side regardless of
+    /// what this picker offers (defense in depth).
+    /// </summary>
+    public ObservableCollection<NamedOption> NonTermDepositAccounts { get; } = [];
+
+    /// <summary>
     /// Backs ONLY the Expense block's Account picker — includes both <c>FinancialAccount</c>s and
     /// credit cards (README §11's "Payment method" field), unlike <see cref="Accounts"/> which stays
     /// FinancialAccount-only and still backs Income's destination picker and Transfer's source/
     /// destination pickers. Cards must never be selectable there: <c>Transfer</c>/<c>Income</c> only
     /// work with <c>FinancialAccount.Credit</c>/<c>Debit</c>, and <c>CreditAccount</c> has no such
-    /// methods (hard constraint).
+    /// methods (hard constraint). Also excludes <c>TermDeposit</c> on the <c>FinancialAccount</c> side —
+    /// same rationale as <see cref="NonTermDepositAccounts"/>: there is no legitimate "spend directly
+    /// from a term deposit" use case, whether the expense is medical or plain.
     /// </summary>
     public ObservableCollection<NamedOption> PaymentAccounts { get; } = [];
 
@@ -207,9 +222,11 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     /// <summary>
     /// Backs ONLY the Reimbursement block's expense picker — every transaction whose linked
     /// <see cref="MedicalExpenseDetail"/> is currently <see cref="MedicalReimbursementStatus.Pending"/>
-    /// (README §27/§28, Phase 3 slice 7). Built from a single <c>GetAllAsync</c> query each for
-    /// transactions and medical expense details plus an in-memory join, the same anti-N+1 pattern
-    /// <c>HistoryViewModel</c> already uses for its full-history load, rather than one lookup per detail.
+    /// (README §27/§28, Phase 3 slice 7). Built from <c>IMedicalExpenseDetailRepository.GetPendingAsync</c>
+    /// (a real <c>WHERE</c>-filtered query for just the Pending rows) plus a single batched
+    /// <c>ITransactionRepository.GetByIdsAsync</c> lookup for the transactions they link to — not a
+    /// full-table <c>GetAllAsync</c> fetch of either table followed by client-side filtering, and not
+    /// one lookup per detail either.
     /// </summary>
     public ObservableCollection<PendingReimbursableExpenseOption> PendingReimbursableExpenses { get; } = [];
 
@@ -284,14 +301,21 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         foreach (var account in accounts.Where(a => a is not InvestmentFund and not TermDeposit))
             TransferDestinationAccounts.Add(new NamedOption(account.Id, account.Name, account.Currency));
 
+        // Same TermDeposit exclusion as TransferDestinationAccounts, applied to the CreditCardPayment/
+        // LoanPayment/InvestmentContribution blocks' source pickers — see this collection's doc comment.
+        NonTermDepositAccounts.Clear();
+        foreach (var account in accounts.Where(a => a is not InvestmentFund and not TermDeposit))
+            NonTermDepositAccounts.Add(new NamedOption(account.Id, account.Name, account.Currency));
+
         InvestmentFundOptions.Clear();
         foreach (var fund in accounts.OfType<InvestmentFund>())
             InvestmentFundOptions.Add(new NamedOption(fund.Id, fund.Name, fund.Currency));
 
         // README §14's own example uses a "💳 " prefix for cards (e.g. "💳 BAC Card"); the Picker
         // renders via NamedOption.ToString(), so no ItemDisplayBinding is needed for this prefix.
+        // TermDeposit is excluded from the FinancialAccount side — see PaymentAccounts's doc comment.
         PaymentAccounts.Clear();
-        foreach (var account in accounts)
+        foreach (var account in accounts.Where(a => a is not TermDeposit))
             PaymentAccounts.Add(new NamedOption(account.Id, account.Name, account.Currency, IsCreditAccount: false));
         foreach (var creditCard in creditAccounts.OfType<CreditCard>())
             PaymentAccounts.Add(new NamedOption(creditCard.Id, $"💳 {creditCard.Name}", creditCard.Currency, IsCreditAccount: true));
@@ -314,15 +338,17 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         foreach (var person in people)
             People.Add(new NamedOption(person.Id, person.Name));
 
-        // Single query each for transactions/medical details plus an in-memory join, instead of one
-        // GetForTransactionAsync call per pending detail — see PendingReimbursableExpenses's doc comment.
+        // A filtered query for just the Pending details, plus a single batched lookup for the (small)
+        // set of transactions they link to — instead of fetching every row in both the Transaction and
+        // MedicalExpenseDetail tables just to find the handful that are Pending. See
+        // PendingReimbursableExpenses's doc comment.
         var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
-        var allTransactions = await _transactionRepository.GetAllAsync();
-        var transactionsById = allTransactions.ToDictionary(t => t.Id);
-        var allMedicalDetails = await _medicalExpenseDetailRepository.GetAllAsync();
+        var pendingDetails = await _medicalExpenseDetailRepository.GetPendingAsync();
+        var linkedTransactions = await _transactionRepository.GetByIdsAsync(pendingDetails.Select(d => d.TransactionId));
+        var transactionsById = linkedTransactions.ToDictionary(t => t.Id);
 
         PendingReimbursableExpenses.Clear();
-        foreach (var detail in allMedicalDetails.Where(d => d.Status == MedicalReimbursementStatus.Pending))
+        foreach (var detail in pendingDetails)
         {
             if (!transactionsById.TryGetValue(detail.TransactionId, out var transaction))
                 continue;
@@ -365,6 +391,19 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         LoanNextPaymentDate = loan.NextPaymentDate.AddMonths(1).ToDateTime(TimeOnly.MinValue);
         RequiredPaymentText = loan.MonthlyInstallment.ToString(CultureInfo.CurrentCulture);
     }
+
+    /// <summary>
+    /// Clears <see cref="SelectedDestinationAccount"/> whenever the transaction type changes — it is the
+    /// only selection shared across two pickers backed by different collections (Income's <see cref="Accounts"/>,
+    /// which includes <c>TermDeposit</c>, vs. Transfer's <see cref="TransferDestinationAccounts"/>, which
+    /// deliberately excludes it — see that collection's doc comment). Without this reset, selecting a
+    /// term deposit under Income and then switching to Transfer without touching the destination picker
+    /// again would carry the stale, now-invalid selection straight into <c>SaveAsync</c>'s Transfer case,
+    /// bypassing the very protection <see cref="TransferDestinationAccounts"/> exists for. Every other
+    /// selection property here is scoped to a single transaction type's own block/collection and has no
+    /// equivalent cross-contamination risk, so it is left untouched.
+    /// </summary>
+    partial void OnSelectedTypeChanged(TransactionType value) => SelectedDestinationAccount = null;
 
     [RelayCommand]
     private async Task SaveAsync()
@@ -513,6 +552,17 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         return;
                     }
 
+                    // Defense-in-depth: OnSelectedTypeChanged resets SelectedDestinationAccount on every
+                    // type switch, so this should be unreachable in practice — but RecordTransferAsync
+                    // itself has no term-deposit guard (its source side deliberately allows one, see
+                    // TransferDestinationAccounts's doc comment), so this client-side check is the only
+                    // thing standing between a future regression and a silently corrupted deposit balance.
+                    if (SelectedDestinationAccount.IsTermDeposit)
+                    {
+                        ErrorMessage = AppResources.AddTransaction_ValidationTermDepositDestinationInvalid;
+                        return;
+                    }
+
                     if (SelectedSourceAccount.Id == SelectedDestinationAccount.Id)
                     {
                         ErrorMessage = AppResources.AddTransaction_ValidationSameAccount;
@@ -657,6 +707,13 @@ public sealed partial class AddTransactionViewModel : ObservableObject
             // message rather than the raw domain exception text, mirroring how RecurringExpensesListViewModel
             // and SettingsViewModel handle a failed service call elsewhere in this app.
             ErrorMessage = AppResources.AddTransaction_ValidationServiceError;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // MedicalExpenseDetail.MarkReimbursed throws this when the entered reimbursement amount
+            // exceeds the original expense's GrossAmount — a genuinely user-correctable input error
+            // (unlike the generic service-error case above), so it gets its own, more specific message.
+            ErrorMessage = AppResources.AddTransaction_ValidationReimbursementExceedsOriginal;
         }
         finally
         {

@@ -54,4 +54,14 @@ public interface ITransactionRepository : IRepository<Transaction>
     /// </summary>
     Task<IReadOnlyList<CreditCardPayment>> GetCreditCardPaymentsUpToDateForCreditAccountsAsync(
         DateOnly to, IEnumerable<Guid> creditAccountIds, CancellationToken ct = default);
+
+    /// <summary>
+    /// Batched counterpart to <see cref="IRepository{TEntity}.GetByIdAsync"/> — every <see cref="Transaction"/>
+    /// whose id is in <paramref name="ids"/>, in one query, instead of one <c>GetByIdAsync</c> call per id
+    /// in a loop (the same anti-N+1 pattern as <see cref="GetCreditCardPaymentsUpToDateForCreditAccountsAsync"/>).
+    /// Used to resolve the handful of transactions behind a filtered set of pending
+    /// <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/> rows without a full-table
+    /// <see cref="IRepository{TEntity}.GetAllAsync"/> fetch.
+    /// </summary>
+    Task<IReadOnlyList<Transaction>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
 }

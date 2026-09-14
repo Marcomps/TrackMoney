@@ -84,7 +84,7 @@
 
             <VerticalStackLayout IsVisible="{Binding IsCreditCardPayment}" Spacing="12">
                 <Label Text="{x:Static resources:AppResources.AddTransaction_SourceAccountLabel}" />
-                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedCardPaymentSource}" />
+                <Picker ItemsSource="{Binding NonTermDepositAccounts}" SelectedItem="{Binding SelectedCardPaymentSource}" />
 
                 <Label Text="{x:Static resources:AppResources.AddTransaction_CardLabel}" />
                 <Picker ItemsSource="{Binding CreditCardOptions}" SelectedItem="{Binding SelectedCardPaymentTarget}" />
@@ -92,7 +92,7 @@
 
             <VerticalStackLayout IsVisible="{Binding IsLoanPayment}" Spacing="12">
                 <Label Text="{x:Static resources:AppResources.AddTransaction_SourceAccountLabel}" />
-                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedLoanPaymentSource}" />
+                <Picker ItemsSource="{Binding NonTermDepositAccounts}" SelectedItem="{Binding SelectedLoanPaymentSource}" />
 
                 <Label Text="{x:Static resources:AppResources.AddTransaction_LoanLabel}" />
                 <Picker ItemsSource="{Binding LoanOptions}" SelectedItem="{Binding SelectedLoanPaymentTarget}" />
@@ -106,7 +106,7 @@
 
             <VerticalStackLayout IsVisible="{Binding IsInvestmentContribution}" Spacing="12">
                 <Label Text="{x:Static resources:AppResources.AddTransaction_SourceAccountLabel}" />
-                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedInvestmentContributionSource}" />
+                <Picker ItemsSource="{Binding NonTermDepositAccounts}" SelectedItem="{Binding SelectedInvestmentContributionSource}" />
 
                 <Label Text="{x:Static resources:AppResources.AddTransaction_FundLabel}" />
                 <Picker ItemsSource="{Binding InvestmentFundOptions}" SelectedItem="{Binding SelectedInvestmentContributionFund}" />

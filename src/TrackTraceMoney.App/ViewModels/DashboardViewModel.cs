@@ -191,8 +191,23 @@ public sealed partial class DashboardViewModel : ObservableObject
 
             // Side effect: advances the net worth evolution timeline (README §24) by upserting today's
             // snapshot per currency. No manual "record" button exists — every Dashboard load is the only
-            // trigger.
-            await _netWorthSnapshotService.RecordSnapshotAsync(today);
+            // trigger. Passes the netWorthSummary already computed above for the tile, so the service
+            // skips its own redundant active-account fetch/recalculation. Guarded by its own try/catch
+            // (not the whole method's) — a failure here (e.g. NetWorthSnapshot's constructor rejecting
+            // negative TotalLiabilities, or a SQLite write failure) must not prevent the rest of the
+            // Dashboard, including the net worth tile itself, from rendering; there is no global
+            // exception handler in this app, so an unguarded throw here would crash the Dashboard on
+            // every future load.
+            try
+            {
+                await _netWorthSnapshotService.RecordSnapshotAsync(today, netWorthSummary);
+            }
+            catch (Exception)
+            {
+                // Best-effort: skip persisting today's snapshot for this load. Silently swallowed —
+                // this codebase has no logging abstraction to route this through (no ILogger usage
+                // anywhere in the App project) and introducing one is out of scope for this fix.
+            }
 
             HasLoaded = true;
             OnPropertyChanged(nameof(HasOverBudgetCategories));

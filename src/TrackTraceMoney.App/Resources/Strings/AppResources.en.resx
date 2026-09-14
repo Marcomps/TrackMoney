@@ -454,6 +454,12 @@
   <data name="AddTransaction_ValidationServiceError" xml:space="preserve">
     <value>Couldn't save this transaction. Please check the amount and try again.</value>
   </data>
+  <data name="AddTransaction_ValidationReimbursementExceedsOriginal" xml:space="preserve">
+    <value>The reimbursement amount cannot exceed the original expense's cost.</value>
+  </data>
+  <data name="AddTransaction_ValidationTermDepositDestinationInvalid" xml:space="preserve">
+    <value>A term deposit cannot be used as a transfer destination.</value>
+  </data>
   <data name="AddTransaction_NoneOption" xml:space="preserve">
     <value>None</value>
   </data>
@@ -1051,6 +1057,9 @@
   <data name="AddTermDeposit_ValidationInstitutionRequired" xml:space="preserve">
     <value>Institution is required.</value>
   </data>
+  <data name="AddTermDeposit_ValidationInstitutionTooLong" xml:space="preserve">
+    <value>Institution cannot exceed 200 characters.</value>
+  </data>
   <data name="AddTermDeposit_ValidationInitialPrincipalInvalid" xml:space="preserve">
     <value>Initial principal must be a number greater than zero.</value>
   </data>
@@ -1143,6 +1152,9 @@
   </data>
   <data name="AddInvestmentFund_ValidationInstitutionRequired" xml:space="preserve">
     <value>Institution is required.</value>
+  </data>
+  <data name="AddInvestmentFund_ValidationInstitutionTooLong" xml:space="preserve">
+    <value>Institution cannot exceed 200 characters.</value>
   </data>
   <data name="AddInvestmentFund_ValidationContributionsInvalid" xml:space="preserve">
     <value>Initial investment must be a number greater than zero.</value>

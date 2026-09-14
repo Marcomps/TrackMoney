@@ -900,6 +900,107 @@ public sealed class TransactionEntryServiceTests
         Assert.Empty(transactions.All);
     }
 
+    // --- Checkpoint review HIGH #1: TermDeposit must be rejected as the source of the four flows below,
+    // but must remain usable as Transfer's source (the deliberate, unguarded exception — see
+    // RecordTransferAsync_TermDepositSource_StillMovesFunds below and TransferDestinationAccounts's doc
+    // comment in AddTransactionViewModel).
+
+    [Fact]
+    public async Task RecordExpenseAsync_SourceIsATermDeposit_ThrowsAndDoesNotMutateBalance()
+    {
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var termDeposit = (TermDeposit)accounts.Add(CreateTermDeposit(CurrencyCode.USD, openingBalance: 10000m));
+        var categoryId = Guid.NewGuid();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordExpenseAsync(DateOnly.FromDateTime(DateTime.Today), 100m, termDeposit.Id, categoryId, null, null, "Groceries", null));
+
+        Assert.Equal(10000m, termDeposit.Balance);
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task RecordMedicalExpenseAsync_SourceIsATermDeposit_ThrowsAndDoesNotMutateBalance()
+    {
+        var (service, accounts, _, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var termDeposit = (TermDeposit)accounts.Add(CreateTermDeposit(CurrencyCode.USD, openingBalance: 10000m));
+        var categoryId = Guid.NewGuid();
+        var medicalInfo = new MedicalInsuranceInput(null, null, InsurancePaidProviderDirectly: false);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordMedicalExpenseAsync(DateOnly.FromDateTime(DateTime.Today), 100m, termDeposit.Id, categoryId, null, null, "Doctor visit", null, medicalInfo));
+
+        Assert.Equal(10000m, termDeposit.Balance);
+        Assert.Empty(transactions.All);
+        Assert.Empty(medicalExpenseDetails.All);
+    }
+
+    [Fact]
+    public async Task RecordCreditCardPaymentAsync_SourceIsATermDeposit_ThrowsAndDoesNotMutateEitherSide()
+    {
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
+        var termDeposit = (TermDeposit)accounts.Add(CreateTermDeposit(CurrencyCode.USD, openingBalance: 10000m));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        card.RegisterCharge(200m);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordCreditCardPaymentAsync(DateOnly.FromDateTime(DateTime.Today), 100m, termDeposit.Id, card.Id, "Card payment", null));
+
+        Assert.Equal(10000m, termDeposit.Balance);
+        Assert.Equal(200m, card.AmountOwed);
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task RecordLoanPaymentAsync_SourceIsATermDeposit_ThrowsAndDoesNotMutateEitherSide()
+    {
+        var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
+        var termDeposit = (TermDeposit)accounts.Add(CreateTermDeposit(CurrencyCode.USD, openingBalance: 10000m));
+        var loan = (Loan)creditAccounts.Add(CreateLoan(CurrencyCode.USD, currentBalance: 500m));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordLoanPaymentAsync(
+                DateOnly.FromDateTime(DateTime.Today), 100m, termDeposit.Id, loan.Id, DateOnly.FromDateTime(DateTime.Today.AddMonths(1)), 150m, null, null));
+
+        Assert.Equal(10000m, termDeposit.Balance);
+        Assert.Equal(500m, loan.AmountOwed);
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task RecordInvestmentContributionAsync_SourceIsATermDeposit_ThrowsAndDoesNotMutateEitherSide()
+    {
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var termDeposit = (TermDeposit)accounts.Add(CreateTermDeposit(CurrencyCode.USD, openingBalance: 10000m));
+        var fund = (InvestmentFund)accounts.Add(CreateInvestmentFund(CurrencyCode.USD));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordInvestmentContributionAsync(DateOnly.FromDateTime(DateTime.Today), 500m, termDeposit.Id, fund.Id, null, null));
+
+        Assert.Equal(10000m, termDeposit.Balance);
+        Assert.Equal(2084.50m, fund.Balance);
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task RecordTransferAsync_TermDepositSource_StillMovesFunds_DeliberateException()
+    {
+        // The one deliberate exception to the TermDeposit-source guard above (slice 4 decision, see
+        // TransferDestinationAccounts's doc comment in AddTransactionViewModel): moving a matured
+        // deposit's proceeds out has no dedicated "close/redeem" flow yet, so Transfer's source side
+        // must keep accepting a TermDeposit. This must keep passing after the HIGH #1 fix.
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var termDeposit = (TermDeposit)accounts.Add(CreateTermDeposit(CurrencyCode.USD, openingBalance: 10000m));
+        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+
+        await service.RecordTransferAsync(DateOnly.FromDateTime(DateTime.Today), 10000m, termDeposit.Id, checking.Id, "Redeem matured deposit", null);
+
+        Assert.Equal(0m, termDeposit.Balance);
+        Assert.Equal(10000m, checking.Balance);
+        var recorded = Assert.Single(transactions.All);
+        Assert.IsType<Transfer>(recorded);
+    }
+
     [Fact]
     public async Task RecordMedicalReimbursementAsync_HappyPath_PersistsReimbursement_CreditsAccount_AndMarksDetailReimbursedWithActualAmount()
     {
@@ -1028,6 +1129,56 @@ public sealed class TransactionEntryServiceTests
 
         Assert.Single(transactions.All);
         Assert.Equal(MedicalReimbursementStatus.Pending, detail.Status);
+    }
+
+    // --- Checkpoint review HIGH #3: RecordMedicalReimbursementAsync must reject a destination account
+    // whose currency differs from the original expense's currency, for both supported linked-transaction
+    // kinds (a plain Expense debiting a FinancialAccount, and a CreditCardPurchase charging a CreditAccount).
+
+    [Fact]
+    public async Task RecordMedicalReimbursementAsync_LinkedExpenseCurrencyDiffersFromDestination_ThrowsAndDoesNotMutateAnything()
+    {
+        var (service, accounts, _, transactions, _, categories, _, medicalExpenseDetails) = CreateSut();
+        var wallet = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+        var mxnBank = accounts.Add(new BankAccount("Cuenta MXN", CurrencyCode.MXN, openingBalance: 0m));
+        var category = categories.Add(Category.CreateUserDefined("Health"));
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 30m, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalExpenseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 80m, wallet.Id, category.Id, null, null, "Doctor visit", null, medicalInfo);
+        var originalExpense = Assert.Single(transactions.All);
+        var detail = Assert.Single(medicalExpenseDetails.All);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordMedicalReimbursementAsync(
+                DateOnly.FromDateTime(DateTime.Today), 25m, originalExpense.Id, mxnBank.Id, null, null));
+
+        Assert.Equal(0m, mxnBank.Balance);
+        Assert.Equal(MedicalReimbursementStatus.Pending, detail.Status);
+        Assert.Single(transactions.All);
+    }
+
+    [Fact]
+    public async Task RecordMedicalReimbursementAsync_LinkedCreditCardPurchaseCurrencyDiffersFromDestination_ThrowsAndDoesNotMutateAnything()
+    {
+        var (service, accounts, creditAccounts, transactions, _, categories, _, medicalExpenseDetails) = CreateSut();
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var mxnBank = accounts.Add(new BankAccount("Cuenta MXN", CurrencyCode.MXN, openingBalance: 0m));
+        var category = categories.Add(Category.CreateUserDefined("Health"));
+        var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 20m, InsurancePaidProviderDirectly: false);
+
+        await service.RecordMedicalCreditCardPurchaseAsync(
+            DateOnly.FromDateTime(DateTime.Today), 60m, card.Id, category.Id, null, null, "Pharmacy", null, medicalInfo);
+        var originalPurchase = Assert.Single(transactions.All);
+        var detail = Assert.Single(medicalExpenseDetails.All);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.RecordMedicalReimbursementAsync(
+                DateOnly.FromDateTime(DateTime.Today), 15m, originalPurchase.Id, mxnBank.Id, null, null));
+
+        Assert.Equal(0m, mxnBank.Balance);
+        Assert.Equal(MedicalReimbursementStatus.Pending, detail.Status);
+        Assert.Single(transactions.All);
     }
 
     [Fact]
@@ -1265,6 +1416,12 @@ public sealed class TransactionEntryServiceTests
                 .ToList());
         }
 
+        public Task<IReadOnlyList<Transaction>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+        {
+            var idSet = ids.ToList();
+            return Task.FromResult<IReadOnlyList<Transaction>>(_transactions.Where(t => idSet.Contains(t.Id)).ToList());
+        }
+
         public Task AddAsync(Transaction entity, CancellationToken ct = default)
         {
             _transactions.Add(entity);
@@ -1359,6 +1516,11 @@ public sealed class TransactionEntryServiceTests
                 .ToDictionary(d => d.TransactionId);
             return Task.FromResult(result);
         }
+
+        public Task<IReadOnlyList<MedicalExpenseDetail>> GetPendingAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<MedicalExpenseDetail>>(_details.Values
+                .Where(d => d.Status == MedicalReimbursementStatus.Pending)
+                .ToList());
 
         public Task AddAsync(MedicalExpenseDetail entity, CancellationToken ct = default)
         {

@@ -454,6 +454,12 @@
   <data name="AddTransaction_ValidationServiceError" xml:space="preserve">
     <value>No se pudo guardar este movimiento. Verifica el monto e inténtalo de nuevo.</value>
   </data>
+  <data name="AddTransaction_ValidationReimbursementExceedsOriginal" xml:space="preserve">
+    <value>El monto del reembolso no puede superar el costo original del gasto.</value>
+  </data>
+  <data name="AddTransaction_ValidationTermDepositDestinationInvalid" xml:space="preserve">
+    <value>Un depósito a plazo no puede usarse como destino de una transferencia.</value>
+  </data>
   <data name="AddTransaction_NoneOption" xml:space="preserve">
     <value>Ninguna</value>
   </data>
@@ -1051,6 +1057,9 @@
   <data name="AddTermDeposit_ValidationInstitutionRequired" xml:space="preserve">
     <value>La institución es obligatoria.</value>
   </data>
+  <data name="AddTermDeposit_ValidationInstitutionTooLong" xml:space="preserve">
+    <value>La institución no puede superar los 200 caracteres.</value>
+  </data>
   <data name="AddTermDeposit_ValidationInitialPrincipalInvalid" xml:space="preserve">
     <value>El monto inicial debe ser un número mayor que cero.</value>
   </data>
@@ -1143,6 +1152,9 @@
   </data>
   <data name="AddInvestmentFund_ValidationInstitutionRequired" xml:space="preserve">
     <value>La institución es obligatoria.</value>
+  </data>
+  <data name="AddInvestmentFund_ValidationInstitutionTooLong" xml:space="preserve">
+    <value>La institución no puede superar los 200 caracteres.</value>
   </data>
   <data name="AddInvestmentFund_ValidationContributionsInvalid" xml:space="preserve">
     <value>La inversión inicial debe ser un número mayor que cero.</value>

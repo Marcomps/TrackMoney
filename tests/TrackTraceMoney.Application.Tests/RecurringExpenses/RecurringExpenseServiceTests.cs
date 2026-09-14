@@ -249,6 +249,12 @@ public sealed class RecurringExpenseServiceTests
                 .ToList());
         }
 
+        public Task<IReadOnlyList<Transaction>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+        {
+            var idSet = ids.ToList();
+            return Task.FromResult<IReadOnlyList<Transaction>>(_transactions.Where(t => idSet.Contains(t.Id)).ToList());
+        }
+
         public Task AddAsync(Transaction entity, CancellationToken ct = default)
         {
             _transactions.Add(entity);
@@ -353,6 +359,11 @@ public sealed class RecurringExpenseServiceTests
                 .ToDictionary(d => d.TransactionId);
             return Task.FromResult(result);
         }
+
+        public Task<IReadOnlyList<MedicalExpenseDetail>> GetPendingAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<MedicalExpenseDetail>>(_details.Values
+                .Where(d => d.Status == MedicalReimbursementStatus.Pending)
+                .ToList());
 
         public Task AddAsync(MedicalExpenseDetail entity, CancellationToken ct = default)
         {

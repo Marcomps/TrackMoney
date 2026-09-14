@@ -26,4 +26,9 @@ internal sealed class MedicalExpenseDetailRepository : RepositoryBase<MedicalExp
             return details.ToDictionary(d => d.TransactionId);
         }, ct);
     }
+
+    public Task<IReadOnlyList<MedicalExpenseDetail>> GetPendingAsync(CancellationToken ct = default) =>
+        GuardedAsync<IReadOnlyList<MedicalExpenseDetail>>(async () => await Context.Set<MedicalExpenseDetail>()
+            .Where(d => d.Status == MedicalReimbursementStatus.Pending)
+            .ToListAsync(ct), ct);
 }

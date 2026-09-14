@@ -68,6 +68,25 @@ public sealed class NetWorthSnapshotServiceTests
     }
 
     [Fact]
+    public async Task RecordSnapshotAsync_WithPrecomputedSummary_UpsertsWithoutRecomputing()
+    {
+        // Checkpoint review LOW #9: the overload accepting an already-computed NetWorthSummary must
+        // persist exactly what it was given, without re-fetching/recalculating from the repositories —
+        // proven here by handing it a summary that does not match what a fresh calculation would produce.
+        var (service, accounts, _, snapshots) = CreateSut();
+        accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
+
+        var summary = new NetWorthCalculator().Calculate(
+            [new CashAccount("Other Wallet", CurrencyCode.USD, openingBalance: 999m)], []);
+
+        var asOfDate = new DateOnly(2026, 9, 13);
+        await service.RecordSnapshotAsync(asOfDate, summary);
+
+        var snapshot = Assert.Single(snapshots.All);
+        Assert.Equal(999m, snapshot.TotalAssets);
+    }
+
+    [Fact]
     public async Task RecordSnapshotAsync_InactiveAccount_ExcludedFromTotals()
     {
         var (service, accounts, _, snapshots) = CreateSut();

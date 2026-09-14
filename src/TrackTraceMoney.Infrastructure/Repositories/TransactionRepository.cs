@@ -81,4 +81,12 @@ internal sealed class TransactionRepository : RepositoryBase<Transaction>, ITran
                 .Where(p => ids.Contains(p.CreditAccountId))
                 .ToListAsync(ct);
         }, ct);
+
+    public Task<IReadOnlyList<Transaction>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        var idList = ids.ToList();
+        return GuardedAsync<IReadOnlyList<Transaction>>(async () => await Context.Set<Transaction>()
+            .Where(t => idList.Contains(t.Id))
+            .ToListAsync(ct), ct);
+    }
 }

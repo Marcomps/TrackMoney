@@ -133,29 +133,36 @@ public sealed partial class AddTermDepositViewModel : ObservableObject
             return;
         }
 
-        var termDeposit = new TermDeposit(
-            Name,
-            SelectedCurrency,
-            Institution,
-            initialPrincipal,
-            openingBalance,
-            rate,
-            SelectedRateType,
-            DateOnly.FromDateTime(StartDate),
-            DateOnly.FromDateTime(MaturityDate),
-            SelectedInterestFrequency,
-            IsCompounding,
-            AutoRenewal,
-            estimatedInterest,
-            interestReceived,
-            Notes);
-
         IsBusy = true;
         try
         {
+            // TermDeposit's constructor throws ArgumentException when Institution exceeds 200
+            // characters — constructed inside this try (not before it, as it used to be) so that throw
+            // is caught below and IsBusy still gets reset by finally, instead of crashing the app.
+            var termDeposit = new TermDeposit(
+                Name,
+                SelectedCurrency,
+                Institution,
+                initialPrincipal,
+                openingBalance,
+                rate,
+                SelectedRateType,
+                DateOnly.FromDateTime(StartDate),
+                DateOnly.FromDateTime(MaturityDate),
+                SelectedInterestFrequency,
+                IsCompounding,
+                AutoRenewal,
+                estimatedInterest,
+                interestReceived,
+                Notes);
+
             await _financialAccountRepository.AddAsync(termDeposit);
             await _financialAccountRepository.SaveChangesAsync();
             await Shell.Current.GoToAsync("..");
+        }
+        catch (ArgumentException)
+        {
+            ErrorMessage = AppResources.AddTermDeposit_ValidationInstitutionTooLong;
         }
         finally
         {

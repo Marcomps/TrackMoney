@@ -14,4 +14,12 @@ public interface IMedicalExpenseDetailRepository : IRepository<MedicalExpenseDet
     /// with a null value.
     /// </summary>
     Task<IReadOnlyDictionary<Guid, MedicalExpenseDetail>> GetForTransactionsAsync(IEnumerable<Guid> transactionIds, CancellationToken ct = default);
+
+    /// <summary>
+    /// Every <see cref="MedicalExpenseDetail"/> currently <see cref="Domain.MedicalExpenses.MedicalReimbursementStatus.Pending"/> —
+    /// a real <c>WHERE</c>-filtered query, not <see cref="IRepository{TEntity}.GetAllAsync"/> followed by
+    /// client-side filtering. Used by <c>AddTransactionViewModel</c>'s Reimbursement block to build its
+    /// pending-expense picker without fetching every medical expense detail row in the database.
+    /// </summary>
+    Task<IReadOnlyList<MedicalExpenseDetail>> GetPendingAsync(CancellationToken ct = default);
 }

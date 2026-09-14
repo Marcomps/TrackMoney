@@ -106,20 +106,23 @@ public sealed partial class AddInvestmentFundViewModel : ObservableObject
 
         var investmentDateOnly = DateOnly.FromDateTime(InvestmentDate);
 
-        var fund = new InvestmentFund(
-            Name,
-            SelectedCurrency,
-            Institution,
-            investmentDateOnly,
-            contributions,
-            openingBalance,
-            withdrawals,
-            fees,
-            Notes);
-
         IsBusy = true;
         try
         {
+            // InvestmentFund's constructor throws ArgumentException when Institution exceeds 200
+            // characters — constructed inside this try (not before it, as it used to be) so that throw
+            // is caught below and IsBusy still gets reset by finally, instead of crashing the app.
+            var fund = new InvestmentFund(
+                Name,
+                SelectedCurrency,
+                Institution,
+                investmentDateOnly,
+                contributions,
+                openingBalance,
+                withdrawals,
+                fees,
+                Notes);
+
             // Both AddAsync calls are tracked by the same shared DbContext (see RepositoryBase/
             // DbAccessGate remarks — this app's DI resolves TrackTraceMoneyDbContext as a single
             // long-lived instance), so one SaveChangesAsync call commits both inserts atomically.
@@ -128,6 +131,10 @@ public sealed partial class AddInvestmentFundViewModel : ObservableObject
             await _financialAccountRepository.SaveChangesAsync();
 
             await Shell.Current.GoToAsync("..");
+        }
+        catch (ArgumentException)
+        {
+            ErrorMessage = AppResources.AddInvestmentFund_ValidationInstitutionTooLong;
         }
         finally
         {

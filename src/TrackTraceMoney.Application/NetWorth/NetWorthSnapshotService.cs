@@ -37,6 +37,11 @@ public sealed class NetWorthSnapshotService : INetWorthSnapshotService
 
         var summary = _netWorthCalculator.Calculate(financialAccounts, creditAccounts);
 
+        await RecordSnapshotAsync(asOfDate, summary, ct);
+    }
+
+    public async Task RecordSnapshotAsync(DateOnly asOfDate, NetWorthSummary summary, CancellationToken ct = default)
+    {
         foreach (var byCurrency in summary.ByCurrency.Values)
         {
             var existing = await _snapshotRepository.GetByCurrencyAndDateAsync(byCurrency.Currency, asOfDate, ct);

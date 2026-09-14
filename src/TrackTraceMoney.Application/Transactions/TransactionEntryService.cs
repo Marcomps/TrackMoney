@@ -1,7 +1,9 @@
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Domain.Accounts;
+using TrackTraceMoney.Domain.Budgets;
 using TrackTraceMoney.Domain.CreditAccounts;
+using TrackTraceMoney.Domain.Enums;
 using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.Transactions;
 
@@ -52,23 +54,19 @@ public sealed class TransactionEntryService : ITransactionEntryService
         var account = await _accountRepository.GetByIdAsync(accountId, ct)
             ?? throw new InvalidOperationException($"Account '{accountId}' was not found.");
 
+        // README §22/§30: a term deposit is locked until maturity — unlike Transfer's source side
+        // (deliberately still allowed, see RecordTransferAsync's doc comment/TransferDestinationAccounts
+        // in AddTransactionViewModel), there is no legitimate "spend directly from a term deposit" use
+        // case, and debiting it here would silently corrupt its balance with no maturity/overdraft check.
+        if (account is TermDeposit)
+            throw new InvalidOperationException("A term deposit cannot be used to fund this transaction.");
+
         // README §34/§37: figure out, before saving, whether this expense is the one that pushes the
         // category's monthly budget over its limit — only that crossing transition should notify, not
         // every subsequent expense once already over. Computed arithmetically from spend-before-this
         // expense rather than re-querying after save, so there's no risk of double-counting this
         // expense against itself.
-        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, account.Currency, ct);
-        decimal spentBefore = 0m;
-        if (budget is not null)
-        {
-            var startOfMonth = new DateOnly(date.Year, date.Month, 1);
-            var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
-            var accounts = await _accountRepository.GetAllAsync(ct);
-            var creditAccounts = await _creditAccountRepository.GetAllAsync(ct);
-            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
-            var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
-            spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
-        }
+        var (budget, spentBefore) = await GetBudgetCrossingContextAsync(categoryId, date, account.Currency, ct);
 
         var expense = new Expense(date, amount, accountId, categoryId, beneficiaryPersonId, payerPersonId, description, notes);
 
@@ -77,19 +75,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
         await _transactionRepository.AddAsync(expense, ct);
         await _transactionRepository.SaveChangesAsync(ct);
 
-        if (budget is not null)
-        {
-            var wasOverBudget = spentBefore > budget.Amount;
-            var newSpent = spentBefore + amount;
-            var isOverBudget = newSpent > budget.Amount;
-
-            if (!wasOverBudget && isOverBudget)
-            {
-                var category = await _categoryRepository.GetByIdAsync(categoryId, ct);
-                if (category is not null)
-                    await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
-            }
-        }
+        await NotifyIfBudgetCrossedAsync(budget, spentBefore, amount, categoryId, ct);
     }
 
     public async Task RecordIncomeAsync(
@@ -164,18 +150,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
         // Same budget-crossing check as RecordExpenseAsync — see its comment above. Kept duplicated
         // here rather than factored into a second service, since the crossing logic must stay in sync
         // for every spend-counting transaction kind (README §34/§37; CLAUDE.md's #1 risk).
-        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, creditAccount.Currency, ct);
-        decimal spentBefore = 0m;
-        if (budget is not null)
-        {
-            var startOfMonth = new DateOnly(date.Year, date.Month, 1);
-            var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
-            var accounts = await _accountRepository.GetAllAsync(ct);
-            var creditAccounts = await _creditAccountRepository.GetAllAsync(ct);
-            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
-            var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
-            spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
-        }
+        var (budget, spentBefore) = await GetBudgetCrossingContextAsync(categoryId, date, creditAccount.Currency, ct);
 
         var purchase = new CreditCardPurchase(date, amount, creditAccountId, categoryId, beneficiaryPersonId, payerPersonId, description, notes);
 
@@ -184,19 +159,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
         await _transactionRepository.AddAsync(purchase, ct);
         await _transactionRepository.SaveChangesAsync(ct);
 
-        if (budget is not null)
-        {
-            var wasOverBudget = spentBefore > budget.Amount;
-            var newSpent = spentBefore + amount;
-            var isOverBudget = newSpent > budget.Amount;
-
-            if (!wasOverBudget && isOverBudget)
-            {
-                var category = await _categoryRepository.GetByIdAsync(categoryId, ct);
-                if (category is not null)
-                    await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
-            }
-        }
+        await NotifyIfBudgetCrossedAsync(budget, spentBefore, amount, categoryId, ct);
     }
 
     public async Task RecordMedicalExpenseAsync(
@@ -214,21 +177,16 @@ public sealed class TransactionEntryService : ITransactionEntryService
         var account = await _accountRepository.GetByIdAsync(accountId, ct)
             ?? throw new InvalidOperationException($"Account '{accountId}' was not found.");
 
+        // Same term-deposit guard as RecordExpenseAsync — see its comment above. This is the medical
+        // sub-path of the same Expense UI flow (AddTransactionViewModel routes here instead of
+        // RecordExpenseAsync when "medical expense" is checked), so it carries the identical risk.
+        if (account is TermDeposit)
+            throw new InvalidOperationException("A term deposit cannot be used to fund this transaction.");
+
         // Same budget-crossing check as RecordExpenseAsync — see its comment above. A medical expense
         // still counts as spend exactly like any other, so this must fire unconditionally, not be
         // special-cased away.
-        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, account.Currency, ct);
-        decimal spentBefore = 0m;
-        if (budget is not null)
-        {
-            var startOfMonth = new DateOnly(date.Year, date.Month, 1);
-            var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
-            var accounts = await _accountRepository.GetAllAsync(ct);
-            var creditAccounts = await _creditAccountRepository.GetAllAsync(ct);
-            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
-            var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
-            spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
-        }
+        var (budget, spentBefore) = await GetBudgetCrossingContextAsync(categoryId, date, account.Currency, ct);
 
         var expense = new Expense(date, amount, accountId, categoryId, beneficiaryPersonId, payerPersonId, description, notes);
 
@@ -241,19 +199,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
 
         await _transactionRepository.SaveChangesAsync(ct);
 
-        if (budget is not null)
-        {
-            var wasOverBudget = spentBefore > budget.Amount;
-            var newSpent = spentBefore + amount;
-            var isOverBudget = newSpent > budget.Amount;
-
-            if (!wasOverBudget && isOverBudget)
-            {
-                var category = await _categoryRepository.GetByIdAsync(categoryId, ct);
-                if (category is not null)
-                    await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
-            }
-        }
+        await NotifyIfBudgetCrossedAsync(budget, spentBefore, amount, categoryId, ct);
     }
 
     public async Task RecordMedicalCreditCardPurchaseAsync(
@@ -275,18 +221,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
             throw new InvalidOperationException($"Credit account '{creditAccountId}' is not a credit card.");
 
         // Same budget-crossing check as RecordCreditCardPurchaseAsync — see its comment above.
-        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, creditAccount.Currency, ct);
-        decimal spentBefore = 0m;
-        if (budget is not null)
-        {
-            var startOfMonth = new DateOnly(date.Year, date.Month, 1);
-            var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
-            var accounts = await _accountRepository.GetAllAsync(ct);
-            var creditAccounts = await _creditAccountRepository.GetAllAsync(ct);
-            var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
-            var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
-            spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
-        }
+        var (budget, spentBefore) = await GetBudgetCrossingContextAsync(categoryId, date, creditAccount.Currency, ct);
 
         var purchase = new CreditCardPurchase(date, amount, creditAccountId, categoryId, beneficiaryPersonId, payerPersonId, description, notes);
 
@@ -299,18 +234,56 @@ public sealed class TransactionEntryService : ITransactionEntryService
 
         await _transactionRepository.SaveChangesAsync(ct);
 
-        if (budget is not null)
-        {
-            var wasOverBudget = spentBefore > budget.Amount;
-            var newSpent = spentBefore + amount;
-            var isOverBudget = newSpent > budget.Amount;
+        await NotifyIfBudgetCrossedAsync(budget, spentBefore, amount, categoryId, ct);
+    }
 
-            if (!wasOverBudget && isOverBudget)
-            {
-                var category = await _categoryRepository.GetByIdAsync(categoryId, ct);
-                if (category is not null)
-                    await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
-            }
+    /// <summary>
+    /// Fetches the category's budget for the transaction's month (if any) and the amount already spent
+    /// in that category/currency before this transaction, so the caller can construct/persist its
+    /// transaction in between this call and <see cref="NotifyIfBudgetCrossedAsync"/> without re-querying
+    /// spend after save (which would risk double-counting the transaction being saved against itself).
+    /// Shared by every spend-counting Record*Async method (README §34/§37; CLAUDE.md's #1 risk) — kept
+    /// as a private helper rather than a separate service, per this class's existing design note on
+    /// keeping the crossing logic colocated (see the note this replaced, previously duplicated verbatim
+    /// in each caller).
+    /// </summary>
+    private async Task<(Budget? Budget, decimal SpentBefore)> GetBudgetCrossingContextAsync(
+        Guid categoryId, DateOnly date, CurrencyCode currency, CancellationToken ct)
+    {
+        var budget = await _budgetRepository.GetForCategoryAndMonthAsync(categoryId, date.Year, date.Month, currency, ct);
+        if (budget is null)
+            return (null, 0m);
+
+        var startOfMonth = new DateOnly(date.Year, date.Month, 1);
+        var categoryTransactions = await _transactionRepository.GetByDateRangeAndCategoryAsync(startOfMonth, date, categoryId, ct);
+        var accounts = await _accountRepository.GetAllAsync(ct);
+        var creditAccounts = await _creditAccountRepository.GetAllAsync(ct);
+        var accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
+        var summary = _spendingCalculator.Calculate(categoryTransactions, accountCurrencies);
+        var spentBefore = summary.GetSpentForCategory(categoryId, budget.Currency);
+
+        return (budget, spentBefore);
+    }
+
+    /// <summary>
+    /// Second half of the budget-crossing check started by <see cref="GetBudgetCrossingContextAsync"/> —
+    /// called after the transaction has been persisted, notifying only on the crossing transition (not
+    /// every subsequent over-budget transaction).
+    /// </summary>
+    private async Task NotifyIfBudgetCrossedAsync(Budget? budget, decimal spentBefore, decimal amount, Guid categoryId, CancellationToken ct)
+    {
+        if (budget is null)
+            return;
+
+        var wasOverBudget = spentBefore > budget.Amount;
+        var newSpent = spentBefore + amount;
+        var isOverBudget = newSpent > budget.Amount;
+
+        if (!wasOverBudget && isOverBudget)
+        {
+            var category = await _categoryRepository.GetByIdAsync(categoryId, ct);
+            if (category is not null)
+                await _localNotifier.NotifyBudgetExceededAsync(category, budget.Amount, newSpent - budget.Amount, ct);
         }
     }
 
@@ -349,6 +322,10 @@ public sealed class TransactionEntryService : ITransactionEntryService
         var sourceAccount = await _accountRepository.GetByIdAsync(sourceAccountId, ct)
             ?? throw new InvalidOperationException($"Account '{sourceAccountId}' was not found.");
 
+        // Same term-deposit guard as RecordExpenseAsync — see its comment above.
+        if (sourceAccount is TermDeposit)
+            throw new InvalidOperationException("A term deposit cannot be used to fund this transaction.");
+
         var creditAccount = await _creditAccountRepository.GetByIdAsync(creditAccountId, ct)
             ?? throw new InvalidOperationException($"Credit account '{creditAccountId}' was not found.");
 
@@ -386,6 +363,10 @@ public sealed class TransactionEntryService : ITransactionEntryService
         var sourceAccount = await _accountRepository.GetByIdAsync(sourceAccountId, ct)
             ?? throw new InvalidOperationException($"Account '{sourceAccountId}' was not found.");
 
+        // Same term-deposit guard as RecordExpenseAsync — see its comment above.
+        if (sourceAccount is TermDeposit)
+            throw new InvalidOperationException("A term deposit cannot be used to fund this transaction.");
+
         var creditAccount = await _creditAccountRepository.GetByIdAsync(loanAccountId, ct)
             ?? throw new InvalidOperationException($"Credit account '{loanAccountId}' was not found.");
 
@@ -419,6 +400,11 @@ public sealed class TransactionEntryService : ITransactionEntryService
     {
         var sourceAccount = await _accountRepository.GetByIdAsync(sourceAccountId, ct)
             ?? throw new InvalidOperationException($"Account '{sourceAccountId}' was not found.");
+
+        // Same term-deposit guard as RecordExpenseAsync — see its comment above. The destination side
+        // is already restricted to InvestmentFund below and needs no additional guard.
+        if (sourceAccount is TermDeposit)
+            throw new InvalidOperationException("A term deposit cannot be used to fund this transaction.");
 
         var fundAccount = await _accountRepository.GetByIdAsync(investmentFundId, ct)
             ?? throw new InvalidOperationException($"Account '{investmentFundId}' was not found.");
@@ -506,7 +492,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
         string? notes,
         CancellationToken ct = default)
     {
-        _ = await _transactionRepository.GetByIdAsync(linkedTransactionId, ct)
+        var linkedTransaction = await _transactionRepository.GetByIdAsync(linkedTransactionId, ct)
             ?? throw new InvalidOperationException($"Transaction '{linkedTransactionId}' was not found.");
 
         var detail = await _medicalExpenseDetailRepository.GetForTransactionAsync(linkedTransactionId, ct)
@@ -520,6 +506,14 @@ public sealed class TransactionEntryService : ITransactionEntryService
         var destinationAccount = await _accountRepository.GetByIdAsync(destinationAccountId, ct)
             ?? throw new InvalidOperationException($"Account '{destinationAccountId}' was not found.");
 
+        // README §6/§10: same cross-currency rejection as RecordTransferAsync — a reimbursement must
+        // land in an account denominated in the original expense's currency, or it silently corrupts
+        // that account's balance the same way a cross-currency transfer would.
+        var originalCurrency = await ResolveOriginalExpenseCurrencyAsync(linkedTransaction, ct);
+        if (originalCurrency != destinationAccount.Currency)
+            throw new InvalidOperationException(
+                $"Cannot reimburse into an account in a different currency ({originalCurrency} -> {destinationAccount.Currency}) without currency conversion support.");
+
         var reimbursement = new Reimbursement(date, actualAmountReceived, destinationAccountId, linkedTransactionId, description, notes);
 
         // Order matters: MarkReimbursed can still throw (actualAmountReceived > GrossAmount) — run it
@@ -530,6 +524,32 @@ public sealed class TransactionEntryService : ITransactionEntryService
 
         await _transactionRepository.AddAsync(reimbursement, ct);
         await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Resolves the currency of the account/card the original medical expense actually moved money
+    /// against — <see cref="RecordMedicalReimbursementAsync"/>'s only two supported linked-transaction
+    /// kinds (an <see cref="Expense"/> debiting a <see cref="Accounts.FinancialAccount"/>, or a
+    /// <see cref="CreditCardPurchase"/> charging a <see cref="CreditAccount"/>) resolve their spend
+    /// account through different repositories/fields, mirroring how <see cref="AccountCurrencyMapBuilder"/>
+    /// already merges both hierarchies elsewhere in this codebase.
+    /// </summary>
+    private async Task<CurrencyCode> ResolveOriginalExpenseCurrencyAsync(Transaction transaction, CancellationToken ct)
+    {
+        switch (transaction)
+        {
+            case CreditCardPurchase purchase:
+                var creditAccount = await _creditAccountRepository.GetByIdAsync(purchase.CreditAccountId, ct)
+                    ?? throw new InvalidOperationException($"Credit account '{purchase.CreditAccountId}' was not found.");
+                return creditAccount.Currency;
+            case Expense expense:
+                var account = await _accountRepository.GetByIdAsync(expense.AccountId, ct)
+                    ?? throw new InvalidOperationException($"Account '{expense.AccountId}' was not found.");
+                return account.Currency;
+            default:
+                throw new InvalidOperationException(
+                    $"Transaction '{transaction.Id}' is not a supported reimbursable expense type.");
+        }
     }
 
     public async Task RejectMedicalReimbursementAsync(Guid linkedTransactionId, CancellationToken ct = default)
