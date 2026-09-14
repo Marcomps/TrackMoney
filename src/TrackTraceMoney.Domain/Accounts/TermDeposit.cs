@@ -111,4 +111,67 @@ public sealed class TermDeposit : FinancialAccount
         Credit(amount);
         InterestReceived += amount;
     }
+
+    /// <summary>
+    /// Rolls this matured term deposit into a brand-new one (README §22's AutoRenewal flag, unwired
+    /// until now) and deactivates this one, mirroring how a bank actually closes the old CD/plazo fijo
+    /// and opens a fresh one rather than mutating the original in place — keeping the original record
+    /// immutable/historical, the same way <c>CreditCardPurchase</c>/<c>CreditCardPayment</c> stay two
+    /// separate events rather than one mutated record.
+    /// </summary>
+    /// <remarks>
+    /// The new deposit's <c>initialPrincipal</c>/<c>openingBalance</c> are set to this deposit's current
+    /// <see cref="Balance"/> — deliberately NOT recomputed as <c>InitialPrincipal + InterestReceived</c>.
+    /// <see cref="Balance"/> is the authoritative ledger value for this account and can legitimately
+    /// diverge from that sum (e.g. via a Transfer into/out of this account, or a plain Income transaction
+    /// that bypassed <see cref="RecordInterestReceived"/>), so re-deriving the renewal amount from the
+    /// two interest-tracking fields instead of trusting the ledger would silently renew the wrong amount
+    /// whenever those diverge.
+    /// <para>
+    /// The new deposit's <see cref="StartDate"/> is set to this deposit's <see cref="MaturityDate"/>, not
+    /// to <paramref name="asOfDate"/> — a renewal check that runs a few days late (e.g. the user didn't
+    /// open the app on the exact maturity date) must not shorten the new term or otherwise penalize the
+    /// user for the app's own lateness in noticing.
+    /// </para>
+    /// <para>
+    /// The new term length is preserved using day-count arithmetic (<c>DayNumber</c> subtraction/addition)
+    /// rather than calendar-field arithmetic (e.g. "add N months"), because day counts are robust across
+    /// leap years and variable month lengths — a 1-year term starting Feb 1 must renew to the same
+    /// day-count length even though calendar month/day addition can land on a different day count
+    /// depending on leap years.
+    /// </para>
+    /// </remarks>
+    public TermDeposit RenewAtMaturity(DateOnly asOfDate)
+    {
+        if (!AutoRenewal)
+            throw new InvalidOperationException("This term deposit does not have auto-renewal enabled.");
+        if (asOfDate < MaturityDate)
+            throw new InvalidOperationException("Cannot renew before maturity.");
+        if (Balance <= 0)
+            throw new InvalidOperationException("Cannot renew a term deposit with no remaining balance.");
+
+        var termLengthDays = MaturityDate.DayNumber - StartDate.DayNumber;
+        var newStartDate = MaturityDate;
+        var newMaturityDate = newStartDate.AddDays(termLengthDays);
+
+        var renewal = new TermDeposit(
+            Name,
+            Currency,
+            Institution,
+            initialPrincipal: Balance,
+            openingBalance: Balance,
+            Rate,
+            RateType,
+            newStartDate,
+            newMaturityDate,
+            InterestFrequency,
+            IsCompounding,
+            AutoRenewal,
+            estimatedInterest: null,
+            interestReceived: 0m,
+            Notes);
+
+        Deactivate();
+        return renewal;
+    }
 }

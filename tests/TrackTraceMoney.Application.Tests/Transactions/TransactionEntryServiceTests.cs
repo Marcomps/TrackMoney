@@ -1543,5 +1543,8 @@ public sealed class TransactionEntryServiceTests
             Calls.Add((category, budgetAmount, amountOver));
             return Task.CompletedTask;
         }
+
+        public Task NotifyTermDepositRenewedAsync(string institution, decimal renewedAmount, CurrencyCode currency, DateOnly newMaturityDate, CancellationToken ct = default) =>
+            Task.CompletedTask;
     }
 }

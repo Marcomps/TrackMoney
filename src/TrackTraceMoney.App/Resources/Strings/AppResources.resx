@@ -835,6 +835,18 @@
   <data name="Notification_BudgetExceeded_Body" xml:space="preserve">
     <value>Superaste el presupuesto de {0} por {1} (límite: {2}).</value>
   </data>
+  <data name="Notification_TermDepositRenewed_ChannelName" xml:space="preserve">
+    <value>Renovación de depósitos a plazo</value>
+  </data>
+  <data name="Notification_TermDepositRenewed_ChannelDescription" xml:space="preserve">
+    <value>Avisos cuando un depósito a plazo se renueva automáticamente al vencer.</value>
+  </data>
+  <data name="Notification_TermDepositRenewed_Title" xml:space="preserve">
+    <value>Depósito renovado: {0}</value>
+  </data>
+  <data name="Notification_TermDepositRenewed_Body" xml:space="preserve">
+    <value>Tu depósito en {0} se renovó automáticamente por {1} {2}. Nuevo vencimiento: {3}.</value>
+  </data>
   <data name="CreditCards_ViewLoansButton" xml:space="preserve">
     <value>Ver préstamos</value>
   </data>

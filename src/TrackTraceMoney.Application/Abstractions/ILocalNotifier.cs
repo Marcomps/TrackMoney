@@ -1,4 +1,5 @@
 using TrackTraceMoney.Domain.Categories;
+using TrackTraceMoney.Domain.Enums;
 
 namespace TrackTraceMoney.Application.Abstractions;
 
@@ -18,5 +19,14 @@ public interface ILocalNotifier
         Category category,
         decimal budgetAmount,
         decimal amountOver,
+        CancellationToken ct = default);
+
+    /// <summary>Fires when a matured term deposit was automatically rolled into a new one (README §22
+    /// AutoRenewal, wired via <c>ITermDepositRenewalService</c>).</summary>
+    Task NotifyTermDepositRenewedAsync(
+        string institution,
+        decimal renewedAmount,
+        CurrencyCode currency,
+        DateOnly newMaturityDate,
         CancellationToken ct = default);
 }

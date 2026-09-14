@@ -9,6 +9,7 @@ using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Budgets;
 using TrackTraceMoney.Application.NetWorth;
 using TrackTraceMoney.Application.Reporting;
+using TrackTraceMoney.Application.TermDeposits;
 
 namespace TrackTraceMoney.App.ViewModels;
 
@@ -25,6 +26,8 @@ public sealed partial class DashboardViewModel : ObservableObject
     private readonly IBudgetEvaluator _budgetEvaluator;
     private readonly INetWorthCalculator _netWorthCalculator;
     private readonly INetWorthSnapshotService _netWorthSnapshotService;
+    private readonly ITermDepositRenewalService _termDepositRenewalService;
+    private readonly ILocalNotifier _localNotifier;
 
     [ObservableProperty]
     private bool isBusy;
@@ -67,7 +70,9 @@ public sealed partial class DashboardViewModel : ObservableObject
         IIncomeCalculator incomeCalculator,
         IBudgetEvaluator budgetEvaluator,
         INetWorthCalculator netWorthCalculator,
-        INetWorthSnapshotService netWorthSnapshotService)
+        INetWorthSnapshotService netWorthSnapshotService,
+        ITermDepositRenewalService termDepositRenewalService,
+        ILocalNotifier localNotifier)
     {
         _accountRepository = accountRepository;
         _creditAccountRepository = creditAccountRepository;
@@ -80,6 +85,8 @@ public sealed partial class DashboardViewModel : ObservableObject
         _budgetEvaluator = budgetEvaluator;
         _netWorthCalculator = netWorthCalculator;
         _netWorthSnapshotService = netWorthSnapshotService;
+        _termDepositRenewalService = termDepositRenewalService;
+        _localNotifier = localNotifier;
     }
 
     [RelayCommand]
@@ -207,6 +214,23 @@ public sealed partial class DashboardViewModel : ObservableObject
                 // Best-effort: skip persisting today's snapshot for this load. Silently swallowed —
                 // this codebase has no logging abstraction to route this through (no ILogger usage
                 // anywhere in the App project) and introducing one is out of scope for this fix.
+            }
+
+            // Side effect: rolls any matured, auto-renewal-enabled term deposit into a fresh one
+            // (README §22 AutoRenewal) and raises a best-effort notification per renewal. Same
+            // defensive-catch shape as the net worth snapshot above — a failure here must never break
+            // the rest of the Dashboard.
+            try
+            {
+                var renewals = await _termDepositRenewalService.ProcessMaturedRenewalsAsync(today, ct: default);
+                foreach (var renewal in renewals)
+                    await _localNotifier.NotifyTermDepositRenewedAsync(
+                        renewal.Institution, renewal.RenewedAmount, renewal.Currency, renewal.NewMaturityDate);
+            }
+            catch (Exception)
+            {
+                // Best-effort, same reasoning as the net-worth-snapshot catch above: no logger exists in
+                // this codebase, and a renewal failure must never break the rest of the Dashboard.
             }
 
             HasLoaded = true;

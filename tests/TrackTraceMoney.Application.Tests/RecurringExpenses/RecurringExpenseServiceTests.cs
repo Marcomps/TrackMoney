@@ -380,5 +380,8 @@ public sealed class RecurringExpenseServiceTests
     {
         public Task NotifyBudgetExceededAsync(Category category, decimal budgetAmount, decimal amountOver, CancellationToken ct = default) =>
             Task.CompletedTask;
+
+        public Task NotifyTermDepositRenewedAsync(string institution, decimal renewedAmount, CurrencyCode currency, DateOnly newMaturityDate, CancellationToken ct = default) =>
+            Task.CompletedTask;
     }
 }

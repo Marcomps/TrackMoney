@@ -11,6 +11,7 @@ using TrackTraceMoney.Application.CreditAccounts;
 using TrackTraceMoney.Application.NetWorth;
 using TrackTraceMoney.Application.RecurringExpenses;
 using TrackTraceMoney.Application.Reporting;
+using TrackTraceMoney.Application.TermDeposits;
 using TrackTraceMoney.Application.Transactions;
 using TrackTraceMoney.Infrastructure;
 using TrackTraceMoney.Infrastructure.Persistence;
@@ -38,6 +39,7 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IIncomeCalculator, IncomeCalculator>();
 		builder.Services.AddSingleton<INetWorthCalculator, NetWorthCalculator>();
 		builder.Services.AddScoped<INetWorthSnapshotService, NetWorthSnapshotService>();
+		builder.Services.AddScoped<ITermDepositRenewalService, TermDepositRenewalService>();
 		builder.Services.AddTransient<DashboardViewModel>();
 		builder.Services.AddTransient<DashboardPage>();
 		builder.Services.AddTransient<NetWorthViewModel>();

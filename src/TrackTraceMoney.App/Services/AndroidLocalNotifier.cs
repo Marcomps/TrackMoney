@@ -7,6 +7,7 @@ using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Domain.Categories;
+using TrackTraceMoney.Domain.Enums;
 
 namespace TrackTraceMoney.App.Services;
 
@@ -22,7 +23,9 @@ namespace TrackTraceMoney.App.Services;
 public sealed class AndroidLocalNotifier : ILocalNotifier
 {
     private const string ChannelId = "budget_exceeded";
+    private const string TermDepositRenewedChannelId = "term_deposit_renewed";
     private static volatile bool _channelCreated;
+    private static volatile bool _termDepositRenewedChannelCreated;
 
     public async Task NotifyBudgetExceededAsync(
         Category category,
@@ -73,6 +76,58 @@ public sealed class AndroidLocalNotifier : ILocalNotifier
         }
     }
 
+    public async Task NotifyTermDepositRenewedAsync(
+        string institution,
+        decimal renewedAmount,
+        CurrencyCode currency,
+        DateOnly newMaturityDate,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (Android.App.Application.Context is not { } context)
+                return;
+
+            EnsureTermDepositRenewedChannel(context);
+
+            if (!await EnsurePermissionAsync())
+                return;
+
+            var title = string.Format(AppResources.Notification_TermDepositRenewed_Title, institution);
+            var body = string.Format(
+                AppResources.Notification_TermDepositRenewed_Body,
+                institution,
+                renewedAmount.ToString("N2"),
+                currency,
+                newMaturityDate.ToString("d"));
+
+            // Reuses the launcher icon as the small icon rather than a dedicated monochrome
+            // notification asset, matching NotifyBudgetExceededAsync's precedent.
+            var smallIconId = context.ApplicationInfo?.Icon ?? 0;
+
+            var builder = new NotificationCompat.Builder(context, TermDepositRenewedChannelId);
+            builder.SetContentTitle(title);
+            builder.SetContentText(body);
+            builder.SetSmallIcon(smallIconId);
+            builder.SetAutoCancel(true);
+            builder.SetPriority(NotificationCompat.PriorityDefault);
+
+            // One notification per (institution, new maturity date) pair — no dedicated entity id is
+            // passed through this interface, so the id is derived from the same fields shown in the
+            // notification body, mirroring NotifyBudgetExceededAsync's category.Id.GetHashCode() idiom.
+            var notificationId = HashCode.Combine(institution, newMaturityDate);
+
+            var notification = builder.Build();
+            var manager = NotificationManagerCompat.From(context);
+            if (notification is not null && manager is not null)
+                manager.Notify(notificationId, notification);
+        }
+        catch
+        {
+            // Swallow — see the "never throws" contract on ILocalNotifier.
+        }
+    }
+
     private static void EnsureChannel(Context context)
     {
         if (_channelCreated || !OperatingSystem.IsAndroidVersionAtLeast(26))
@@ -89,6 +144,24 @@ public sealed class AndroidLocalNotifier : ILocalNotifier
 
         manager?.CreateNotificationChannel(channel);
         _channelCreated = true;
+    }
+
+    private static void EnsureTermDepositRenewedChannel(Context context)
+    {
+        if (_termDepositRenewedChannelCreated || !OperatingSystem.IsAndroidVersionAtLeast(26))
+            return;
+
+        var manager = NotificationManager.FromContext(context);
+        var channel = new NotificationChannel(
+            TermDepositRenewedChannelId,
+            AppResources.Notification_TermDepositRenewed_ChannelName,
+            NotificationImportance.Default)
+        {
+            Description = AppResources.Notification_TermDepositRenewed_ChannelDescription
+        };
+
+        manager?.CreateNotificationChannel(channel);
+        _termDepositRenewedChannelCreated = true;
     }
 
     private static async Task<bool> EnsurePermissionAsync()
