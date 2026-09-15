@@ -73,7 +73,10 @@ public sealed class CloudBackupService : ICloudBackupService
         HttpResponseMessage response;
         try
         {
-            response = await _httpClient.SendAsync(request, ct);
+            // ResponseHeadersRead so the response body streams incrementally instead of being
+            // fully buffered into memory before this method returns — important for backup files
+            // that can be large relative to a lower-end Android device's available memory.
+            response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or SocketException)
         {
@@ -129,6 +132,11 @@ public sealed class CloudBackupService : ICloudBackupService
     {
         HttpStatusCode.BadRequest => CloudBackupResultError.ValidationFailed,
         HttpStatusCode.Unauthorized => CloudBackupResultError.NotAuthenticated,
+        // 413 — request body exceeded Kestrel's default size limit. No dedicated error case for
+        // this (server-side request-size configuration is explicitly out of scope this round);
+        // ValidationFailed keeps the message accurate ("something about this upload was
+        // rejected") without needing a new enum case or resx key.
+        HttpStatusCode.RequestEntityTooLarge => CloudBackupResultError.ValidationFailed,
         _ => CloudBackupResultError.Unknown
     };
 }

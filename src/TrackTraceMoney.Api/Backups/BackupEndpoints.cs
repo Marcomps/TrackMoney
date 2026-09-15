@@ -53,7 +53,27 @@ public static class BackupEndpoints
             dbContext.Backups.Add(existing);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Narrow race window: another concurrent upload for the same user won the insert
+            // between our read above and this SaveChanges, tripping the unique index on UserId.
+            // A single retry is sufficient here — re-fetch the row the other request just
+            // created and overwrite it, matching this endpoint's documented "upload always
+            // overwrites" behavior instead of surfacing a bare 500.
+            dbContext.Entry(existing).State = EntityState.Detached;
+
+            existing = await dbContext.Backups
+                .FirstOrDefaultAsync(b => b.UserId == userId, cancellationToken)
+                ?? throw new InvalidOperationException(
+                    "Expected a concurrently-inserted backup row after a unique-constraint conflict, but none was found.");
+
+            existing.ReplaceData(data);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
 
         return TypedResults.Ok(new BackupStatusResponse(true, existing.UpdatedAtUtc, existing.SizeBytes));
     }

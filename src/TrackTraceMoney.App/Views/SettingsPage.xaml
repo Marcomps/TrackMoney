@@ -52,11 +52,12 @@
 
                 <Button Text="{x:Static resources:AppResources.CloudBackup_BackupButton}"
                         Command="{Binding BackupToCloudCommand}"
+                        IsEnabled="{Binding CanTriggerCloudBackupOperation}"
                         HorizontalOptions="Fill" />
 
                 <Button Text="{x:Static resources:AppResources.CloudBackup_RestoreButton}"
                         Command="{Binding RestoreFromCloudCommand}"
-                        IsEnabled="{Binding CloudBackupExists}"
+                        IsEnabled="{Binding CanRestoreFromCloud}"
                         HorizontalOptions="Fill" />
 
                 <ActivityIndicator IsRunning="{Binding CloudBackupIsBusy}" IsVisible="{Binding CloudBackupIsBusy}" />

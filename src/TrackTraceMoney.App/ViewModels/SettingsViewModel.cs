@@ -61,11 +61,26 @@ public sealed partial class SettingsViewModel : ObservableObject
         ? string.Format(AppResources.CloudBackup_LastBackupKnown, LastCloudBackupAtUtc)
         : AppResources.CloudBackup_LastBackupNone;
 
+    // A backup and a restore must never run concurrently against the same server-side row (see
+    // finding #5/#3 of the Phase 4 checkpoint review) — both buttons gate on busy state, and
+    // Restore additionally requires a known backup to exist.
+    public bool CanTriggerCloudBackupOperation => !CloudBackupIsBusy;
+
+    public bool CanRestoreFromCloud => CloudBackupExists && !CloudBackupIsBusy;
+
     partial void OnIsCloudAuthenticatedChanged(bool value) => OnPropertyChanged(nameof(IsCloudUnauthenticated));
 
     partial void OnCloudAccountEmailChanged(string? value) => OnPropertyChanged(nameof(CloudAccountStatusText));
 
     partial void OnLastCloudBackupAtUtcChanged(DateTimeOffset? value) => OnPropertyChanged(nameof(LastCloudBackupText));
+
+    partial void OnCloudBackupIsBusyChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanTriggerCloudBackupOperation));
+        OnPropertyChanged(nameof(CanRestoreFromCloud));
+    }
+
+    partial void OnCloudBackupExistsChanged(bool value) => OnPropertyChanged(nameof(CanRestoreFromCloud));
 
     [RelayCommand]
     private async Task RefreshCloudAccountStateAsync()
@@ -87,15 +102,31 @@ public sealed partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task RefreshCloudBackupStatusAsync()
     {
-        var result = await _cloudBackupService.GetStatusAsync();
-        if (result.Success)
+        try
         {
-            CloudBackupExists = result.Exists;
-            LastCloudBackupAtUtc = result.LastBackupAtUtc;
+            var result = await _cloudBackupService.GetStatusAsync();
+            if (result.Success)
+            {
+                CloudBackupExists = result.Exists;
+                LastCloudBackupAtUtc = result.LastBackupAtUtc;
+            }
+            else if (result.Error == CloudBackupResultError.NotAuthenticated)
+            {
+                // Self-heal: this method is called from RefreshCloudAccountStateAsync, so calling
+                // it back here would recurse; setting the flags directly mirrors its else-branch.
+                IsCloudAuthenticated = false;
+                CloudAccountEmail = null;
+                CloudBackupExists = false;
+                LastCloudBackupAtUtc = null;
+            }
+            else
+            {
+                // A logged-out status check failing isn't noteworthy; anything else is.
+                CloudBackupErrorMessage = AppResources.CloudBackup_StatusError;
+            }
         }
-        else if (result.Error != CloudBackupResultError.NotAuthenticated)
+        catch (Exception)
         {
-            // A logged-out status check failing isn't noteworthy; anything else is.
             CloudBackupErrorMessage = AppResources.CloudBackup_StatusError;
         }
     }
@@ -122,7 +153,13 @@ public sealed partial class SettingsViewModel : ObservableObject
                 else
                 {
                     CloudBackupErrorMessage = MapBackupError(result.Error!.Value, isRestore: false);
+                    if (result.Error == CloudBackupResultError.NotAuthenticated)
+                        await RefreshCloudAccountStateAsync();
                 }
+            }
+            catch (Exception)
+            {
+                CloudBackupErrorMessage = AppResources.CloudBackup_UploadError;
             }
             finally
             {
@@ -163,7 +200,13 @@ public sealed partial class SettingsViewModel : ObservableObject
             else
             {
                 CloudBackupErrorMessage = MapBackupError(result.Error!.Value, isRestore: true);
+                if (result.Error == CloudBackupResultError.NotAuthenticated)
+                    await RefreshCloudAccountStateAsync();
             }
+        }
+        catch (Exception)
+        {
+            CloudBackupErrorMessage = AppResources.CloudBackup_RestoreError;
         }
         finally
         {
