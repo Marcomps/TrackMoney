@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TrackTraceMoney.Api.Auth;
+using TrackTraceMoney.Api.Backups;
 using TrackTraceMoney.Api.Persistence;
 using TrackTraceMoney.Api.Users;
 
@@ -36,6 +37,10 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Without this, the handler remaps short JWT claim names (e.g. "sub") to their long
+        // ClaimTypes.* URIs on the way in, which breaks any endpoint reading claims by their
+        // original JwtRegisteredClaimNames constant (see BackupEndpoints.GetUserId).
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -56,6 +61,7 @@ app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
+app.MapBackupEndpoints();
 
 app.Run();
 

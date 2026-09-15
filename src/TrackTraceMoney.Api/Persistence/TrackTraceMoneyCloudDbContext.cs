@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TrackTraceMoney.Api.Backups;
 using TrackTraceMoney.Api.Users;
 
 namespace TrackTraceMoney.Api.Persistence;
@@ -24,6 +25,8 @@ public sealed class TrackTraceMoneyCloudDbContext : DbContext
     }
 
     public DbSet<CloudUser> Users => Set<CloudUser>();
+
+    public DbSet<CloudBackup> Backups => Set<CloudBackup>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

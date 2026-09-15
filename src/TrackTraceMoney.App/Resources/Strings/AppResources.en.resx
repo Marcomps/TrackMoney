@@ -1357,4 +1357,55 @@
   <data name="CloudAccount_LogoutButton" xml:space="preserve">
     <value>Log out</value>
   </data>
+  <data name="CloudBackup_SectionTitle" xml:space="preserve">
+    <value>Cloud backup</value>
+  </data>
+  <data name="CloudBackup_BackupButton" xml:space="preserve">
+    <value>Back up to cloud</value>
+  </data>
+  <data name="CloudBackup_RestoreButton" xml:space="preserve">
+    <value>Restore from cloud</value>
+  </data>
+  <data name="CloudBackup_LastBackupKnown" xml:space="preserve">
+    <value>Last cloud backup: {0}</value>
+  </data>
+  <data name="CloudBackup_LastBackupNone" xml:space="preserve">
+    <value>No cloud backup yet.</value>
+  </data>
+  <data name="CloudBackup_UploadSuccess" xml:space="preserve">
+    <value>Backup uploaded to the cloud successfully.</value>
+  </data>
+  <data name="CloudBackup_UploadError" xml:space="preserve">
+    <value>Could not upload the backup to the cloud. Please try again.</value>
+  </data>
+  <data name="CloudBackup_RestoreConfirmTitle" xml:space="preserve">
+    <value>Restore from cloud</value>
+  </data>
+  <data name="CloudBackup_RestoreConfirmMessage" xml:space="preserve">
+    <value>This will replace all current app data with the backup stored in the cloud. This action cannot be undone. Do you want to continue?</value>
+  </data>
+  <data name="CloudBackup_RestoreConfirmAccept" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="CloudBackup_RestoreConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="CloudBackup_RestoreSuccess" xml:space="preserve">
+    <value>Backup restored from the cloud. Close and reopen the app for the restored data to take effect.</value>
+  </data>
+  <data name="CloudBackup_RestoreError" xml:space="preserve">
+    <value>Could not restore the backup from the cloud. Please try again.</value>
+  </data>
+  <data name="CloudBackup_NoBackupFoundError" xml:space="preserve">
+    <value>There is no cloud backup yet.</value>
+  </data>
+  <data name="CloudBackup_NotAuthenticatedError" xml:space="preserve">
+    <value>Your cloud session expired. Please log in again.</value>
+  </data>
+  <data name="CloudBackup_NetworkError" xml:space="preserve">
+    <value>Could not connect to the server. Check your connection.</value>
+  </data>
+  <data name="CloudBackup_StatusError" xml:space="preserve">
+    <value>Could not retrieve cloud backup status.</value>
+  </data>
 </root>

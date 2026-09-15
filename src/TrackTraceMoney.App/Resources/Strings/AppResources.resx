@@ -1357,4 +1357,55 @@
   <data name="CloudAccount_LogoutButton" xml:space="preserve">
     <value>Cerrar sesión</value>
   </data>
+  <data name="CloudBackup_SectionTitle" xml:space="preserve">
+    <value>Respaldo en la nube</value>
+  </data>
+  <data name="CloudBackup_BackupButton" xml:space="preserve">
+    <value>Respaldar en la nube</value>
+  </data>
+  <data name="CloudBackup_RestoreButton" xml:space="preserve">
+    <value>Restaurar desde la nube</value>
+  </data>
+  <data name="CloudBackup_LastBackupKnown" xml:space="preserve">
+    <value>Último respaldo en la nube: {0}</value>
+  </data>
+  <data name="CloudBackup_LastBackupNone" xml:space="preserve">
+    <value>Aún no hay respaldo en la nube.</value>
+  </data>
+  <data name="CloudBackup_UploadSuccess" xml:space="preserve">
+    <value>Respaldo enviado a la nube correctamente.</value>
+  </data>
+  <data name="CloudBackup_UploadError" xml:space="preserve">
+    <value>No se pudo enviar el respaldo a la nube. Inténtalo de nuevo.</value>
+  </data>
+  <data name="CloudBackup_RestoreConfirmTitle" xml:space="preserve">
+    <value>Restaurar desde la nube</value>
+  </data>
+  <data name="CloudBackup_RestoreConfirmMessage" xml:space="preserve">
+    <value>Esta acción reemplazará todos los datos actuales de la app con los del respaldo guardado en la nube. Esta operación no se puede deshacer. ¿Deseas continuar?</value>
+  </data>
+  <data name="CloudBackup_RestoreConfirmAccept" xml:space="preserve">
+    <value>Restaurar</value>
+  </data>
+  <data name="CloudBackup_RestoreConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="CloudBackup_RestoreSuccess" xml:space="preserve">
+    <value>Respaldo restaurado desde la nube. Cierra y vuelve a abrir la app para que los datos restaurados surtan efecto.</value>
+  </data>
+  <data name="CloudBackup_RestoreError" xml:space="preserve">
+    <value>No se pudo restaurar el respaldo desde la nube. Inténtalo de nuevo.</value>
+  </data>
+  <data name="CloudBackup_NoBackupFoundError" xml:space="preserve">
+    <value>No hay ningún respaldo en la nube todavía.</value>
+  </data>
+  <data name="CloudBackup_NotAuthenticatedError" xml:space="preserve">
+    <value>Tu sesión en la nube expiró. Inicia sesión de nuevo.</value>
+  </data>
+  <data name="CloudBackup_NetworkError" xml:space="preserve">
+    <value>No se pudo conectar con el servidor. Verifica tu conexión.</value>
+  </data>
+  <data name="CloudBackup_StatusError" xml:space="preserve">
+    <value>No se pudo obtener el estado del respaldo en la nube.</value>
+  </data>
 </root>

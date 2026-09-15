@@ -44,6 +44,26 @@
             <VerticalStackLayout IsVisible="{Binding IsCloudAuthenticated}" Spacing="12">
                 <Label Text="{Binding CloudAccountStatusText}" />
 
+                <Label Text="{x:Static resources:AppResources.CloudBackup_SectionTitle}"
+                       FontSize="18"
+                       FontAttributes="Bold" />
+
+                <Label Text="{Binding LastCloudBackupText}" />
+
+                <Button Text="{x:Static resources:AppResources.CloudBackup_BackupButton}"
+                        Command="{Binding BackupToCloudCommand}"
+                        HorizontalOptions="Fill" />
+
+                <Button Text="{x:Static resources:AppResources.CloudBackup_RestoreButton}"
+                        Command="{Binding RestoreFromCloudCommand}"
+                        IsEnabled="{Binding CloudBackupExists}"
+                        HorizontalOptions="Fill" />
+
+                <ActivityIndicator IsRunning="{Binding CloudBackupIsBusy}" IsVisible="{Binding CloudBackupIsBusy}" />
+
+                <Label Text="{Binding CloudBackupStatusMessage}" TextColor="Green" />
+                <Label Text="{Binding CloudBackupErrorMessage}" TextColor="Red" />
+
                 <Button Text="{x:Static resources:AppResources.CloudAccount_LogoutButton}"
                         Command="{Binding CloudLogoutCommand}"
                         HorizontalOptions="Fill" />

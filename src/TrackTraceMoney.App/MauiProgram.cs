@@ -43,6 +43,10 @@ public static class MauiProgram
 			client.BaseAddress = new Uri(CloudApiConfig.BaseUrl);
 			client.Timeout = TimeSpan.FromSeconds(15);
 		});
+		builder.Services.AddHttpClient<ICloudBackupService, CloudBackupService>(client =>
+		{
+			client.BaseAddress = new Uri(CloudApiConfig.BaseUrl);
+		});
 
 		builder.Services.AddSingleton<IIncomeCalculator, IncomeCalculator>();
 		builder.Services.AddSingleton<INetWorthCalculator, NetWorthCalculator>();

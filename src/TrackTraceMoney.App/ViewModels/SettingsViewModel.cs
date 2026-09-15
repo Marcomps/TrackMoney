@@ -11,6 +11,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 {
     private readonly ILocalBackupService _backupService;
     private readonly ICloudAuthService _cloudAuthService;
+    private readonly ICloudBackupService _cloudBackupService;
 
     [ObservableProperty]
     private string? errorMessage;
@@ -27,26 +28,156 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string? cloudAccountEmail;
 
-    public SettingsViewModel(ILocalBackupService backupService, ICloudAuthService cloudAuthService)
+    [ObservableProperty]
+    private bool cloudBackupIsBusy;
+
+    [ObservableProperty]
+    private string? cloudBackupErrorMessage;
+
+    [ObservableProperty]
+    private string? cloudBackupStatusMessage;
+
+    [ObservableProperty]
+    private bool cloudBackupExists;
+
+    [ObservableProperty]
+    private DateTimeOffset? lastCloudBackupAtUtc;
+
+    public SettingsViewModel(
+        ILocalBackupService backupService,
+        ICloudAuthService cloudAuthService,
+        ICloudBackupService cloudBackupService)
     {
         _backupService = backupService;
         _cloudAuthService = cloudAuthService;
+        _cloudBackupService = cloudBackupService;
     }
 
     public bool IsCloudUnauthenticated => !IsCloudAuthenticated;
 
     public string CloudAccountStatusText => string.Format(AppResources.CloudAccount_LoggedInAs, CloudAccountEmail);
 
+    public string LastCloudBackupText => LastCloudBackupAtUtc.HasValue
+        ? string.Format(AppResources.CloudBackup_LastBackupKnown, LastCloudBackupAtUtc)
+        : AppResources.CloudBackup_LastBackupNone;
+
     partial void OnIsCloudAuthenticatedChanged(bool value) => OnPropertyChanged(nameof(IsCloudUnauthenticated));
 
     partial void OnCloudAccountEmailChanged(string? value) => OnPropertyChanged(nameof(CloudAccountStatusText));
+
+    partial void OnLastCloudBackupAtUtcChanged(DateTimeOffset? value) => OnPropertyChanged(nameof(LastCloudBackupText));
 
     [RelayCommand]
     private async Task RefreshCloudAccountStateAsync()
     {
         IsCloudAuthenticated = await _cloudAuthService.IsAuthenticatedAsync();
         CloudAccountEmail = IsCloudAuthenticated ? await _cloudAuthService.GetCurrentEmailAsync() : null;
+
+        if (IsCloudAuthenticated)
+        {
+            await RefreshCloudBackupStatusAsync();
+        }
+        else
+        {
+            CloudBackupExists = false;
+            LastCloudBackupAtUtc = null;
+        }
     }
+
+    [RelayCommand]
+    private async Task RefreshCloudBackupStatusAsync()
+    {
+        var result = await _cloudBackupService.GetStatusAsync();
+        if (result.Success)
+        {
+            CloudBackupExists = result.Exists;
+            LastCloudBackupAtUtc = result.LastBackupAtUtc;
+        }
+        else if (result.Error != CloudBackupResultError.NotAuthenticated)
+        {
+            // A logged-out status check failing isn't noteworthy; anything else is.
+            CloudBackupErrorMessage = AppResources.CloudBackup_StatusError;
+        }
+    }
+
+    [RelayCommand]
+    private async Task BackupToCloudAsync()
+    {
+        CloudBackupIsBusy = true;
+        CloudBackupErrorMessage = null;
+        CloudBackupStatusMessage = null;
+        try
+        {
+            var tempPath = Path.Combine(FileSystem.CacheDirectory, $"cloud-backup-{Guid.NewGuid():N}.db3");
+            try
+            {
+                await _backupService.ExportAsync(tempPath);
+                var result = await _cloudBackupService.UploadAsync(tempPath);
+                if (result.Success)
+                {
+                    CloudBackupExists = true;
+                    LastCloudBackupAtUtc = result.LastBackupAtUtc;
+                    CloudBackupStatusMessage = AppResources.CloudBackup_UploadSuccess;
+                }
+                else
+                {
+                    CloudBackupErrorMessage = MapBackupError(result.Error!.Value, isRestore: false);
+                }
+            }
+            finally
+            {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
+        }
+        finally
+        {
+            CloudBackupIsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task RestoreFromCloudAsync()
+    {
+        var confirmed = await Shell.Current.DisplayAlertAsync(
+            AppResources.CloudBackup_RestoreConfirmTitle,
+            AppResources.CloudBackup_RestoreConfirmMessage,
+            AppResources.CloudBackup_RestoreConfirmAccept,
+            AppResources.CloudBackup_RestoreConfirmCancel);
+
+        if (!confirmed)
+            return;
+
+        CloudBackupIsBusy = true;
+        CloudBackupErrorMessage = null;
+        CloudBackupStatusMessage = null;
+        try
+        {
+            var result = await _cloudBackupService.DownloadAsync();
+            if (result.Success)
+            {
+                await using var stream = result.Data!;
+                await _backupService.RestoreAsync(stream);
+                CloudBackupStatusMessage = AppResources.CloudBackup_RestoreSuccess;
+            }
+            else
+            {
+                CloudBackupErrorMessage = MapBackupError(result.Error!.Value, isRestore: true);
+            }
+        }
+        finally
+        {
+            CloudBackupIsBusy = false;
+        }
+    }
+
+    private static string MapBackupError(CloudBackupResultError error, bool isRestore) => error switch
+    {
+        CloudBackupResultError.NotAuthenticated => AppResources.CloudBackup_NotAuthenticatedError,
+        CloudBackupResultError.NetworkUnavailable => AppResources.CloudBackup_NetworkError,
+        CloudBackupResultError.NoBackupFound when isRestore => AppResources.CloudBackup_NoBackupFoundError,
+        _ => isRestore ? AppResources.CloudBackup_RestoreError : AppResources.CloudBackup_UploadError
+    };
 
     [RelayCommand]
     private static async Task GoToCloudLoginAsync()
