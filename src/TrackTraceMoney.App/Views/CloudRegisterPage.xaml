@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.CloudRegisterPage"
+             x:DataType="viewModels:CloudRegisterViewModel"
+             Title="{x:Static resources:AppResources.CloudRegister_Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="{x:Static resources:AppResources.CloudRegister_EmailLabel}" />
+            <Entry Text="{Binding Email}"
+                   Keyboard="Email"
+                   Placeholder="{x:Static resources:AppResources.CloudRegister_EmailPlaceholder}" />
+
+            <Label Text="{x:Static resources:AppResources.CloudRegister_PasswordLabel}" />
+            <Entry Text="{Binding Password}"
+                   IsPassword="True"
+                   Placeholder="{x:Static resources:AppResources.CloudRegister_PasswordPlaceholder}" />
+
+            <Label Text="{x:Static resources:AppResources.CloudRegister_ConfirmPasswordLabel}" />
+            <Entry Text="{Binding ConfirmPassword}"
+                   IsPassword="True"
+                   Placeholder="{x:Static resources:AppResources.CloudRegister_ConfirmPasswordPlaceholder}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+            <Button Text="{x:Static resources:AppResources.CloudRegister_SubmitButton}"
+                    Command="{Binding RegisterCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.CloudRegister_CancelButton}"
+                    Command="{Binding CancelCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Label Text="{x:Static resources:AppResources.CloudRegister_GoToLoginLink}">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToLoginCommand}" />
+                </Label.GestureRecognizers>
+            </Label>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

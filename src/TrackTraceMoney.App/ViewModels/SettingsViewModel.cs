@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TrackTraceMoney.App.Resources.Strings;
+using TrackTraceMoney.App.Services.Cloud;
+using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 
 namespace TrackTraceMoney.App.ViewModels;
@@ -8,6 +10,7 @@ namespace TrackTraceMoney.App.ViewModels;
 public sealed partial class SettingsViewModel : ObservableObject
 {
     private readonly ILocalBackupService _backupService;
+    private readonly ICloudAuthService _cloudAuthService;
 
     [ObservableProperty]
     private string? errorMessage;
@@ -18,9 +21,50 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool isBusy;
 
-    public SettingsViewModel(ILocalBackupService backupService)
+    [ObservableProperty]
+    private bool isCloudAuthenticated;
+
+    [ObservableProperty]
+    private string? cloudAccountEmail;
+
+    public SettingsViewModel(ILocalBackupService backupService, ICloudAuthService cloudAuthService)
     {
         _backupService = backupService;
+        _cloudAuthService = cloudAuthService;
+    }
+
+    public bool IsCloudUnauthenticated => !IsCloudAuthenticated;
+
+    public string CloudAccountStatusText => string.Format(AppResources.CloudAccount_LoggedInAs, CloudAccountEmail);
+
+    partial void OnIsCloudAuthenticatedChanged(bool value) => OnPropertyChanged(nameof(IsCloudUnauthenticated));
+
+    partial void OnCloudAccountEmailChanged(string? value) => OnPropertyChanged(nameof(CloudAccountStatusText));
+
+    [RelayCommand]
+    private async Task RefreshCloudAccountStateAsync()
+    {
+        IsCloudAuthenticated = await _cloudAuthService.IsAuthenticatedAsync();
+        CloudAccountEmail = IsCloudAuthenticated ? await _cloudAuthService.GetCurrentEmailAsync() : null;
+    }
+
+    [RelayCommand]
+    private static async Task GoToCloudLoginAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(CloudLoginPage));
+    }
+
+    [RelayCommand]
+    private static async Task GoToCloudRegisterAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(CloudRegisterPage));
+    }
+
+    [RelayCommand]
+    private async Task CloudLogoutAsync()
+    {
+        await _cloudAuthService.LogoutAsync();
+        await RefreshCloudAccountStateAsync();
     }
 
     [RelayCommand]

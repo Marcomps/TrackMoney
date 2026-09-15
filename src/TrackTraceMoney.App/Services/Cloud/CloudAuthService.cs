@@ -73,6 +73,16 @@ public sealed class CloudAuthService : ICloudAuthService
         return expiresAtUtc > DateTimeOffset.UtcNow ? token : null;
     }
 
+    public async Task<string?> GetCurrentEmailAsync(CancellationToken ct = default)
+    {
+        // Mirrors GetAccessTokenAsync's validity check — a missing/expired session has no
+        // "current" email even if a stale value is still sitting in secure storage.
+        if (await GetAccessTokenAsync(ct) is null)
+            return null;
+
+        return await _secureStorage.GetAsync(EmailKey);
+    }
+
     private async Task<CloudAuthResult> SendAndMapAsync(string relativePath, HttpContent content, CancellationToken ct)
     {
         HttpResponseMessage response;

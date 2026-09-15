@@ -119,6 +119,10 @@ public static class MauiProgram
 
 		builder.Services.AddTransient<SettingsViewModel>();
 		builder.Services.AddTransient<SettingsPage>();
+		builder.Services.AddTransient<CloudLoginViewModel>();
+		builder.Services.AddTransient<CloudLoginPage>();
+		builder.Services.AddTransient<CloudRegisterViewModel>();
+		builder.Services.AddTransient<CloudRegisterPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();

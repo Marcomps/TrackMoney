@@ -27,5 +27,7 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(InvestmentFundDetailPage), typeof(InvestmentFundDetailPage));
 		Routing.RegisterRoute(nameof(RecordInvestmentValuationPage), typeof(RecordInvestmentValuationPage));
 		Routing.RegisterRoute(nameof(NetWorthPage), typeof(NetWorthPage));
+		Routing.RegisterRoute(nameof(CloudLoginPage), typeof(CloudLoginPage));
+		Routing.RegisterRoute(nameof(CloudRegisterPage), typeof(CloudRegisterPage));
 	}
 }

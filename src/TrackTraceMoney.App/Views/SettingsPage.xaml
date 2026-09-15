@@ -27,6 +27,28 @@
             <Label Text="{Binding StatusMessage}" TextColor="Green" />
             <Label Text="{Binding ErrorMessage}" TextColor="Red" />
 
+            <Label Text="{x:Static resources:AppResources.CloudAccount_SectionTitle}"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+
+            <VerticalStackLayout IsVisible="{Binding IsCloudUnauthenticated}" Spacing="12">
+                <Button Text="{x:Static resources:AppResources.CloudAccount_LoginButton}"
+                        Command="{Binding GoToCloudLoginCommand}"
+                        HorizontalOptions="Fill" />
+
+                <Button Text="{x:Static resources:AppResources.CloudAccount_RegisterButton}"
+                        Command="{Binding GoToCloudRegisterCommand}"
+                        HorizontalOptions="Fill" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding IsCloudAuthenticated}" Spacing="12">
+                <Label Text="{Binding CloudAccountStatusText}" />
+
+                <Button Text="{x:Static resources:AppResources.CloudAccount_LogoutButton}"
+                        Command="{Binding CloudLogoutCommand}"
+                        HorizontalOptions="Fill" />
+            </VerticalStackLayout>
+
         </VerticalStackLayout>
     </ScrollView>
 

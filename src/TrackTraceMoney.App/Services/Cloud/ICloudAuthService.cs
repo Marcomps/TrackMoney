@@ -7,4 +7,5 @@ public interface ICloudAuthService
     Task LogoutAsync(CancellationToken ct = default);
     Task<bool> IsAuthenticatedAsync(CancellationToken ct = default);
     Task<string?> GetAccessTokenAsync(CancellationToken ct = default);
+    Task<string?> GetCurrentEmailAsync(CancellationToken ct = default);
 }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.CloudLoginPage"
+             x:DataType="viewModels:CloudLoginViewModel"
+             Title="{x:Static resources:AppResources.CloudLogin_Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="{x:Static resources:AppResources.CloudLogin_EmailLabel}" />
+            <Entry Text="{Binding Email}"
+                   Keyboard="Email"
+                   Placeholder="{x:Static resources:AppResources.CloudLogin_EmailPlaceholder}" />
+
+            <Label Text="{x:Static resources:AppResources.CloudLogin_PasswordLabel}" />
+            <Entry Text="{Binding Password}"
+                   IsPassword="True"
+                   Placeholder="{x:Static resources:AppResources.CloudLogin_PasswordPlaceholder}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+            <Button Text="{x:Static resources:AppResources.CloudLogin_SubmitButton}"
+                    Command="{Binding LoginCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.CloudLogin_CancelButton}"
+                    Command="{Binding CancelCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Label Text="{x:Static resources:AppResources.CloudLogin_GoToRegisterLink}">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToRegisterCommand}" />
+                </Label.GestureRecognizers>
+            </Label>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

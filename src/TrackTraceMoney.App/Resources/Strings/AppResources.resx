@@ -1258,4 +1258,103 @@
   <data name="MedicalExpenseDetail_ConfirmRejectCancel" xml:space="preserve">
     <value>Cancelar</value>
   </data>
+  <data name="CloudAuth_ValidationEmailRequired" xml:space="preserve">
+    <value>Ingresa tu correo electrónico.</value>
+  </data>
+  <data name="CloudAuth_ValidationPasswordRequired" xml:space="preserve">
+    <value>Ingresa tu contraseña.</value>
+  </data>
+  <data name="CloudAuth_ErrorValidationFailed" xml:space="preserve">
+    <value>Los datos ingresados no son válidos. Verifica el correo y la contraseña.</value>
+  </data>
+  <data name="CloudAuth_ErrorNetworkUnavailable" xml:space="preserve">
+    <value>No se pudo conectar. Verifica tu conexión a internet e inténtalo de nuevo.</value>
+  </data>
+  <data name="CloudAuth_ErrorUnknown" xml:space="preserve">
+    <value>Ocurrió un error inesperado. Inténtalo de nuevo.</value>
+  </data>
+  <data name="CloudLogin_Title" xml:space="preserve">
+    <value>Iniciar sesión</value>
+  </data>
+  <data name="CloudLogin_EmailLabel" xml:space="preserve">
+    <value>Correo electrónico</value>
+  </data>
+  <data name="CloudLogin_EmailPlaceholder" xml:space="preserve">
+    <value>tu@correo.com</value>
+  </data>
+  <data name="CloudLogin_PasswordLabel" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="CloudLogin_PasswordPlaceholder" xml:space="preserve">
+    <value>Tu contraseña</value>
+  </data>
+  <data name="CloudLogin_SubmitButton" xml:space="preserve">
+    <value>Iniciar sesión</value>
+  </data>
+  <data name="CloudLogin_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="CloudLogin_GoToRegisterLink" xml:space="preserve">
+    <value>¿No tienes cuenta? Crear una</value>
+  </data>
+  <data name="CloudLogin_ErrorInvalidCredentials" xml:space="preserve">
+    <value>Correo electrónico o contraseña incorrectos.</value>
+  </data>
+  <data name="CloudRegister_Title" xml:space="preserve">
+    <value>Crear cuenta</value>
+  </data>
+  <data name="CloudRegister_EmailLabel" xml:space="preserve">
+    <value>Correo electrónico</value>
+  </data>
+  <data name="CloudRegister_EmailPlaceholder" xml:space="preserve">
+    <value>tu@correo.com</value>
+  </data>
+  <data name="CloudRegister_PasswordLabel" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="CloudRegister_PasswordPlaceholder" xml:space="preserve">
+    <value>Mínimo 8 caracteres</value>
+  </data>
+  <data name="CloudRegister_ConfirmPasswordLabel" xml:space="preserve">
+    <value>Confirmar contraseña</value>
+  </data>
+  <data name="CloudRegister_ConfirmPasswordPlaceholder" xml:space="preserve">
+    <value>Repite tu contraseña</value>
+  </data>
+  <data name="CloudRegister_SubmitButton" xml:space="preserve">
+    <value>Crear cuenta</value>
+  </data>
+  <data name="CloudRegister_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="CloudRegister_GoToLoginLink" xml:space="preserve">
+    <value>¿Ya tienes cuenta? Inicia sesión</value>
+  </data>
+  <data name="CloudRegister_ErrorDuplicateEmail" xml:space="preserve">
+    <value>Ya existe una cuenta con este correo electrónico.</value>
+  </data>
+  <data name="CloudRegister_ValidationEmailInvalid" xml:space="preserve">
+    <value>Ingresa un correo electrónico válido.</value>
+  </data>
+  <data name="CloudRegister_ValidationPasswordTooShort" xml:space="preserve">
+    <value>La contraseña debe tener al menos 8 caracteres.</value>
+  </data>
+  <data name="CloudRegister_ValidationPasswordMismatch" xml:space="preserve">
+    <value>Las contraseñas no coinciden.</value>
+  </data>
+  <data name="CloudAccount_SectionTitle" xml:space="preserve">
+    <value>Cuenta en la nube</value>
+  </data>
+  <data name="CloudAccount_LoginButton" xml:space="preserve">
+    <value>Iniciar sesión</value>
+  </data>
+  <data name="CloudAccount_RegisterButton" xml:space="preserve">
+    <value>Crear cuenta</value>
+  </data>
+  <data name="CloudAccount_LoggedInAs" xml:space="preserve">
+    <value>Sesión iniciada como {0}</value>
+  </data>
+  <data name="CloudAccount_LogoutButton" xml:space="preserve">
+    <value>Cerrar sesión</value>
+  </data>
 </root>
