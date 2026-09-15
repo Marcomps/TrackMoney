@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TrackTraceMoney.App.Services;
+using TrackTraceMoney.App.Services.Cloud;
 using TrackTraceMoney.App.ViewModels;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
@@ -35,6 +36,13 @@ public static class MauiProgram
 
 		var dbPath = Path.Combine(FileSystem.AppDataDirectory, "tracktracemoney.db3");
 		builder.Services.AddTrackTraceMoneyInfrastructure($"Data Source={dbPath}");
+
+		builder.Services.AddSingleton(SecureStorage.Default);
+		builder.Services.AddHttpClient<ICloudAuthService, CloudAuthService>(client =>
+		{
+			client.BaseAddress = new Uri(CloudApiConfig.BaseUrl);
+			client.Timeout = TimeSpan.FromSeconds(15);
+		});
 
 		builder.Services.AddSingleton<IIncomeCalculator, IncomeCalculator>();
 		builder.Services.AddSingleton<INetWorthCalculator, NetWorthCalculator>();
