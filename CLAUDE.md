@@ -12,7 +12,7 @@ Read `README.md` before implementing anything; it is the authoritative spec (52 
 
 - **Frontend**: .NET MAUI (net10.0-android — Android-only for now; iOS/Mac Catalyst/Windows TFMs intentionally omitted from `TrackTraceMoney.App.csproj`, add back when those platforms are in scope), C#, XAML, MVVM, `CommunityToolkit.Mvvm` 8.4.2, `CommunityToolkit.Maui` 15.0.1
 - **Persistence**: SQLite via `Microsoft.EntityFrameworkCore.Sqlite` 10.0.11 (+ `.Design` for migrations) in `TrackTraceMoney.Infrastructure` — SQLite is the on-device source of truth, not a cache
-- **Future backend** (not part of MVP): ASP.NET Core Web API, PostgreSQL, Docker
+- **Cloud backend** (Phase 4, scaffolding only as of this writing — no auth/backup/sync endpoints yet): `TrackTraceMoney.Api`, an ASP.NET Core Web API (net10.0) with its own PostgreSQL persistence via `Npgsql.EntityFrameworkCore.PostgreSQL` (`TrackTraceMoneyCloudDbContext`, entirely separate from the on-device SQLite `TrackTraceMoneyDbContext`). Local dev Postgres runs via `docker-compose.yml` at the repo root — see the Commands section below.
 - **SDK**: .NET 10 (10.0.400). `Microsoft.Maui.Controls` is pinned explicitly to `10.0.100` in `TrackTraceMoney.App.csproj` rather than left on `$(MauiVersion)`, because the installed `maui-windows` workload manifest still resolves that MSBuild property to `10.0.20`, which is older than what `CommunityToolkit.Maui` 15.x requires (`>=10.0.60`). If workload updates ever bump `$(MauiVersion)` past `10.0.100`, it's safe to switch back to `$(MauiVersion)`.
 - `MauiProgram.cs` chains `.UseMauiCommunityToolkit()` after `.UseMauiApp<App>()` — required by CommunityToolkit.Maui's `MCT001` analyzer; don't drop it when touching that file.
 
@@ -20,7 +20,13 @@ Read `README.md` before implementing anything; it is the authoritative spec (52 
 
 ```
 TrackTraceMoney.slnx               # .NET 10's XML solution format — not a classic .sln
+docker-compose.yml                 # local dev PostgreSQL for TrackTraceMoney.Api only — dev-only credentials, not for any real deployment
 src/
+  TrackTraceMoney.Api/             # ASP.NET Core Web API — net10.0, refs Application + Domain (NOT Infrastructure/App).
+                                    #   Own PostgreSQL persistence (Persistence/TrackTraceMoneyCloudDbContext) and own
+                                    #   Migrations/ folder — separate from Infrastructure's on-device SQLite context.
+                                    #   Phase 4 scaffolding only as of this writing: one unauthenticated /health endpoint,
+                                    #   an empty placeholder "InitialCreate" migration. No auth/backup/sync endpoints yet.
   TrackTraceMoney.App/             # MAUI Views, ViewModels, Resources, Navigation, Styles — net10.0-android. Also the only project
                                     #   that can host Android-specific code (e.g. local notifications via NotificationCompat),
                                     #   since Infrastructure is net10.0-only and has no Android SDK reference.
@@ -33,9 +39,9 @@ tests/
   TrackTraceMoney.Infrastructure.Tests/ # xUnit, refs Infrastructure + Application + Domain
 ```
 
-`TrackTraceMoney.Api` (future backend, roadmap Phase 4) does not exist yet — do not add it before that phase is actually scoped.
+No `TrackTraceMoney.Api.Tests` project yet — deliberately deferred until the Api project has real logic worth testing (the skeleton's only endpoint is a built-in health check).
 
-Reference direction: `App` → `Infrastructure`/`Application`/`Domain`; `Infrastructure` → `Application`/`Domain`; `Application` → `Domain`. Domain has zero project references. Keep it that way — business rules and entities must not depend on EF Core, MAUI, or any I/O concern.
+Reference direction: `App` → `Infrastructure`/`Application`/`Domain`; `Infrastructure` → `Application`/`Domain`; `Api` → `Application`/`Domain`; `Application` → `Domain`. Domain has zero project references. Keep it that way — business rules and entities must not depend on EF Core, MAUI, or any I/O concern. `Api` and `Infrastructure` are siblings, not layered on each other — the Api project must never reference `Infrastructure` (on-device SQLite store) or `App` (MAUI client).
 
 ## Commands
 
@@ -47,6 +53,18 @@ dotnet test --filter FullyQualifiedName~ClassName.MethodName  # run a single tes
 ```
 
 Building `TrackTraceMoney.App` produces an Android build; there's no emulator/device wiring set up yet, so `dotnet build` verifies compilation only, not that the app runs.
+
+### Local dev PostgreSQL (`TrackTraceMoney.Api`, Phase 4)
+
+Local dev only — not used for production/staging, and D4 (production hosting target) is still an open decision.
+
+```
+docker compose up -d                # start local Postgres (named volume persists data across restarts)
+dotnet ef database update --project src/TrackTraceMoney.Api --startup-project src/TrackTraceMoney.Api
+docker compose down                 # stop (data survives); add -v to also wipe the local dev volume
+```
+
+Unlike `TrackTraceMoney.Infrastructure` (see the `ef-core-migration` skill), `TrackTraceMoney.Api` is a normal runnable ASP.NET Core host, so it can be its own EF `--project`/`--startup-project` with no `IDesignTimeDbContextFactory` workaround needed — `dotnet-ef` discovers `TrackTraceMoneyCloudDbContext` straight from `Program.cs`'s `builder.Services.AddDbContext<...>()` registration. Connection string comes from `appsettings.Development.json`'s `ConnectionStrings:CloudDatabase` (dev-only throwaway credentials, matching `docker-compose.yml`) — never hardcode real credentials into committed source.
 
 ## Non-obvious domain rules (easy to get wrong)
 

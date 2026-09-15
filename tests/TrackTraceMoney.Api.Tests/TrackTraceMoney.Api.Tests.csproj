@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <!-- Explicit version pin, matching TrackTraceMoney.Api.csproj's Microsoft.EntityFrameworkCore.Design
+         pin. Required even though this project doesn't call EF Core APIs directly beyond
+         Database.MigrateAsync(): TrackTraceMoney.Api.csproj's Design package reference is
+         PrivateAssets="all", so its version pin doesn't flow through the ProjectReference below,
+         and this project's own restore graph would otherwise float to the lowest version
+         Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3 allows (10.0.4) — which doesn't match the
+         10.0.11 assembly TrackTraceMoney.Api.dll actually compiled against, causing a CS1705
+         assembly-identity mismatch at build time. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.15.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- First test project referencing a src/ project directly (Api, not Domain/Application/
+         Infrastructure) — this project is scoped to TrackTraceMoney.Api's own auth slice, not the
+         on-device domain layers the other three test projects cover. -->
+    <ProjectReference Include="..\..\src\TrackTraceMoney.Api\TrackTraceMoney.Api.csproj" />
+  </ItemGroup>
+
+</Project>

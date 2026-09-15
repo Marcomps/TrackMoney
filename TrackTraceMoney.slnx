@@ -1,11 +1,13 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/TrackTraceMoney.Api/TrackTraceMoney.Api.csproj" />
     <Project Path="src/TrackTraceMoney.App/TrackTraceMoney.App.csproj" />
     <Project Path="src/TrackTraceMoney.Application/TrackTraceMoney.Application.csproj" />
     <Project Path="src/TrackTraceMoney.Domain/TrackTraceMoney.Domain.csproj" />
     <Project Path="src/TrackTraceMoney.Infrastructure/TrackTraceMoney.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/TrackTraceMoney.Api.Tests/TrackTraceMoney.Api.Tests.csproj" />
     <Project Path="tests/TrackTraceMoney.Application.Tests/TrackTraceMoney.Application.Tests.csproj" />
     <Project Path="tests/TrackTraceMoney.Domain.Tests/TrackTraceMoney.Domain.Tests.csproj" />
     <Project Path="tests/TrackTraceMoney.Infrastructure.Tests/TrackTraceMoney.Infrastructure.Tests.csproj" />

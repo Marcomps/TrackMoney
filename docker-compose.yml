@@ -1,0 +1,43 @@
+# Local development infrastructure ONLY — not used for production/staging deployment
+# (Phase 4's production hosting target is still an open decision, tracked separately;
+# see CLAUDE.md / the Phase 4 roadmap notes).
+#
+# Spins up a local PostgreSQL instance for TrackTraceMoney.Api's cloud-side EF Core context
+# (TrackTraceMoneyCloudDbContext). This is entirely separate from the MAUI app's on-device
+# SQLite database, which never needs Docker/Postgres.
+#
+# Usage:
+#   docker compose up -d          # start Postgres in the background
+#   docker compose down           # stop it (data survives, kept in the named volume below)
+#   docker compose down -v        # stop it AND wipe the local dev data
+#
+# After the container is healthy, apply the placeholder EF Core migration from the repo root:
+#   dotnet ef database update --project src/TrackTraceMoney.Api --startup-project src/TrackTraceMoney.Api
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tracktracemoney-postgres-dev
+    restart: unless-stopped
+    environment:
+      # Dev-only throwaway credentials — never used for any real deployment. Matches
+      # src/TrackTraceMoney.Api/appsettings.Development.json's "CloudDatabase" connection string.
+      POSTGRES_DB: tracktracemoney_dev
+      POSTGRES_USER: tracktracemoney_dev
+      POSTGRES_PASSWORD: tracktracemoney_dev_only
+    ports:
+      # Standard PostgreSQL port. No known conflict on a fresh dev machine; if your machine already
+      # runs Postgres on 5432, override with e.g. "5433:5432" and update the Api project's
+      # "CloudDatabase" connection string's Port accordingly.
+      - "5432:5432"
+    volumes:
+      # Named volume so container restarts/recreates don't lose local dev data.
+      - tracktracemoney-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tracktracemoney_dev -d tracktracemoney_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tracktracemoney-postgres-data:
