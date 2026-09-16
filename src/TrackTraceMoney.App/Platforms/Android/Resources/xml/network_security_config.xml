@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android blocks cleartext (plain HTTP) traffic by default for apps targeting API 28+.
+  ICloudAuthService/ICloudBackupService's CloudApiConfig.BaseUrl points at 10.0.2.2 — the
+  Android emulator's documented host-loopback alias, used only for local dev/testing against
+  a `dotnet run` TrackTraceMoney.Api instance (see CloudApiConfig.cs). That address has no
+  meaning outside an Android emulator's virtual network, so permitting cleartext to it
+  specifically does not weaken security for any real deployment target.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

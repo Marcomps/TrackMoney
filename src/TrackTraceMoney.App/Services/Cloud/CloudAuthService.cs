@@ -30,18 +30,18 @@ public sealed class CloudAuthService : ICloudAuthService
         _secureStorage = secureStorage;
     }
 
-    public Task<CloudAuthResult> RegisterAsync(string email, string password, CancellationToken ct = default)
+    public async Task<CloudAuthResult> RegisterAsync(string email, string password, CancellationToken ct = default)
     {
         var json = JsonSerializer.Serialize(new CloudRegisterRequestDto(email, password), JsonOptions);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
-        return SendAndMapAsync("/api/auth/register", content, ct);
+        return await SendAndMapAsync("/api/auth/register", content, ct);
     }
 
-    public Task<CloudAuthResult> LoginAsync(string email, string password, CancellationToken ct = default)
+    public async Task<CloudAuthResult> LoginAsync(string email, string password, CancellationToken ct = default)
     {
         var json = JsonSerializer.Serialize(new CloudLoginRequestDto(email, password), JsonOptions);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
-        return SendAndMapAsync("/api/auth/login", content, ct);
+        return await SendAndMapAsync("/api/auth/login", content, ct);
     }
 
     public Task LogoutAsync(CancellationToken ct = default)
