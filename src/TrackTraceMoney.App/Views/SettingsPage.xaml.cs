@@ -17,5 +17,6 @@ public partial class SettingsPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.RefreshCloudAccountStateCommand.Execute(null);
+        _viewModel.RefreshProfileSummaryCommand.Execute(null);
     }
 }

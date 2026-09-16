@@ -847,6 +847,111 @@
   <data name="Notification_TermDepositRenewed_Body" xml:space="preserve">
     <value>Tu depósito en {0} se renovó automáticamente por {1} {2}. Nuevo vencimiento: {3}.</value>
   </data>
+  <data name="Profiles_SectionTitle" xml:space="preserve">
+    <value>Perfiles</value>
+  </data>
+  <data name="Profiles_ActiveProfileLabel" xml:space="preserve">
+    <value>Perfil activo: {0}</value>
+  </data>
+  <data name="Profiles_ManageButton" xml:space="preserve">
+    <value>Administrar perfiles</value>
+  </data>
+  <data name="Profiles_LocalBackupScopeNotice" xml:space="preserve">
+    <value>Este respaldo incluye únicamente al perfil activo.</value>
+  </data>
+  <data name="Profiles_CloudSharedNotice" xml:space="preserve">
+    <value>Tu cuenta en la nube se comparte entre todos los perfiles de este dispositivo; el respaldo en la nube siempre corresponde al perfil activo.</value>
+  </data>
+  <data name="Profiles_MigratedDefaultName" xml:space="preserve">
+    <value>Mi perfil</value>
+  </data>
+  <data name="ProfilesList_Title" xml:space="preserve">
+    <value>Perfiles</value>
+  </data>
+  <data name="ProfilesList_Empty" xml:space="preserve">
+    <value>Aún no has creado ningún perfil.</value>
+  </data>
+  <data name="ProfilesList_ActiveBadge" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="ProfilesList_AddButton" xml:space="preserve">
+    <value>Agregar perfil</value>
+  </data>
+  <data name="ProfilesList_SwitchConfirmTitle" xml:space="preserve">
+    <value>Cambiar de perfil</value>
+  </data>
+  <data name="ProfilesList_SwitchConfirmMessage" xml:space="preserve">
+    <value>Vas a cambiar al perfil "{0}". Deberás cerrar y volver a abrir la app para que el cambio surta efecto. ¿Deseas continuar?</value>
+  </data>
+  <data name="ProfilesList_SwitchConfirmAccept" xml:space="preserve">
+    <value>Cambiar</value>
+  </data>
+  <data name="ProfilesList_SwitchConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="ProfilesList_SwitchedMessage" xml:space="preserve">
+    <value>Perfil actualizado. Cierra y vuelve a abrir la app para continuar con "{0}".</value>
+  </data>
+  <data name="ProfilesList_DeleteButton" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="ProfilesList_DeleteConfirmTitle" xml:space="preserve">
+    <value>Eliminar perfil</value>
+  </data>
+  <data name="ProfilesList_DeleteConfirmMessage" xml:space="preserve">
+    <value>Esto eliminará permanentemente el perfil "{0}" y todos sus datos (cuentas, transacciones, presupuestos, etc.). Esta operación no se puede deshacer. ¿Deseas continuar?</value>
+  </data>
+  <data name="ProfilesList_DeleteConfirmAccept" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="ProfilesList_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="ProfilesList_DeleteActiveProfileNotice" xml:space="preserve">
+    <value>Este es tu perfil activo. Después de eliminarlo deberás cerrar y volver a abrir la app.</value>
+  </data>
+  <data name="ProfilesList_DeletedMessage" xml:space="preserve">
+    <value>Perfil eliminado.</value>
+  </data>
+  <data name="ProfilesList_Error" xml:space="preserve">
+    <value>No se pudo completar la acción. Inténtalo de nuevo.</value>
+  </data>
+  <data name="AddProfile_Title" xml:space="preserve">
+    <value>Agregar perfil</value>
+  </data>
+  <data name="AddProfile_NameLabel" xml:space="preserve">
+    <value>Nombre del perfil</value>
+  </data>
+  <data name="AddProfile_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="AddProfile_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddProfile_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="AddProfile_Error" xml:space="preserve">
+    <value>No se pudo guardar el perfil. Inténtalo de nuevo.</value>
+  </data>
+  <data name="CreateFirstProfile_Title" xml:space="preserve">
+    <value>Bienvenido a TrackTrace Money</value>
+  </data>
+  <data name="CreateFirstProfile_Intro" xml:space="preserve">
+    <value>Todo se guarda solo en este dispositivo. Puedes crear varios perfiles, por ejemplo uno por cada integrante de la familia, cada uno con su propia información.</value>
+  </data>
+  <data name="CreateFirstProfile_NameLabel" xml:space="preserve">
+    <value>¿Cómo te llamamos?</value>
+  </data>
+  <data name="CreateFirstProfile_SaveButton" xml:space="preserve">
+    <value>Comenzar</value>
+  </data>
+  <data name="CreateFirstProfile_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="CreateFirstProfile_Error" xml:space="preserve">
+    <value>No se pudo crear tu perfil. Inténtalo de nuevo.</value>
+  </data>
   <data name="CreditCards_ViewLoansButton" xml:space="preserve">
     <value>Ver préstamos</value>
   </data>

@@ -29,5 +29,9 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(NetWorthPage), typeof(NetWorthPage));
 		Routing.RegisterRoute(nameof(CloudLoginPage), typeof(CloudLoginPage));
 		Routing.RegisterRoute(nameof(CloudRegisterPage), typeof(CloudRegisterPage));
+		Routing.RegisterRoute(nameof(ProfilesListPage), typeof(ProfilesListPage));
+		Routing.RegisterRoute(nameof(AddProfilePage), typeof(AddProfilePage));
+		// CreateFirstProfilePage deliberately has no route here -- it's never navigated to via Shell,
+		// only ever constructed directly as the app's initial root page (see App.xaml.cs).
 	}
 }

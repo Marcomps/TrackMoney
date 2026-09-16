@@ -1408,4 +1408,109 @@
   <data name="CloudBackup_StatusError" xml:space="preserve">
     <value>Could not retrieve cloud backup status.</value>
   </data>
+  <data name="Profiles_SectionTitle" xml:space="preserve">
+    <value>Profiles</value>
+  </data>
+  <data name="Profiles_ActiveProfileLabel" xml:space="preserve">
+    <value>Active profile: {0}</value>
+  </data>
+  <data name="Profiles_ManageButton" xml:space="preserve">
+    <value>Manage profiles</value>
+  </data>
+  <data name="Profiles_LocalBackupScopeNotice" xml:space="preserve">
+    <value>This backup includes only the active profile.</value>
+  </data>
+  <data name="Profiles_CloudSharedNotice" xml:space="preserve">
+    <value>Your cloud account is shared across every profile on this device; cloud backup always applies to whichever profile is currently active.</value>
+  </data>
+  <data name="Profiles_MigratedDefaultName" xml:space="preserve">
+    <value>My profile</value>
+  </data>
+  <data name="ProfilesList_Title" xml:space="preserve">
+    <value>Profiles</value>
+  </data>
+  <data name="ProfilesList_Empty" xml:space="preserve">
+    <value>You haven't created any profiles yet.</value>
+  </data>
+  <data name="ProfilesList_ActiveBadge" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="ProfilesList_AddButton" xml:space="preserve">
+    <value>Add profile</value>
+  </data>
+  <data name="ProfilesList_SwitchConfirmTitle" xml:space="preserve">
+    <value>Switch profile</value>
+  </data>
+  <data name="ProfilesList_SwitchConfirmMessage" xml:space="preserve">
+    <value>You're about to switch to the "{0}" profile. You'll need to close and reopen the app for the change to take effect. Do you want to continue?</value>
+  </data>
+  <data name="ProfilesList_SwitchConfirmAccept" xml:space="preserve">
+    <value>Switch</value>
+  </data>
+  <data name="ProfilesList_SwitchConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="ProfilesList_SwitchedMessage" xml:space="preserve">
+    <value>Profile updated. Close and reopen the app to continue with "{0}".</value>
+  </data>
+  <data name="ProfilesList_DeleteButton" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ProfilesList_DeleteConfirmTitle" xml:space="preserve">
+    <value>Delete profile</value>
+  </data>
+  <data name="ProfilesList_DeleteConfirmMessage" xml:space="preserve">
+    <value>This will permanently delete the "{0}" profile and all of its data (accounts, transactions, budgets, and more). This operation cannot be undone. Do you want to continue?</value>
+  </data>
+  <data name="ProfilesList_DeleteConfirmAccept" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ProfilesList_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="ProfilesList_DeleteActiveProfileNotice" xml:space="preserve">
+    <value>This is your active profile. After deleting it, you'll need to close and reopen the app.</value>
+  </data>
+  <data name="ProfilesList_DeletedMessage" xml:space="preserve">
+    <value>Profile deleted.</value>
+  </data>
+  <data name="ProfilesList_Error" xml:space="preserve">
+    <value>Couldn't complete the action. Please try again.</value>
+  </data>
+  <data name="AddProfile_Title" xml:space="preserve">
+    <value>Add profile</value>
+  </data>
+  <data name="AddProfile_NameLabel" xml:space="preserve">
+    <value>Profile name</value>
+  </data>
+  <data name="AddProfile_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="AddProfile_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddProfile_ValidationNameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="AddProfile_Error" xml:space="preserve">
+    <value>Couldn't save the profile. Please try again.</value>
+  </data>
+  <data name="CreateFirstProfile_Title" xml:space="preserve">
+    <value>Welcome to TrackTrace Money</value>
+  </data>
+  <data name="CreateFirstProfile_Intro" xml:space="preserve">
+    <value>Everything is stored only on this device. You can create multiple profiles — for example, one per family member — each with its own separate information.</value>
+  </data>
+  <data name="CreateFirstProfile_NameLabel" xml:space="preserve">
+    <value>What should we call you?</value>
+  </data>
+  <data name="CreateFirstProfile_SaveButton" xml:space="preserve">
+    <value>Get started</value>
+  </data>
+  <data name="CreateFirstProfile_ValidationNameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="CreateFirstProfile_Error" xml:space="preserve">
+    <value>Couldn't create your profile. Please try again.</value>
+  </data>
 </root>

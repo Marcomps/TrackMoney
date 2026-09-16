@@ -8,9 +8,13 @@ namespace TrackTraceMoney.Infrastructure;
 
 public static class InfrastructureServiceCollectionExtensions
 {
-    public static IServiceCollection AddTrackTraceMoneyInfrastructure(this IServiceCollection services, string sqliteConnectionString)
+    public static IServiceCollection AddTrackTraceMoneyInfrastructure(this IServiceCollection services, Func<IServiceProvider, string> sqliteConnectionStringFactory)
     {
-        services.AddDbContext<TrackTraceMoneyDbContext>(options => options.UseSqlite(sqliteConnectionString));
+        // Resolved lazily, at first-actual-use time (i.e. when AddDbContext's options delegate first
+        // runs), not eagerly at DI-registration time -- callers that don't yet know the final
+        // connection string when they register services (e.g. a profile-aware path that depends on
+        // which local profile is active) can still register here and supply that value later.
+        services.AddDbContext<TrackTraceMoneyDbContext>((sp, options) => options.UseSqlite(sqliteConnectionStringFactory(sp)));
 
         // Singleton is deliberate, not the default Scoped: this app's DI shape (see
         // DbAccessGate's remarks) already resolves the "Scoped" TrackTraceMoneyDbContext as a single,
@@ -32,6 +36,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<INetWorthSnapshotRepository, NetWorthSnapshotRepository>();
         services.AddScoped<IMedicalExpenseDetailRepository, MedicalExpenseDetailRepository>();
         services.AddScoped<ILocalBackupService, LocalBackupService>();
+        services.AddScoped<IFinanceDatabaseInitializer, FinanceDatabaseInitializer>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;

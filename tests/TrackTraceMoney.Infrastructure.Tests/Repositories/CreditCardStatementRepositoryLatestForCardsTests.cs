@@ -22,7 +22,7 @@ public sealed class CreditCardStatementRepositoryLatestForCardsTests : IDisposab
     public CreditCardStatementRepositoryLatestForCardsTests()
     {
         var services = new ServiceCollection();
-        services.AddTrackTraceMoneyInfrastructure($"Data Source={_dbPath}");
+        services.AddTrackTraceMoneyInfrastructure(_ => $"Data Source={_dbPath}");
         _provider = services.BuildServiceProvider();
 
         using var scope = _provider.CreateScope();

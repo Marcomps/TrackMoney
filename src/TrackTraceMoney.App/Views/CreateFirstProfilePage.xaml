@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.CreateFirstProfilePage"
+             x:DataType="viewModels:CreateFirstProfileViewModel"
+             Title="{x:Static resources:AppResources.CreateFirstProfile_Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16" VerticalOptions="Center">
+
+            <Label Text="{x:Static resources:AppResources.CreateFirstProfile_Title}"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   HorizontalTextAlignment="Center" />
+
+            <Label Text="{x:Static resources:AppResources.CreateFirstProfile_Intro}"
+                   HorizontalTextAlignment="Center" />
+
+            <Label Text="{x:Static resources:AppResources.CreateFirstProfile_NameLabel}" />
+            <Entry Text="{Binding Name}" />
+
+            <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <Button Text="{x:Static resources:AppResources.CreateFirstProfile_SaveButton}"
+                    Command="{Binding SaveCommand}"
+                    HorizontalOptions="Fill" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

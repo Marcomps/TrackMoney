@@ -20,7 +20,7 @@ public sealed class NetWorthSnapshotRepositoryTests : IDisposable
     public NetWorthSnapshotRepositoryTests()
     {
         var services = new ServiceCollection();
-        services.AddTrackTraceMoneyInfrastructure($"Data Source={_dbPath}");
+        services.AddTrackTraceMoneyInfrastructure(_ => $"Data Source={_dbPath}");
         _provider = services.BuildServiceProvider();
 
         using var scope = _provider.CreateScope();

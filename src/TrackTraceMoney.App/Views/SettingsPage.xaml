@@ -10,6 +10,19 @@
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="12">
 
+            <Label Text="{x:Static resources:AppResources.Profiles_SectionTitle}"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+
+            <Label Text="{Binding ActiveProfileLabelText}" />
+
+            <Label Text="{x:Static resources:AppResources.Profiles_LocalBackupScopeNotice}"
+                   FontSize="12" Opacity="0.7" />
+
+            <Button Text="{x:Static resources:AppResources.Profiles_ManageButton}"
+                    Command="{Binding GoToManageProfilesCommand}"
+                    HorizontalOptions="Fill" />
+
             <Label Text="{x:Static resources:AppResources.Settings_BackupSectionTitle}"
                    FontSize="18"
                    FontAttributes="Bold" />
@@ -30,6 +43,9 @@
             <Label Text="{x:Static resources:AppResources.CloudAccount_SectionTitle}"
                    FontSize="18"
                    FontAttributes="Bold" />
+
+            <Label Text="{x:Static resources:AppResources.Profiles_CloudSharedNotice}"
+                   FontSize="12" Opacity="0.7" />
 
             <VerticalStackLayout IsVisible="{Binding IsCloudUnauthenticated}" Spacing="12">
                 <Button Text="{x:Static resources:AppResources.CloudAccount_LoginButton}"

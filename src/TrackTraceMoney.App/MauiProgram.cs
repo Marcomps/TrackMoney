@@ -1,9 +1,11 @@
 ﻿using CommunityToolkit.Maui;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TrackTraceMoney.App.Services;
 using TrackTraceMoney.App.Services.Cloud;
+using TrackTraceMoney.App.Services.Profiles;
 using TrackTraceMoney.App.ViewModels;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
@@ -15,8 +17,7 @@ using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Application.TermDeposits;
 using TrackTraceMoney.Application.Transactions;
 using TrackTraceMoney.Infrastructure;
-using TrackTraceMoney.Infrastructure.Persistence;
-using TrackTraceMoney.Infrastructure.Seeding;
+using TrackTraceMoney.Infrastructure.Profiles;
 
 namespace TrackTraceMoney.App;
 
@@ -34,8 +35,29 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
-		var dbPath = Path.Combine(FileSystem.AppDataDirectory, "tracktracemoney.db3");
-		builder.Services.AddTrackTraceMoneyInfrastructure($"Data Source={dbPath}");
+		// Registered before AddTrackTraceMoneyProfileCatalog (whose IProfileManagementService
+		// registration resolves IActiveProfileStore) and before AddTrackTraceMoneyInfrastructure's
+		// now-profile-aware connection-string factory below (same dependency) -- both need it
+		// resolvable already. Preferences.Default mirrors the SecureStorage.Default registration a few
+		// lines down: wrap a MAUI Essentials static as an injectable singleton, same pattern, just a
+		// different Essentials API.
+		builder.Services.AddSingleton(Preferences.Default);
+		builder.Services.AddSingleton<IActiveProfileStore, PreferencesActiveProfileStore>();
+
+		var profileCatalogDbPath = Path.Combine(FileSystem.AppDataDirectory, "tracktracemoney_profiles.db3");
+		builder.Services.AddTrackTraceMoneyProfileCatalog($"Data Source={profileCatalogDbPath}", FileSystem.AppDataDirectory);
+
+		// Legacy, pre-profiles filename. Still the fallback inside the factory below whenever no
+		// profile is active yet -- a brand-new install (before CreateFirstProfilePage creates the
+		// first profile) or, momentarily, before the one-time existing-install migration further down
+		// (which checks this same path) runs.
+		var legacyDbPath = Path.Combine(FileSystem.AppDataDirectory, "tracktracemoney.db3");
+		builder.Services.AddTrackTraceMoneyInfrastructure(sp =>
+		{
+			var activeProfileId = sp.GetRequiredService<IActiveProfileStore>().GetActiveProfileIdAsync().GetAwaiter().GetResult();
+			var fileName = activeProfileId is { } id ? $"tracktracemoney_{id}.db3" : "tracktracemoney.db3";
+			return $"Data Source={Path.Combine(FileSystem.AppDataDirectory, fileName)}";
+		});
 
 		builder.Services.AddSingleton(SecureStorage.Default);
 		builder.Services.AddHttpClient<ICloudAuthService, CloudAuthService>(client =>
@@ -128,6 +150,13 @@ public static class MauiProgram
 		builder.Services.AddTransient<CloudRegisterViewModel>();
 		builder.Services.AddTransient<CloudRegisterPage>();
 
+		builder.Services.AddTransient<ProfilesListViewModel>();
+		builder.Services.AddTransient<ProfilesListPage>();
+		builder.Services.AddTransient<AddProfileViewModel>();
+		builder.Services.AddTransient<AddProfilePage>();
+		builder.Services.AddTransient<CreateFirstProfileViewModel>();
+		builder.Services.AddTransient<CreateFirstProfilePage>();
+
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif
@@ -136,9 +165,61 @@ public static class MauiProgram
 
 		using (var scope = app.Services.CreateScope())
 		{
-			var dbContext = scope.ServiceProvider.GetRequiredService<TrackTraceMoneyDbContext>();
-			dbContext.Database.Migrate();
-			CategorySeeder.SeedDefaultCategoriesAsync(dbContext).GetAwaiter().GetResult();
+			var services = scope.ServiceProvider;
+
+			// The profile catalog is small and always open regardless of which (if any) finance
+			// profile is active, so it migrates unconditionally, first.
+			var catalogDbContext = services.GetRequiredService<ProfileCatalogDbContext>();
+			catalogDbContext.Database.Migrate();
+
+			var activeProfileStore = services.GetRequiredService<IActiveProfileStore>();
+			var activeProfileId = activeProfileStore.GetActiveProfileIdAsync().GetAwaiter().GetResult();
+
+			if (activeProfileId is null && File.Exists(legacyDbPath))
+			{
+				// An existing, pre-profiles install: silently wrap its one dataset into a new default
+				// profile so it keeps working exactly as before, just now as that profile's data.
+				var profileManagementService = services.GetRequiredService<IProfileManagementService>();
+
+				// Hardcoded Spanish rather than AppResources.Profiles_MigratedDefaultName, mirroring
+				// CategorySeeder's own precedent for startup-time seeded text ("Default names are
+				// Spanish (the app's neutral culture); resolving a localized display name ... is an
+				// App layer concern [at render time]") -- this runs before any page exists to resolve
+				// a UI culture against, and it's a one-time, silent migration nobody chooses or sees
+				// happen, not user-entered text a user picked in their own language.
+				var migratedProfile = profileManagementService.CreateProfileAsync("Mi perfil").GetAwaiter().GetResult();
+
+				// Release any idle pooled native connections before touching the file on disk -- see
+				// LocalBackupService's remarks and ProfileManagementService.DeleteProfileDatabaseFiles
+				// for the full reasoning (necessary on Windows; purely defensive here, since nothing
+				// in this process should have opened the legacy file yet at this point in startup).
+				SqliteConnection.ClearAllPools();
+
+				var migratedDbPath = Path.Combine(FileSystem.AppDataDirectory, $"tracktracemoney_{migratedProfile.Id}.db3");
+				File.Move(legacyDbPath, migratedDbPath);
+				foreach (var suffix in new[] { "-journal", "-wal", "-shm" })
+				{
+					var sidecar = legacyDbPath + suffix;
+					if (File.Exists(sidecar))
+					{
+						File.Move(sidecar, migratedDbPath + suffix);
+					}
+				}
+
+				activeProfileStore.SetActiveProfileIdAsync(migratedProfile.Id).GetAwaiter().GetResult();
+				activeProfileId = migratedProfile.Id;
+			}
+
+			// A genuinely brand-new install (no profile active, no legacy file either) intentionally
+			// skips this -- there is no per-profile finance database to migrate/seed yet.
+			// CreateFirstProfileViewModel runs the equivalent IFinanceDatabaseInitializer call itself,
+			// once the user actually creates their first profile, before it swaps the root page into
+			// AppShell (see that class).
+			if (activeProfileId is not null)
+			{
+				var financeDatabaseInitializer = services.GetRequiredService<IFinanceDatabaseInitializer>();
+				financeDatabaseInitializer.EnsureReadyAsync().GetAwaiter().GetResult();
+			}
 		}
 
 		return app;

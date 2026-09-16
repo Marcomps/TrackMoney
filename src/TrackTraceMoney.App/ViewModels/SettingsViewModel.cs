@@ -12,6 +12,11 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly ILocalBackupService _backupService;
     private readonly ICloudAuthService _cloudAuthService;
     private readonly ICloudBackupService _cloudBackupService;
+    private readonly IActiveProfileStore _activeProfileStore;
+    private readonly ILocalProfileRepository _profileRepository;
+
+    [ObservableProperty]
+    private string? activeProfileName;
 
     [ObservableProperty]
     private string? errorMessage;
@@ -46,11 +51,15 @@ public sealed partial class SettingsViewModel : ObservableObject
     public SettingsViewModel(
         ILocalBackupService backupService,
         ICloudAuthService cloudAuthService,
-        ICloudBackupService cloudBackupService)
+        ICloudBackupService cloudBackupService,
+        IActiveProfileStore activeProfileStore,
+        ILocalProfileRepository profileRepository)
     {
         _backupService = backupService;
         _cloudAuthService = cloudAuthService;
         _cloudBackupService = cloudBackupService;
+        _activeProfileStore = activeProfileStore;
+        _profileRepository = profileRepository;
     }
 
     public bool IsCloudUnauthenticated => !IsCloudAuthenticated;
@@ -60,6 +69,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     public string LastCloudBackupText => LastCloudBackupAtUtc.HasValue
         ? string.Format(AppResources.CloudBackup_LastBackupKnown, LastCloudBackupAtUtc)
         : AppResources.CloudBackup_LastBackupNone;
+
+    public string ActiveProfileLabelText => string.Format(AppResources.Profiles_ActiveProfileLabel, ActiveProfileName);
 
     // A backup and a restore must never run concurrently against the same server-side row (see
     // finding #5/#3 of the Phase 4 checkpoint review) — both buttons gate on busy state, and
@@ -72,6 +83,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     partial void OnCloudAccountEmailChanged(string? value) => OnPropertyChanged(nameof(CloudAccountStatusText));
 
+    partial void OnActiveProfileNameChanged(string? value) => OnPropertyChanged(nameof(ActiveProfileLabelText));
+
     partial void OnLastCloudBackupAtUtcChanged(DateTimeOffset? value) => OnPropertyChanged(nameof(LastCloudBackupText));
 
     partial void OnCloudBackupIsBusyChanged(bool value)
@@ -81,6 +94,26 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     partial void OnCloudBackupExistsChanged(bool value) => OnPropertyChanged(nameof(CanRestoreFromCloud));
+
+    [RelayCommand]
+    private async Task RefreshProfileSummaryAsync()
+    {
+        var activeProfileId = await _activeProfileStore.GetActiveProfileIdAsync();
+        if (activeProfileId is null)
+        {
+            ActiveProfileName = null;
+            return;
+        }
+
+        var profile = await _profileRepository.GetByIdAsync(activeProfileId.Value);
+        ActiveProfileName = profile?.Name;
+    }
+
+    [RelayCommand]
+    private static async Task GoToManageProfilesAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(ProfilesListPage));
+    }
 
     [RelayCommand]
     private async Task RefreshCloudAccountStateAsync()

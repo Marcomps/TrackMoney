@@ -49,6 +49,8 @@ dotnet ef migrations add <DescriptiveName> \
   --output-dir Migrations
 ```
 
+**Two `DbContext` types now live in `TrackTraceMoney.Infrastructure`**: `TrackTraceMoneyDbContext` (the per-profile finance database) and `ProfileCatalogDbContext` (the small, always-open local-profile catalog database, `Persistence/`-sibling folder `Profiles/`). Any `dotnet ef` command run without an explicit `--context` fails with `More than one DbContext was found. Specify which one to use.` — always pass `--context TrackTraceMoneyDbContext` or `--context ProfileCatalogDbContext` explicitly on every `migrations add`/`database update` command against this project now, and use a `--output-dir` that keeps each context's migrations in its own folder (finance schema stays in the default `Migrations`; `ProfileCatalogDbContext` uses `Migrations/ProfileCatalog`) so `ApplyConfigurationsFromAssembly` scans and model snapshots never mix the two schemas.
+
 Review the generated migration before committing:
 - Is it additive (new table/column/index) rather than destructive (dropped/renamed column, changed non-nullable-with-no-default)? Destructive migrations run against a device that may already hold a real user's data — there's no "just restore from server" fallback in an offline-first app.
 - Do new foreign keys/indices match the referential integrity and index expectations from README §2.2 and §47.
