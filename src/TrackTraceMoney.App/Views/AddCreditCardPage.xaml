@@ -14,7 +14,10 @@
             <Entry Text="{Binding Name}" />
 
             <Label Text="{x:Static resources:AppResources.AddCreditCard_IssuerLabel}" />
-            <Entry Text="{Binding Issuer}" />
+            <Picker ItemsSource="{Binding InstitutionOptions}" SelectedItem="{Binding SelectedInstitution}" />
+
+            <Label Text="{x:Static resources:AppResources.AddCreditCard_NetworkLabel}" />
+            <Picker ItemsSource="{Binding NetworkOptions}" SelectedItem="{Binding SelectedNetwork}" />
 
             <Label Text="{x:Static resources:AppResources.AddCreditCard_LastFourDigitsLabel}" />
             <Entry Text="{Binding LastFourDigits}" Keyboard="Numeric" MaxLength="4" />

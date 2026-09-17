@@ -40,7 +40,7 @@ public sealed class FinancialAccountCountsAsAvailableBalanceTests
         var termDeposit = new TermDeposit(
             "12-Month CD",
             CurrencyCode.USD,
-            "Bank of Example",
+            Guid.NewGuid(),
             10000m,
             10000m,
             0.05m,
@@ -60,7 +60,7 @@ public sealed class FinancialAccountCountsAsAvailableBalanceTests
         var investmentFund = new InvestmentFund(
             "Growth Fund",
             CurrencyCode.USD,
-            "Example Asset Management",
+            Guid.NewGuid(),
             new DateOnly(2026, 1, 1),
             2000m,
             2084.50m);

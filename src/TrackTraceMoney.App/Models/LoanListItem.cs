@@ -6,7 +6,7 @@ namespace TrackTraceMoney.App.Models;
 public sealed record LoanListItem(
     Guid Id,
     string Name,
-    string Institution,
+    string InstitutionName,
     LoanKind Kind,
     CurrencyCode Currency,
     decimal OriginalAmount,
@@ -18,8 +18,8 @@ public sealed record LoanListItem(
     int RemainingPayments,
     decimal RequiredPayment)
 {
-    public static LoanListItem FromDomain(Loan loan) => new(
-        loan.Id, loan.Name, loan.Institution, loan.Kind, loan.Currency,
+    public static LoanListItem FromDomain(Loan loan, string institutionName) => new(
+        loan.Id, loan.Name, institutionName, loan.Kind, loan.Currency,
         loan.OriginalAmount, loan.AmountOwed, loan.InterestRate, loan.RateType,
         loan.MonthlyInstallment, loan.NextPaymentDate, loan.RemainingPayments, loan.RequiredPayment);
 }

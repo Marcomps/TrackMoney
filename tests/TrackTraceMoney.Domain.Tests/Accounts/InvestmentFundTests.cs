@@ -14,41 +14,59 @@ public sealed class InvestmentFundTests
         new(
             "Growth Fund",
             CurrencyCode.USD,
-            "Example Asset Management",
+            Guid.NewGuid(),
             investmentDate ?? new DateOnly(2026, 1, 1),
             contributions,
             openingBalance,
             withdrawals,
             fees);
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Constructor_WithEmptyOrWhitespaceInstitution_Throws(string institution)
+    [Fact]
+    public void Constructor_WithEmptyInstitutionId_Throws()
     {
         Assert.Throws<ArgumentException>(() =>
             new InvestmentFund(
                 "Growth Fund",
                 CurrencyCode.USD,
-                institution,
+                Guid.Empty,
                 new DateOnly(2026, 1, 1),
                 2000m,
                 2084.50m));
     }
 
     [Fact]
-    public void Constructor_WithOversizedInstitution_Throws()
+    public void Constructor_SetsInstitutionId()
     {
-        var institution = new string('A', 201);
+        var institutionId = Guid.NewGuid();
 
-        Assert.Throws<ArgumentException>(() =>
-            new InvestmentFund(
-                "Growth Fund",
-                CurrencyCode.USD,
-                institution,
-                new DateOnly(2026, 1, 1),
-                2000m,
-                2084.50m));
+        var fund = new InvestmentFund(
+            "Growth Fund",
+            CurrencyCode.USD,
+            institutionId,
+            new DateOnly(2026, 1, 1),
+            2000m,
+            2084.50m);
+
+        Assert.Equal(institutionId, fund.InstitutionId);
+    }
+
+    [Fact]
+    public void SetInstitutionId_UpdatesInstitutionId()
+    {
+        var fund = CreateInvestmentFund();
+        var newInstitutionId = Guid.NewGuid();
+
+        fund.SetInstitutionId(newInstitutionId);
+
+        Assert.Equal(newInstitutionId, fund.InstitutionId);
+    }
+
+    [Fact]
+    public void SetInstitutionId_WithEmptyGuid_Throws()
+    {
+        var fund = CreateInvestmentFund();
+
+        Assert.Throws<ArgumentException>(() => fund.SetInstitutionId(Guid.Empty));
     }
 
     [Fact]

@@ -26,6 +26,8 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddScoped<IPersonRepository, PersonRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IFinancialInstitutionRepository, FinancialInstitutionRepository>();
+        services.AddScoped<ICardNetworkRepository, CardNetworkRepository>();
         services.AddScoped<IFinancialAccountRepository, FinancialAccountRepository>();
         services.AddScoped<ICreditAccountRepository, CreditAccountRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();

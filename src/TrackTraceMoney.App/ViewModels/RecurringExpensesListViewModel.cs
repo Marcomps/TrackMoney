@@ -15,6 +15,7 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
     private readonly IRecurringExpenseRepository _recurringExpenseRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IFinancialAccountRepository _accountRepository;
+    private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly IRecurringExpenseService _recurringExpenseService;
 
     [ObservableProperty]
@@ -39,11 +40,13 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
         IRecurringExpenseRepository recurringExpenseRepository,
         ICategoryRepository categoryRepository,
         IFinancialAccountRepository accountRepository,
+        ICreditAccountRepository creditAccountRepository,
         IRecurringExpenseService recurringExpenseService)
     {
         _recurringExpenseRepository = recurringExpenseRepository;
         _categoryRepository = categoryRepository;
         _accountRepository = accountRepository;
+        _creditAccountRepository = creditAccountRepository;
         _recurringExpenseService = recurringExpenseService;
     }
 
@@ -61,9 +64,13 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
             var recurringExpenses = await _recurringExpenseRepository.GetActiveAsync();
             var categories = await _categoryRepository.GetAllAsync();
             var accounts = await _accountRepository.GetAllAsync();
+            // GetAllAsync, not GetActiveAsync: a deactivated card's still-listed recurring expense must
+            // still resolve a name, not show "?" (mirrors the Phase 2 checkpoint's finding #7 precedent).
+            var creditAccounts = await _creditAccountRepository.GetAllAsync();
 
             var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
             var accountNames = accounts.ToDictionary(a => a.Id, a => a.Name);
+            var creditAccountNames = creditAccounts.ToDictionary(a => a.Id, a => a.Name);
 
             static string NameOf(IReadOnlyDictionary<Guid, string> names, Guid id) =>
                 names.TryGetValue(id, out var name) ? name : "?";
@@ -74,7 +81,9 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
             foreach (var recurringExpense in recurringExpenses.OrderBy(r => r.Name))
             {
                 var categoryName = NameOf(categoryNames, recurringExpense.CategoryId);
-                var accountName = NameOf(accountNames, recurringExpense.AccountId);
+                var accountName = recurringExpense.IsCreditCardBacked
+                    ? "💳 " + NameOf(creditAccountNames, recurringExpense.CreditAccountId!.Value)
+                    : NameOf(accountNames, recurringExpense.AccountId!.Value);
 
                 var listItem = RecurringExpenseListItem.FromDomain(recurringExpense, categoryName, accountName);
                 RecurringExpenses.Add(listItem);

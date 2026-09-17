@@ -1,6 +1,8 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Domain.CreditAccounts;
@@ -8,15 +10,23 @@ using TrackTraceMoney.Domain.Enums;
 
 namespace TrackTraceMoney.App.ViewModels;
 
+/// <summary>
+/// Institution (README §19) is picked from the user's own growing
+/// <see cref="IFinancialInstitutionRepository"/> list — see the
+/// financial-institution-card-network-slice-spec's Decision 4. Required (mirrors the old free-text
+/// Institution field's required-ness). No inline-add — a user without their bank listed yet leaves this
+/// screen, adds it via Settings, and comes back, same as Category/Person elsewhere in this app.
+/// </summary>
 public sealed partial class AddLoanViewModel : ObservableObject
 {
     private readonly ICreditAccountRepository _creditAccountRepository;
+    private readonly IFinancialInstitutionRepository _institutionRepository;
 
     [ObservableProperty]
     private string name = string.Empty;
 
     [ObservableProperty]
-    private string institution = string.Empty;
+    private NamedOption? selectedInstitution;
 
     [ObservableProperty]
     private LoanKind selectedKind = LoanKind.PersonalLoan;
@@ -63,9 +73,22 @@ public sealed partial class AddLoanViewModel : ObservableObject
 
     public IReadOnlyList<LoanRateType> AvailableRateTypes { get; } = Enum.GetValues<LoanRateType>();
 
-    public AddLoanViewModel(ICreditAccountRepository creditAccountRepository)
+    public ObservableCollection<NamedOption> InstitutionOptions { get; } = [];
+
+    public AddLoanViewModel(ICreditAccountRepository creditAccountRepository, IFinancialInstitutionRepository institutionRepository)
     {
         _creditAccountRepository = creditAccountRepository;
+        _institutionRepository = institutionRepository;
+    }
+
+    [RelayCommand]
+    private async Task LoadOptionsAsync()
+    {
+        var institutions = await _institutionRepository.GetAllAsync();
+
+        InstitutionOptions.Clear();
+        foreach (var institution in institutions.OrderBy(i => i.Name))
+            InstitutionOptions.Add(new NamedOption(institution.Id, institution.Name));
     }
 
     [RelayCommand]
@@ -79,7 +102,7 @@ public sealed partial class AddLoanViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Institution))
+        if (SelectedInstitution is null)
         {
             ErrorMessage = AppResources.AddLoan_ValidationInstitutionRequired;
             return;
@@ -130,7 +153,7 @@ public sealed partial class AddLoanViewModel : ObservableObject
         var loan = new Loan(
             Name,
             SelectedCurrency,
-            Institution,
+            SelectedInstitution.Id,
             SelectedKind,
             originalAmount,
             currentBalance,

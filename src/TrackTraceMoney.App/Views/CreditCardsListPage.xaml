@@ -39,7 +39,7 @@
                                     </FormattedString>
                                 </Label.FormattedText>
                             </Label>
-                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding Issuer}" FontSize="12" Opacity="0.7" />
+                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding InstitutionName}" FontSize="12" Opacity="0.7" />
                             <Label Grid.Row="2" Grid.Column="0"
                                    Text="{Binding MaskedLastFourDigits}"
                                    IsVisible="{Binding HasLastFourDigits}"

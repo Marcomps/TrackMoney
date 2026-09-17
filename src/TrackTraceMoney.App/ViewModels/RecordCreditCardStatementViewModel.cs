@@ -13,7 +13,7 @@ namespace TrackTraceMoney.App.ViewModels;
 /// ever touches the two user-entered amounts — cycle dates are immutable once recorded (see
 /// <see cref="CreditCardStatement"/>'s remarks).
 /// </summary>
-[QueryProperty(nameof(CreditAccountId), "creditAccountId")]
+[QueryProperty(nameof(CreditAccountIdText), "creditAccountId")]
 [QueryProperty(nameof(StatementId), "statementId")]
 public sealed partial class RecordCreditCardStatementViewModel : ObservableObject
 {
@@ -25,6 +25,22 @@ public sealed partial class RecordCreditCardStatementViewModel : ObservableObjec
 
     [ObservableProperty]
     private Guid creditAccountId;
+
+    /// <summary>
+    /// The actual <c>[QueryProperty]</c> target -- see <c>CreditCardDetailViewModel.CreditAccountIdText</c>'s
+    /// doc comment for why a non-nullable <see cref="Guid"/> can't be a direct <c>[QueryProperty]</c>
+    /// target (MAUI Shell's <c>Convert.ChangeType</c> throws for it). This one was previously broken the
+    /// same way; <see cref="StatementId"/> right below happened to already be safe only because its own
+    /// optionality forced it into a string, not because anyone had diagnosed the Guid issue.
+    /// </summary>
+    [ObservableProperty]
+    private string? creditAccountIdText;
+
+    partial void OnCreditAccountIdTextChanged(string? value)
+    {
+        if (Guid.TryParse(value, out var parsed))
+            CreditAccountId = parsed;
+    }
 
     /// <summary>
     /// Bound as a plain string, not <c>Guid?</c>, because MAUI Shell query parameters always arrive as

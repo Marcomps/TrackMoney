@@ -15,6 +15,7 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(HistoryPage), typeof(HistoryPage));
 		Routing.RegisterRoute(nameof(MedicalExpenseDetailPage), typeof(MedicalExpenseDetailPage));
 		Routing.RegisterRoute(nameof(AddCategoryPage), typeof(AddCategoryPage));
+		Routing.RegisterRoute(nameof(AddPersonPage), typeof(AddPersonPage));
 		Routing.RegisterRoute(nameof(AddBudgetPage), typeof(AddBudgetPage));
 		Routing.RegisterRoute(nameof(AddRecurringExpensePage), typeof(AddRecurringExpensePage));
 		Routing.RegisterRoute(nameof(LoansListPage), typeof(LoansListPage));
@@ -31,6 +32,10 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(CloudRegisterPage), typeof(CloudRegisterPage));
 		Routing.RegisterRoute(nameof(ProfilesListPage), typeof(ProfilesListPage));
 		Routing.RegisterRoute(nameof(AddProfilePage), typeof(AddProfilePage));
+		Routing.RegisterRoute(nameof(FinancialInstitutionsListPage), typeof(FinancialInstitutionsListPage));
+		Routing.RegisterRoute(nameof(AddFinancialInstitutionPage), typeof(AddFinancialInstitutionPage));
+		Routing.RegisterRoute(nameof(CardNetworksListPage), typeof(CardNetworksListPage));
+		Routing.RegisterRoute(nameof(AddCardNetworkPage), typeof(AddCardNetworkPage));
 		// CreateFirstProfilePage deliberately has no route here -- it's never navigated to via Shell,
 		// only ever constructed directly as the app's initial root page (see App.xaml.cs).
 	}

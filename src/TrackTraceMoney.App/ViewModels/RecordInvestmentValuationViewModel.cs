@@ -1,6 +1,7 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.EntityFrameworkCore;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Domain.Accounts;
@@ -15,7 +16,7 @@ namespace TrackTraceMoney.App.ViewModels;
 /// backdated valuation never changes the fund's current balance, but editing/repositioning what WAS the
 /// latest row correctly recomputes which one wins.
 /// </summary>
-[QueryProperty(nameof(InvestmentFundId), "investmentFundId")]
+[QueryProperty(nameof(InvestmentFundIdText), "investmentFundId")]
 [QueryProperty(nameof(ValuationId), "valuationId")]
 public sealed partial class RecordInvestmentValuationViewModel : ObservableObject
 {
@@ -26,6 +27,22 @@ public sealed partial class RecordInvestmentValuationViewModel : ObservableObjec
 
     [ObservableProperty]
     private Guid investmentFundId;
+
+    /// <summary>
+    /// The actual <c>[QueryProperty]</c> target -- see
+    /// <c>CreditCardDetailViewModel.CreditAccountIdText</c>'s doc comment: unlike <see cref="ValuationId"/>
+    /// below, this one was NOT written defensively despite the exact same MAUI Shell limitation applying
+    /// (a non-nullable <see cref="Guid"/> can't be a direct <c>[QueryProperty]</c> target), because nobody
+    /// had connected "this ID is always present" with "Convert.ChangeType still can't produce a Guid".
+    /// </summary>
+    [ObservableProperty]
+    private string? investmentFundIdText;
+
+    partial void OnInvestmentFundIdTextChanged(string? value)
+    {
+        if (Guid.TryParse(value, out var parsed))
+            InvestmentFundId = parsed;
+    }
 
     /// <summary>
     /// Bound as a plain string, not <c>Guid?</c> — mirrors <c>RecordCreditCardStatementViewModel.StatementId</c>'s
@@ -140,6 +157,15 @@ public sealed partial class RecordInvestmentValuationViewModel : ObservableObjec
             }
 
             await Shell.Current.GoToAsync("..");
+        }
+        catch (DbUpdateException)
+        {
+            // The (InvestmentFundId, AsOfDate) unique index is the only constraint this save can hit --
+            // reachable in practice, not just theoretically: AddInvestmentFundViewModel itself seeds an
+            // opening-balance valuation dated at the fund's own InvestmentDate (defaults to today), so
+            // "record a valuation" in create mode on a same-day-created fund, with the date left at its
+            // own today-default, collides with that seed row. Previously unhandled -- crashed the app.
+            ErrorMessage = AppResources.RecordInvestmentValuation_ValidationDuplicateDate;
         }
         finally
         {

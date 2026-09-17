@@ -23,6 +23,18 @@
                     Command="{Binding GoToManageProfilesCommand}"
                     HorizontalOptions="Fill" />
 
+            <Label Text="{x:Static resources:AppResources.Settings_InstitutionsSectionTitle}"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+
+            <Button Text="{x:Static resources:AppResources.Settings_ManageFinancialInstitutionsButton}"
+                    Command="{Binding GoToManageFinancialInstitutionsCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.Settings_ManageCardNetworksButton}"
+                    Command="{Binding GoToManageCardNetworksCommand}"
+                    HorizontalOptions="Fill" />
+
             <Label Text="{x:Static resources:AppResources.Settings_BackupSectionTitle}"
                    FontSize="18"
                    FontAttributes="Bold" />

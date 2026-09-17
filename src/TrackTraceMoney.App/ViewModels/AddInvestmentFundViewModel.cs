@@ -1,6 +1,8 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Domain.Accounts;
@@ -14,17 +16,23 @@ namespace TrackTraceMoney.App.ViewModels;
 /// the fund's detail screen has at least one history point immediately (mirrors how a term deposit or bank
 /// account's opening balance is implicitly its first known value — here it has to be explicit because
 /// valuations are their own tracked entity).
+///
+/// Institution is picked from the user's own growing <see cref="IFinancialInstitutionRepository"/> list —
+/// see the financial-institution-card-network-slice-spec's Decision 4. Required (mirrors the old
+/// free-text Institution field's required-ness). No inline-add — a user without their bank listed yet
+/// leaves this screen, adds it via Settings, and comes back, same as Category/Person elsewhere in this app.
 /// </summary>
 public sealed partial class AddInvestmentFundViewModel : ObservableObject
 {
     private readonly IFinancialAccountRepository _financialAccountRepository;
     private readonly IInvestmentValuationRepository _valuationRepository;
+    private readonly IFinancialInstitutionRepository _institutionRepository;
 
     [ObservableProperty]
     private string name = string.Empty;
 
     [ObservableProperty]
-    private string institution = string.Empty;
+    private NamedOption? selectedInstitution;
 
     [ObservableProperty]
     private CurrencyCode selectedCurrency = CurrencyCode.USD;
@@ -55,12 +63,26 @@ public sealed partial class AddInvestmentFundViewModel : ObservableObject
 
     public IReadOnlyList<CurrencyCode> AvailableCurrencies { get; } = Enum.GetValues<CurrencyCode>();
 
+    public ObservableCollection<NamedOption> InstitutionOptions { get; } = [];
+
     public AddInvestmentFundViewModel(
         IFinancialAccountRepository financialAccountRepository,
-        IInvestmentValuationRepository valuationRepository)
+        IInvestmentValuationRepository valuationRepository,
+        IFinancialInstitutionRepository institutionRepository)
     {
         _financialAccountRepository = financialAccountRepository;
         _valuationRepository = valuationRepository;
+        _institutionRepository = institutionRepository;
+    }
+
+    [RelayCommand]
+    private async Task LoadOptionsAsync()
+    {
+        var institutions = await _institutionRepository.GetAllAsync();
+
+        InstitutionOptions.Clear();
+        foreach (var institution in institutions.OrderBy(i => i.Name))
+            InstitutionOptions.Add(new NamedOption(institution.Id, institution.Name));
     }
 
     [RelayCommand]
@@ -74,7 +96,7 @@ public sealed partial class AddInvestmentFundViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Institution))
+        if (SelectedInstitution is null)
         {
             ErrorMessage = AppResources.AddInvestmentFund_ValidationInstitutionRequired;
             return;
@@ -106,23 +128,20 @@ public sealed partial class AddInvestmentFundViewModel : ObservableObject
 
         var investmentDateOnly = DateOnly.FromDateTime(InvestmentDate);
 
+        var fund = new InvestmentFund(
+            Name,
+            SelectedCurrency,
+            SelectedInstitution.Id,
+            investmentDateOnly,
+            contributions,
+            openingBalance,
+            withdrawals,
+            fees,
+            Notes);
+
         IsBusy = true;
         try
         {
-            // InvestmentFund's constructor throws ArgumentException when Institution exceeds 200
-            // characters — constructed inside this try (not before it, as it used to be) so that throw
-            // is caught below and IsBusy still gets reset by finally, instead of crashing the app.
-            var fund = new InvestmentFund(
-                Name,
-                SelectedCurrency,
-                Institution,
-                investmentDateOnly,
-                contributions,
-                openingBalance,
-                withdrawals,
-                fees,
-                Notes);
-
             // Both AddAsync calls are tracked by the same shared DbContext (see RepositoryBase/
             // DbAccessGate remarks — this app's DI resolves TrackTraceMoneyDbContext as a single
             // long-lived instance), so one SaveChangesAsync call commits both inserts atomically.
@@ -131,10 +150,6 @@ public sealed partial class AddInvestmentFundViewModel : ObservableObject
             await _financialAccountRepository.SaveChangesAsync();
 
             await Shell.Current.GoToAsync("..");
-        }
-        catch (ArgumentException)
-        {
-            ErrorMessage = AppResources.AddInvestmentFund_ValidationInstitutionTooLong;
         }
         finally
         {

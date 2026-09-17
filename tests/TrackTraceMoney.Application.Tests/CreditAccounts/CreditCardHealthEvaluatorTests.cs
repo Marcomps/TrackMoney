@@ -20,7 +20,7 @@ public sealed class CreditCardHealthEvaluatorTests
     private static CreditCard CreateCard(decimal amountOwed) => new(
         name: "Test Card",
         currency: CurrencyCode.USD,
-        issuer: "Test Bank",
+        institutionId: Guid.NewGuid(),
         creditLimit: 2000m,
         statementCutOffDay: 25,
         paymentDueDay: 10,

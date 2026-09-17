@@ -42,16 +42,39 @@ public sealed class RecurringExpenseService : IRecurringExpenseService
         using var ambientScope = transaction.EnterAmbientScope();
         try
         {
-            await _transactionEntryService.RecordExpenseAsync(
-                date: occurrenceDate,
-                amount: recurringExpense.Amount,
-                accountId: recurringExpense.AccountId,
-                categoryId: recurringExpense.CategoryId,
-                payerPersonId: null,
-                beneficiaryPersonId: null,
-                description: recurringExpense.Name,
-                notes: null,
-                ct: ct);
+            // IsCreditCardBacked routes to RecordCreditCardPurchaseAsync instead of RecordExpenseAsync
+            // so a card-backed recurring expense (e.g. "Netflix" paid via credit card) increases the
+            // card's AmountOwed/debt like any other card purchase and is picked up by the card
+            // semáforo/purchased-vs-paid analysis — posting it as a plain Expense against no account
+            // would silently desync those (CLAUDE.md's #1 correctness risk: double-counting/miscounting
+            // spend). payerPersonId/beneficiaryPersonId stay null on both branches — RecurringExpense
+            // never captured Person fields.
+            if (recurringExpense.IsCreditCardBacked)
+            {
+                await _transactionEntryService.RecordCreditCardPurchaseAsync(
+                    date: occurrenceDate,
+                    amount: recurringExpense.Amount,
+                    creditAccountId: recurringExpense.CreditAccountId!.Value,
+                    categoryId: recurringExpense.CategoryId,
+                    payerPersonId: null,
+                    beneficiaryPersonId: null,
+                    description: recurringExpense.Name,
+                    notes: null,
+                    ct: ct);
+            }
+            else
+            {
+                await _transactionEntryService.RecordExpenseAsync(
+                    date: occurrenceDate,
+                    amount: recurringExpense.Amount,
+                    accountId: recurringExpense.AccountId!.Value,
+                    categoryId: recurringExpense.CategoryId,
+                    payerPersonId: null,
+                    beneficiaryPersonId: null,
+                    description: recurringExpense.Name,
+                    notes: null,
+                    ct: ct);
+            }
 
             recurringExpense.MarkConfirmed(occurrenceDate);
 

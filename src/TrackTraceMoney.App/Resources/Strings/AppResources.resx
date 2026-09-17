@@ -1174,9 +1174,6 @@
   <data name="AddTermDeposit_ValidationInstitutionRequired" xml:space="preserve">
     <value>La institución es obligatoria.</value>
   </data>
-  <data name="AddTermDeposit_ValidationInstitutionTooLong" xml:space="preserve">
-    <value>La institución no puede superar los 200 caracteres.</value>
-  </data>
   <data name="AddTermDeposit_ValidationInitialPrincipalInvalid" xml:space="preserve">
     <value>El monto inicial debe ser un número mayor que cero.</value>
   </data>
@@ -1270,9 +1267,6 @@
   <data name="AddInvestmentFund_ValidationInstitutionRequired" xml:space="preserve">
     <value>La institución es obligatoria.</value>
   </data>
-  <data name="AddInvestmentFund_ValidationInstitutionTooLong" xml:space="preserve">
-    <value>La institución no puede superar los 200 caracteres.</value>
-  </data>
   <data name="AddInvestmentFund_ValidationContributionsInvalid" xml:space="preserve">
     <value>La inversión inicial debe ser un número mayor que cero.</value>
   </data>
@@ -1314,6 +1308,9 @@
   </data>
   <data name="RecordInvestmentValuation_ValidationValueInvalid" xml:space="preserve">
     <value>El valor debe ser un número válido y no negativo.</value>
+  </data>
+  <data name="RecordInvestmentValuation_ValidationDuplicateDate" xml:space="preserve">
+    <value>Ya existe un valor registrado para esta fecha. Elegí otra fecha o editá el valor existente desde el historial.</value>
   </data>
   <data name="RecordInvestmentValuation_SaveButton" xml:space="preserve">
     <value>Guardar</value>
@@ -1512,5 +1509,134 @@
   </data>
   <data name="CloudBackup_StatusError" xml:space="preserve">
     <value>No se pudo obtener el estado del respaldo en la nube.</value>
+  </data>
+  <data name="People_Title" xml:space="preserve">
+    <value>Personas</value>
+  </data>
+  <data name="People_Empty" xml:space="preserve">
+    <value>Aún no tienes personas. Agrega la primera para comenzar.</value>
+  </data>
+  <data name="People_AddButton" xml:space="preserve">
+    <value>Agregar persona</value>
+  </data>
+  <data name="AddPerson_Title" xml:space="preserve">
+    <value>Nueva persona</value>
+  </data>
+  <data name="AddPerson_NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="AddPerson_NamePlaceholder" xml:space="preserve">
+    <value>p. ej. María López</value>
+  </data>
+  <data name="AddPerson_RelationshipLabel" xml:space="preserve">
+    <value>Relación</value>
+  </data>
+  <data name="AddPerson_CustomRelationshipLabel" xml:space="preserve">
+    <value>Especificar relación</value>
+  </data>
+  <data name="AddPerson_CustomRelationshipPlaceholder" xml:space="preserve">
+    <value>p. ej. Tío</value>
+  </data>
+  <data name="AddPerson_NotesLabel" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="AddPerson_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="AddPerson_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddPerson_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="AddPerson_ValidationCustomRelationshipLabelRequired" xml:space="preserve">
+    <value>Ingresa la relación personalizada.</value>
+  </data>
+  <data name="PersonRelationshipType_Me" xml:space="preserve">
+    <value>Yo</value>
+  </data>
+  <data name="PersonRelationshipType_Partner" xml:space="preserve">
+    <value>Pareja</value>
+  </data>
+  <data name="PersonRelationshipType_Child" xml:space="preserve">
+    <value>Hijo/a</value>
+  </data>
+  <data name="PersonRelationshipType_Parent" xml:space="preserve">
+    <value>Padre/Madre</value>
+  </data>
+  <data name="PersonRelationshipType_Family" xml:space="preserve">
+    <value>Familiar</value>
+  </data>
+  <data name="PersonRelationshipType_Other" xml:space="preserve">
+    <value>Otro</value>
+  </data>
+  <data name="PersonRelationshipType_Custom" xml:space="preserve">
+    <value>Personalizado</value>
+  </data>
+  <data name="Settings_InstitutionsSectionTitle" xml:space="preserve">
+    <value>Instituciones y redes</value>
+  </data>
+  <data name="Settings_ManageFinancialInstitutionsButton" xml:space="preserve">
+    <value>Gestionar instituciones financieras</value>
+  </data>
+  <data name="Settings_ManageCardNetworksButton" xml:space="preserve">
+    <value>Gestionar redes de tarjeta</value>
+  </data>
+  <data name="FinancialInstitutions_Title" xml:space="preserve">
+    <value>Instituciones financieras</value>
+  </data>
+  <data name="FinancialInstitutions_Empty" xml:space="preserve">
+    <value>Aún no tienes instituciones financieras. Agrega la primera para comenzar.</value>
+  </data>
+  <data name="FinancialInstitutions_AddButton" xml:space="preserve">
+    <value>Agregar institución</value>
+  </data>
+  <data name="AddFinancialInstitution_Title" xml:space="preserve">
+    <value>Nueva institución financiera</value>
+  </data>
+  <data name="AddFinancialInstitution_NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="AddFinancialInstitution_NamePlaceholder" xml:space="preserve">
+    <value>p. ej. Banco Agrícola</value>
+  </data>
+  <data name="AddFinancialInstitution_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="AddFinancialInstitution_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddFinancialInstitution_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="CardNetworks_Title" xml:space="preserve">
+    <value>Redes de tarjeta</value>
+  </data>
+  <data name="CardNetworks_Empty" xml:space="preserve">
+    <value>Aún no tienes redes de tarjeta. Agrega la primera para comenzar.</value>
+  </data>
+  <data name="CardNetworks_AddButton" xml:space="preserve">
+    <value>Agregar red</value>
+  </data>
+  <data name="AddCardNetwork_Title" xml:space="preserve">
+    <value>Nueva red de tarjeta</value>
+  </data>
+  <data name="AddCardNetwork_NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="AddCardNetwork_NamePlaceholder" xml:space="preserve">
+    <value>p. ej. Visa</value>
+  </data>
+  <data name="AddCardNetwork_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="AddCardNetwork_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddCardNetwork_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="AddCreditCard_NetworkLabel" xml:space="preserve">
+    <value>Red</value>
   </data>
 </root>

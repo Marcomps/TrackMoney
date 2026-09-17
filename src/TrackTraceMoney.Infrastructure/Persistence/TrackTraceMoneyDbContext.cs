@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using TrackTraceMoney.Domain.Accounts;
 using TrackTraceMoney.Domain.Budgets;
+using TrackTraceMoney.Domain.CardNetworks;
 using TrackTraceMoney.Domain.Categories;
 using TrackTraceMoney.Domain.CreditAccounts;
+using TrackTraceMoney.Domain.Institutions;
 using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.NetWorth;
 using TrackTraceMoney.Domain.People;
@@ -16,6 +18,10 @@ public sealed class TrackTraceMoneyDbContext : DbContext
     public DbSet<Person> People => Set<Person>();
 
     public DbSet<Category> Categories => Set<Category>();
+
+    public DbSet<FinancialInstitution> FinancialInstitutions => Set<FinancialInstitution>();
+
+    public DbSet<CardNetwork> CardNetworks => Set<CardNetwork>();
 
     public DbSet<FinancialAccount> Accounts => Set<FinancialAccount>();
 

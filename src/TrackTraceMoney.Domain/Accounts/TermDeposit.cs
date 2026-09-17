@@ -10,7 +10,23 @@ namespace TrackTraceMoney.Domain.Accounts;
 /// </summary>
 public sealed class TermDeposit : FinancialAccount
 {
-    public string Institution { get; private set; } = null!;
+    /// <summary>
+    /// Legacy free-text institution, superseded by <see cref="InstitutionId"/> (see the
+    /// financial-institution-card-network-slice-spec's Decision 2). Kept — nullable, no longer
+    /// constructor-validated — only so <c>FinancialInstitutionBackfillService</c> can read a
+    /// not-yet-backfilled row's value; no code path after this slice writes it. Never dropped this
+    /// slice (zero production users; see the spec).
+    /// </summary>
+    public string? Institution { get; private set; }
+
+    /// <summary>
+    /// The deposit's <c>FinancialInstitution</c>. Nullable only to let EF materialize legacy rows
+    /// (pre-dating this slice) that have not yet been backfilled — every public constructor still
+    /// requires a real, non-empty id; <see langword="null"/> is only ever reachable via EF's private
+    /// parameterless constructor (see <see cref="RenewAtMaturity"/>'s defensive guard for the one
+    /// internal caller that must never observe that transient state).
+    /// </summary>
+    public Guid? InstitutionId { get; private set; }
 
     /// <summary>Fixed at origination — never mutated after construction, distinct from the inherited
     /// <see cref="FinancialAccount.Balance"/> (current value, which grows as interest is credited).</summary>
@@ -46,7 +62,7 @@ public sealed class TermDeposit : FinancialAccount
     public TermDeposit(
         string name,
         CurrencyCode currency,
-        string institution,
+        Guid institutionId,
         decimal initialPrincipal,
         decimal openingBalance,
         decimal rate,
@@ -61,10 +77,8 @@ public sealed class TermDeposit : FinancialAccount
         string? notes = null)
         : base(name, currency, openingBalance, notes)
     {
-        if (string.IsNullOrWhiteSpace(institution))
-            throw new ArgumentException("Institution cannot be empty.", nameof(institution));
-        if (institution.Trim().Length > 200)
-            throw new ArgumentException("Institution cannot exceed 200 characters.", nameof(institution));
+        if (institutionId == Guid.Empty)
+            throw new ArgumentException("Institution id is required.", nameof(institutionId));
         if (initialPrincipal <= 0)
             throw new ArgumentOutOfRangeException(nameof(initialPrincipal), "Initial principal must be positive.");
         if (openingBalance < 0)
@@ -78,7 +92,7 @@ public sealed class TermDeposit : FinancialAccount
         if (interestReceived < 0)
             throw new ArgumentOutOfRangeException(nameof(interestReceived), "Interest received cannot be negative.");
 
-        Institution = institution.Trim();
+        InstitutionId = institutionId;
         InitialPrincipal = initialPrincipal;
         Rate = rate;
         RateType = rateType;
@@ -89,6 +103,20 @@ public sealed class TermDeposit : FinancialAccount
         EstimatedInterest = estimatedInterest;
         InterestReceived = interestReceived;
         AutoRenewal = autoRenewal;
+    }
+
+    /// <summary>
+    /// Sets <see cref="InstitutionId"/> on a legacy row (constructed via EF's private materialization
+    /// path, so its <see cref="InstitutionId"/> is transiently null) — called only by
+    /// <c>FinancialInstitutionBackfillService</c>. Every row reachable through the public constructor
+    /// already has a non-null <see cref="InstitutionId"/> and never needs this.
+    /// </summary>
+    public void SetInstitutionId(Guid institutionId)
+    {
+        if (institutionId == Guid.Empty)
+            throw new ArgumentException("Institution id is required.", nameof(institutionId));
+
+        InstitutionId = institutionId;
     }
 
     /// <summary>
@@ -149,6 +177,12 @@ public sealed class TermDeposit : FinancialAccount
             throw new InvalidOperationException("Cannot renew before maturity.");
         if (Balance <= 0)
             throw new InvalidOperationException("Cannot renew a term deposit with no remaining balance.");
+        // Defensive guard, not expected to be reachable in practice: FinancialInstitutionBackfillService
+        // runs at every app startup, before the Dashboard load that triggers renewals ever fires, so by
+        // the time this executes InstitutionId should already be set on every row. Fails loudly rather
+        // than silently renewing with Guid.Empty or throwing an unhelpful NullReferenceException.
+        if (InstitutionId is null)
+            throw new InvalidOperationException("Cannot renew a term deposit with no assigned institution.");
 
         var termLengthDays = MaturityDate.DayNumber - StartDate.DayNumber;
         var newStartDate = MaturityDate;
@@ -157,7 +191,7 @@ public sealed class TermDeposit : FinancialAccount
         var renewal = new TermDeposit(
             Name,
             Currency,
-            Institution,
+            InstitutionId.Value,
             initialPrincipal: Balance,
             openingBalance: Balance,
             Rate,

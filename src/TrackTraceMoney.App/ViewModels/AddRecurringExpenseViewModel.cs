@@ -6,6 +6,8 @@ using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
+using TrackTraceMoney.Domain.Accounts;
+using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.RecurringExpenses;
 
 namespace TrackTraceMoney.App.ViewModels;
@@ -15,6 +17,7 @@ public sealed partial class AddRecurringExpenseViewModel : ObservableObject
     private readonly IRecurringExpenseRepository _recurringExpenseRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IFinancialAccountRepository _accountRepository;
+    private readonly ICreditAccountRepository _creditAccountRepository;
 
     [ObservableProperty]
     private string name = string.Empty;
@@ -50,16 +53,30 @@ public sealed partial class AddRecurringExpenseViewModel : ObservableObject
 
     public ObservableCollection<NamedOption> Categories { get; } = [];
 
+    /// <summary>
+    /// Combined FinancialAccount + credit card picker for this recurring expense's payment source —
+    /// same shape as <c>AddTransactionViewModel.PaymentAccounts</c> (README §11's "Payment method"
+    /// concept, extended to the recurring analogue). Excludes <c>TermDeposit</c> (locked until
+    /// maturity — no legitimate "spend directly from a term deposit" use case, mirroring
+    /// <c>PaymentAccounts</c>) and <c>InvestmentFund</c> (would bypass
+    /// <c>InvestmentFund.RecordContribution</c>/<c>RecordWithdrawal</c> tracking if debited directly,
+    /// mirroring <c>AddTransactionViewModel.Accounts</c>) — neither exclusion existed here before this
+    /// picker became credit-card-aware; both are the same bug class CLAUDE.md flags as this domain's
+    /// #1 correctness risk, just via silent balance corruption/a permanently-stuck due item rather than
+    /// double-counted spend.
+    /// </summary>
     public ObservableCollection<NamedOption> Accounts { get; } = [];
 
     public AddRecurringExpenseViewModel(
         IRecurringExpenseRepository recurringExpenseRepository,
         ICategoryRepository categoryRepository,
-        IFinancialAccountRepository accountRepository)
+        IFinancialAccountRepository accountRepository,
+        ICreditAccountRepository creditAccountRepository)
     {
         _recurringExpenseRepository = recurringExpenseRepository;
         _categoryRepository = categoryRepository;
         _accountRepository = accountRepository;
+        _creditAccountRepository = creditAccountRepository;
     }
 
     [RelayCommand]
@@ -67,14 +84,20 @@ public sealed partial class AddRecurringExpenseViewModel : ObservableObject
     {
         var categories = await _categoryRepository.GetAllAsync();
         var accounts = await _accountRepository.GetActiveAsync();
+        var creditAccounts = await _creditAccountRepository.GetActiveAsync();
 
         Categories.Clear();
         foreach (var category in categories)
             Categories.Add(new NamedOption(category.Id, SystemCategoryKeyToLabelConverter.GetDisplayName(category)));
 
+        // README §14's own example uses a "💳 " prefix for cards (e.g. "💳 BAC Card"); the Picker
+        // renders via NamedOption.ToString(), so no ItemDisplayBinding is needed for this prefix — same
+        // convention as AddTransactionViewModel.PaymentAccounts.
         Accounts.Clear();
-        foreach (var account in accounts)
-            Accounts.Add(new NamedOption(account.Id, account.Name, account.Currency));
+        foreach (var account in accounts.Where(a => a is not TermDeposit and not InvestmentFund))
+            Accounts.Add(new NamedOption(account.Id, account.Name, account.Currency, IsCreditAccount: false));
+        foreach (var creditCard in creditAccounts.OfType<CreditCard>())
+            Accounts.Add(new NamedOption(creditCard.Id, $"💳 {creditCard.Name}", creditCard.Currency, IsCreditAccount: true));
     }
 
     [RelayCommand]
@@ -122,14 +145,23 @@ public sealed partial class AddRecurringExpenseViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            var recurringExpense = new RecurringExpense(
-                Name,
-                amount,
-                SelectedCategory.Id,
-                SelectedAccount.Id,
-                SelectedFrequency,
-                startDateOnly,
-                endDateOnly);
+            var recurringExpense = SelectedAccount.IsCreditAccount
+                ? RecurringExpense.ForCreditCard(
+                    Name,
+                    amount,
+                    SelectedCategory.Id,
+                    SelectedAccount.Id,
+                    SelectedFrequency,
+                    startDateOnly,
+                    endDateOnly)
+                : new RecurringExpense(
+                    Name,
+                    amount,
+                    SelectedCategory.Id,
+                    SelectedAccount.Id,
+                    SelectedFrequency,
+                    startDateOnly,
+                    endDateOnly);
 
             await _recurringExpenseRepository.AddAsync(recurringExpense);
             await _recurringExpenseRepository.SaveChangesAsync();

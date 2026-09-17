@@ -106,6 +106,30 @@ public sealed class TransactionRepositoryDateRangeQueriesTests : IDisposable
         Assert.Contains(results, t => t is CreditCardPurchase && t.Amount == 60m);
     }
 
+    /// <summary>
+    /// A same-day range (from == to == the transaction's own date, e.g. a freshly-created credit card's
+    /// first billing cycle queried on its own creation day) was previously untested — every other case in
+    /// this file uses a multi-day range with the transaction strictly inside it.
+    /// </summary>
+    [Fact]
+    public async Task GetByDateRangeAndSpendAccountAsync_MatchesWhenFromToAndTransactionDateAreAllTheSameDay()
+    {
+        using var scope = _provider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<TrackTraceMoneyDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<ITransactionRepository>();
+
+        var spendAccountId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+        var today = new DateOnly(2026, 9, 16);
+
+        context.Set<Transaction>().Add(new CreditCardPurchase(today, 50m, spendAccountId, categoryId));
+        await context.SaveChangesAsync();
+
+        var results = await repository.GetByDateRangeAndSpendAccountAsync(today, today, spendAccountId);
+
+        Assert.Single(results);
+    }
+
     [Fact]
     public async Task GetByDateRangeAndSpendAccountAsync_ExcludesNonMatchingAccountAndCreditCardPayment()
     {

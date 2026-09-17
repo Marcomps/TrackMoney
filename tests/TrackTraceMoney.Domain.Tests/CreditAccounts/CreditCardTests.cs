@@ -16,7 +16,7 @@ public sealed class CreditCardTests
         new(
             "Visa Signature",
             CurrencyCode.USD,
-            "Bank of Example",
+            Guid.NewGuid(),
             creditLimit,
             statementCutOffDay,
             paymentDueDay,
@@ -29,21 +29,68 @@ public sealed class CreditCardTests
     public void Constructor_WithEmptyName_Throws()
     {
         Assert.Throws<ArgumentException>(() =>
-            new CreditCard(" ", CurrencyCode.USD, "Bank of Example", 1000m, 15, 5));
+            new CreditCard(" ", CurrencyCode.USD, Guid.NewGuid(), 1000m, 15, 5));
     }
 
     [Fact]
-    public void Constructor_WithEmptyIssuer_Throws()
+    public void Constructor_WithEmptyInstitutionId_Throws()
     {
         Assert.Throws<ArgumentException>(() =>
-            new CreditCard("Visa Signature", CurrencyCode.USD, " ", 1000m, 15, 5));
+            new CreditCard("Visa Signature", CurrencyCode.USD, Guid.Empty, 1000m, 15, 5));
+    }
+
+    [Fact]
+    public void Constructor_SetsInstitutionId()
+    {
+        var institutionId = Guid.NewGuid();
+
+        var card = new CreditCard("Visa Signature", CurrencyCode.USD, institutionId, 1000m, 15, 5);
+
+        Assert.Equal(institutionId, card.InstitutionId);
+    }
+
+    [Fact]
+    public void Constructor_WithoutNetworkId_NetworkIdIsNull()
+    {
+        var card = CreateCard();
+
+        Assert.Null(card.NetworkId);
+    }
+
+    [Fact]
+    public void Constructor_WithNetworkId_SetsNetworkId()
+    {
+        var networkId = Guid.NewGuid();
+
+        var card = new CreditCard("Visa Signature", CurrencyCode.USD, Guid.NewGuid(), 1000m, 15, 5, networkId: networkId);
+
+        Assert.Equal(networkId, card.NetworkId);
+    }
+
+    [Fact]
+    public void SetInstitutionId_UpdatesInstitutionId()
+    {
+        var card = CreateCard();
+        var newInstitutionId = Guid.NewGuid();
+
+        card.SetInstitutionId(newInstitutionId);
+
+        Assert.Equal(newInstitutionId, card.InstitutionId);
+    }
+
+    [Fact]
+    public void SetInstitutionId_WithEmptyGuid_Throws()
+    {
+        var card = CreateCard();
+
+        Assert.Throws<ArgumentException>(() => card.SetInstitutionId(Guid.Empty));
     }
 
     [Fact]
     public void Constructor_WithNonPositiveCreditLimit_Throws()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new CreditCard("Visa Signature", CurrencyCode.USD, "Bank of Example", 0m, 15, 5));
+            new CreditCard("Visa Signature", CurrencyCode.USD, Guid.NewGuid(), 0m, 15, 5));
     }
 
     [Fact]

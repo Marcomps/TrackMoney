@@ -14,7 +14,8 @@ public sealed class RecurringExpenseConfiguration : IEntityTypeConfiguration<Rec
         builder.Property(r => r.Name).IsRequired().HasMaxLength(200);
         builder.Property(r => r.Amount).IsRequired();
         builder.Property(r => r.CategoryId).IsRequired();
-        builder.Property(r => r.AccountId).IsRequired();
+        builder.Property(r => r.AccountId);
+        builder.Property(r => r.CreditAccountId);
         builder.Property(r => r.Frequency).HasConversion<string>().IsRequired();
         builder.Property(r => r.StartDate).IsRequired();
         builder.Property(r => r.EndDate);

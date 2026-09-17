@@ -11,142 +11,157 @@
     <RefreshView IsRefreshing="{Binding IsBusy}"
                  Command="{Binding LoadDashboardCommand}">
         <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="24">
+            <VerticalStackLayout Padding="16" Spacing="18">
 
                 <!-- Tile 4: financial health indicator -->
-                <VerticalStackLayout Spacing="4">
-                    <Label FontSize="32" HorizontalOptions="Center" Text="{Binding HealthEmoji}" />
-                    <Label FontSize="16" HorizontalOptions="Center" Text="{Binding HealthLabel}" />
-                </VerticalStackLayout>
+                <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
+                    <VerticalStackLayout Spacing="4">
+                        <Label FontSize="40" HorizontalOptions="Center" Text="{Binding HealthEmoji}" />
+                        <Label FontSize="16" HorizontalOptions="Center" Text="{Binding HealthLabel}"
+                               TextColor="{StaticResource Gray100}" />
+                    </VerticalStackLayout>
+                </Border>
 
                 <!-- Tile 1: available balance per currency -->
-                <VerticalStackLayout Spacing="8">
-                    <Label FontSize="18" FontAttributes="Bold"
-                           Text="{x:Static resources:AppResources.Dashboard_BalanceSectionTitle}" />
-                    <CollectionView ItemsSource="{Binding Balances}" SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:CurrencyBalance">
-                                <Grid ColumnDefinitions="Auto,*" Padding="0,4">
-                                    <Label Grid.Column="0" Text="{Binding Currency}" FontSize="16" />
-                                    <Label Grid.Column="1" HorizontalOptions="End"
-                                           Text="{Binding Total, StringFormat='{0:N2}'}" FontSize="16" />
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </VerticalStackLayout>
+                <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                               Text="{x:Static resources:AppResources.Dashboard_BalanceSectionTitle}" />
+                        <CollectionView ItemsSource="{Binding Balances}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:CurrencyBalance">
+                                    <Grid ColumnDefinitions="Auto,*" Padding="0,4">
+                                        <Label Grid.Column="0" Text="{Binding Currency}" FontSize="16" TextColor="{StaticResource Gray100}" />
+                                        <Label Grid.Column="1" HorizontalOptions="End" FontAttributes="Bold"
+                                               Text="{Binding Total, StringFormat='{0:N2}'}" FontSize="20" TextColor="{StaticResource Primary}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
 
                 <!-- Net worth tile (README §24): sum of ALL active FinancialAccount balances minus active
                      CreditAccount debt, per currency — never blended across currencies, never derived from
                      CountsAsAvailableBalance (unlike Tile 1 above). -->
-                <VerticalStackLayout Spacing="8">
-                    <Label FontSize="18" FontAttributes="Bold"
-                           Text="{x:Static resources:AppResources.Dashboard_NetWorthSectionTitle}" />
-                    <CollectionView ItemsSource="{Binding NetWorthByCurrency}" SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:NetWorthTileItem">
-                                <VerticalStackLayout Spacing="4" Padding="0,4">
-                                    <Label Text="{Binding Currency}" FontSize="16" FontAttributes="Bold" />
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AssetsLabel}" FontSize="16" />
-                                        <Label Grid.Column="1" Text="{Binding TotalAssets, StringFormat='{0:N2}'}" FontSize="16" />
-                                    </Grid>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_LiabilitiesLabel}" FontSize="16" />
-                                        <Label Grid.Column="1" Text="{Binding TotalLiabilities, StringFormat='{0:N2}'}" FontSize="16" />
-                                    </Grid>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_NetWorthLabel}" FontSize="16" FontAttributes="Bold" />
-                                        <Label Grid.Column="1" Text="{Binding NetWorth, StringFormat='{0:N2}'}" FontSize="16" FontAttributes="Bold" />
-                                    </Grid>
-                                </VerticalStackLayout>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                    <Button Text="{x:Static resources:AppResources.Dashboard_NetWorthViewHistoryButton}"
-                            Command="{Binding GoToNetWorthHistoryCommand}"
-                            HorizontalOptions="Fill" />
-                </VerticalStackLayout>
+                <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                               Text="{x:Static resources:AppResources.Dashboard_NetWorthSectionTitle}" />
+                        <CollectionView ItemsSource="{Binding NetWorthByCurrency}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:NetWorthTileItem">
+                                    <VerticalStackLayout Spacing="4" Padding="0,4">
+                                        <Label Text="{Binding Currency}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Gray100}" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AssetsLabel}" FontSize="16" TextColor="{StaticResource Gray200}" />
+                                            <Label Grid.Column="1" Text="{Binding TotalAssets, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Gray100}" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_LiabilitiesLabel}" FontSize="16" TextColor="{StaticResource Gray200}" />
+                                            <Label Grid.Column="1" Text="{Binding TotalLiabilities, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Gray100}" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_NetWorthLabel}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                            <Label Grid.Column="1" Text="{Binding NetWorth, StringFormat='{0:N2}'}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                        <Button Text="{x:Static resources:AppResources.Dashboard_NetWorthViewHistoryButton}"
+                                Command="{Binding GoToNetWorthHistoryCommand}"
+                                HorizontalOptions="Fill" />
+                    </VerticalStackLayout>
+                </Border>
 
                 <!-- Tile 2: income / expenses / available this month — one block per currency, never blended -->
-                <VerticalStackLayout Spacing="8">
-                    <CollectionView ItemsSource="{Binding IncomeExpenseSummaries}" SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:CurrencyIncomeExpense">
-                                <VerticalStackLayout Spacing="4" Padding="0,4">
-                                    <Label Text="{Binding Currency}" FontSize="16" FontAttributes="Bold" />
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_IncomeLabel}" FontSize="16" />
-                                        <Label Grid.Column="1" Text="{Binding Income, StringFormat='{0:N2}'}" FontSize="16" />
-                                    </Grid>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_ExpensesLabel}" FontSize="16" />
-                                        <Label Grid.Column="1" Text="{Binding Expenses, StringFormat='{0:N2}'}" FontSize="16" />
-                                    </Grid>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AvailableLabel}" FontSize="16" FontAttributes="Bold" />
-                                        <Label Grid.Column="1" Text="{Binding Available, StringFormat='{0:N2}'}" FontSize="16" FontAttributes="Bold" />
-                                    </Grid>
-                                </VerticalStackLayout>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </VerticalStackLayout>
+                <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
+                    <VerticalStackLayout Spacing="8">
+                        <CollectionView ItemsSource="{Binding IncomeExpenseSummaries}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:CurrencyIncomeExpense">
+                                    <VerticalStackLayout Spacing="4" Padding="0,4">
+                                        <Label Text="{Binding Currency}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Gray100}" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_IncomeLabel}" FontSize="16" TextColor="{StaticResource Gray200}" />
+                                            <Label Grid.Column="1" Text="{Binding Income, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Primary}" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_ExpensesLabel}" FontSize="16" TextColor="{StaticResource Gray200}" />
+                                            <Label Grid.Column="1" Text="{Binding Expenses, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Tertiary}" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AvailableLabel}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                            <Label Grid.Column="1" Text="{Binding Available, StringFormat='{0:N2}'}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
 
                 <!-- Tile 3: over-budget categories this month -->
-                <VerticalStackLayout Spacing="8">
-                    <Label FontSize="18" FontAttributes="Bold"
-                           Text="{x:Static resources:AppResources.Dashboard_OverBudgetSectionTitle}" />
-                    <Label Text="{x:Static resources:AppResources.Dashboard_OverBudgetEmpty}"
-                           IsVisible="{Binding ShowOverBudgetEmpty}" />
-                    <CollectionView ItemsSource="{Binding OverBudgetCategories}" SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:BudgetListItem">
-                                <Grid Padding="0,4" ColumnDefinitions="Auto,*,Auto">
-                                    <Label Grid.Column="0" Text="{Binding SemaforoEmoji}" FontSize="16" VerticalOptions="Center" />
-                                    <Label Grid.Column="1" Text="{Binding CategoryName}" FontSize="16"
-                                           Margin="8,0,0,0" VerticalOptions="Center" />
-                                    <Label Grid.Column="2" VerticalOptions="Center">
-                                        <Label.FormattedText>
-                                            <FormattedString>
-                                                <Span Text="{Binding Spent, StringFormat='{0:N2}'}" />
-                                                <Span Text=" / " />
-                                                <Span Text="{Binding BudgetAmount, StringFormat='{0:N2}'}" />
-                                                <Span Text=" " />
-                                                <Span Text="{Binding Currency}" />
-                                            </FormattedString>
-                                        </Label.FormattedText>
-                                    </Label>
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </VerticalStackLayout>
+                <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                               Text="{x:Static resources:AppResources.Dashboard_OverBudgetSectionTitle}" />
+                        <Label Text="{x:Static resources:AppResources.Dashboard_OverBudgetEmpty}"
+                               TextColor="{StaticResource Gray200}"
+                               IsVisible="{Binding ShowOverBudgetEmpty}" />
+                        <CollectionView ItemsSource="{Binding OverBudgetCategories}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:BudgetListItem">
+                                    <Grid Padding="0,4" ColumnDefinitions="Auto,*,Auto">
+                                        <Label Grid.Column="0" Text="{Binding SemaforoEmoji}" FontSize="16" VerticalOptions="Center" />
+                                        <Label Grid.Column="1" Text="{Binding CategoryName}" FontSize="16" TextColor="{StaticResource Gray100}"
+                                               Margin="8,0,0,0" VerticalOptions="Center" />
+                                        <Label Grid.Column="2" VerticalOptions="Center" TextColor="{StaticResource Gray100}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding Spent, StringFormat='{0:N2}'}" />
+                                                    <Span Text=" / " />
+                                                    <Span Text="{Binding BudgetAmount, StringFormat='{0:N2}'}" />
+                                                    <Span Text=" " />
+                                                    <Span Text="{Binding Currency}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
 
                 <!-- Tile 5: upcoming payments — recurring expenses due now or within the next 7 days -->
-                <VerticalStackLayout Spacing="8">
-                    <Label FontSize="18" FontAttributes="Bold"
-                           Text="{x:Static resources:AppResources.Dashboard_UpcomingPaymentsSectionTitle}" />
-                    <Label Text="{x:Static resources:AppResources.Dashboard_UpcomingPaymentsEmpty}"
-                           IsVisible="{Binding ShowUpcomingPaymentsEmpty}" />
-                    <CollectionView ItemsSource="{Binding UpcomingPayments}" SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:RecurringExpenseListItem">
-                                <Grid Padding="0,4" ColumnDefinitions="*,Auto,Auto">
-                                    <Label Grid.Column="0" Text="{Binding Name}" FontSize="16" />
-                                    <Label Grid.Column="1" HorizontalOptions="End" Margin="8,0"
-                                           Text="{Binding Amount, StringFormat='{0:N2}'}" FontSize="16" />
-                                    <Label Grid.Column="2" HorizontalOptions="End"
-                                           Text="{Binding NextDueDate}" FontSize="16" />
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                    <Button Text="{x:Static resources:AppResources.Dashboard_UpcomingPaymentsGoToButton}"
-                            Command="{Binding GoToRecurringExpensesCommand}"
-                            IsVisible="{Binding HasUpcomingPayments}"
-                            HorizontalOptions="Fill" />
-                </VerticalStackLayout>
+                <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                               Text="{x:Static resources:AppResources.Dashboard_UpcomingPaymentsSectionTitle}" />
+                        <Label Text="{x:Static resources:AppResources.Dashboard_UpcomingPaymentsEmpty}"
+                               TextColor="{StaticResource Gray200}"
+                               IsVisible="{Binding ShowUpcomingPaymentsEmpty}" />
+                        <CollectionView ItemsSource="{Binding UpcomingPayments}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:RecurringExpenseListItem">
+                                    <Grid Padding="0,4" ColumnDefinitions="*,Auto,Auto">
+                                        <Label Grid.Column="0" Text="{Binding Name}" FontSize="16" TextColor="{StaticResource Gray100}" />
+                                        <Label Grid.Column="1" HorizontalOptions="End" Margin="8,0"
+                                               Text="{Binding Amount, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Tertiary}" />
+                                        <Label Grid.Column="2" HorizontalOptions="End"
+                                               Text="{Binding NextDueDate}" FontSize="16" TextColor="{StaticResource Gray200}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                        <Button Text="{x:Static resources:AppResources.Dashboard_UpcomingPaymentsGoToButton}"
+                                Command="{Binding GoToRecurringExpensesCommand}"
+                                IsVisible="{Binding HasUpcomingPayments}"
+                                HorizontalOptions="Fill" />
+                    </VerticalStackLayout>
+                </Border>
 
             </VerticalStackLayout>
         </ScrollView>

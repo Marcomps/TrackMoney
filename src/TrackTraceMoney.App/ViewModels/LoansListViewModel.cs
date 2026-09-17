@@ -11,6 +11,7 @@ namespace TrackTraceMoney.App.ViewModels;
 public sealed partial class LoansListViewModel : ObservableObject
 {
     private readonly ICreditAccountRepository _creditAccountRepository;
+    private readonly IFinancialInstitutionRepository _institutionRepository;
 
     [ObservableProperty]
     private bool isBusy;
@@ -23,9 +24,10 @@ public sealed partial class LoansListViewModel : ObservableObject
 
     public bool IsEmpty => HasLoaded && Loans.Count == 0;
 
-    public LoansListViewModel(ICreditAccountRepository creditAccountRepository)
+    public LoansListViewModel(ICreditAccountRepository creditAccountRepository, IFinancialInstitutionRepository institutionRepository)
     {
         _creditAccountRepository = creditAccountRepository;
+        _institutionRepository = institutionRepository;
     }
 
     [RelayCommand]
@@ -38,11 +40,17 @@ public sealed partial class LoansListViewModel : ObservableObject
         try
         {
             var creditAccounts = await _creditAccountRepository.GetActiveAsync();
+            var institutionNames = (await _institutionRepository.GetAllAsync()).ToDictionary(i => i.Id, i => i.Name);
 
             Loans.Clear();
             foreach (var account in creditAccounts)
                 if (account is Loan loan)
-                    Loans.Add(LoanListItem.FromDomain(loan));
+                {
+                    var institutionName = loan.InstitutionId is { } institutionId && institutionNames.TryGetValue(institutionId, out var name)
+                        ? name
+                        : "?";
+                    Loans.Add(LoanListItem.FromDomain(loan, institutionName));
+                }
 
             HasLoaded = true;
             OnPropertyChanged(nameof(IsEmpty));

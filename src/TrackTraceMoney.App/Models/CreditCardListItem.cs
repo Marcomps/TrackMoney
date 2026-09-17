@@ -7,7 +7,7 @@ namespace TrackTraceMoney.App.Models;
 public sealed record CreditCardListItem(
     Guid Id,
     string Name,
-    string Issuer,
+    string InstitutionName,
     string? LastFourDigits,
     CurrencyCode Currency,
     decimal CreditLimit,
@@ -20,10 +20,10 @@ public sealed record CreditCardListItem(
 
     public string MaskedLastFourDigits => HasLastFourDigits ? $"•••• {LastFourDigits}" : string.Empty;
 
-    public static CreditCardListItem FromDomain(CreditCard card, CreditCardHealthStatus healthStatus) => new(
+    public static CreditCardListItem FromDomain(CreditCard card, CreditCardHealthStatus healthStatus, string institutionName) => new(
         card.Id,
         card.Name,
-        card.Issuer,
+        institutionName,
         card.LastFourDigits,
         card.Currency,
         card.CreditLimit,

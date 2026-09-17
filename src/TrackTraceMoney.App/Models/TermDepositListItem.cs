@@ -6,14 +6,14 @@ namespace TrackTraceMoney.App.Models;
 public sealed record TermDepositListItem(
     Guid Id,
     string Name,
-    string Institution,
+    string InstitutionName,
     CurrencyCode Currency,
     decimal Balance,
     DateOnly MaturityDate,
     decimal Rate,
     TermDepositRateType RateType)
 {
-    public static TermDepositListItem FromDomain(TermDeposit termDeposit) => new(
-        termDeposit.Id, termDeposit.Name, termDeposit.Institution, termDeposit.Currency,
+    public static TermDepositListItem FromDomain(TermDeposit termDeposit, string institutionName) => new(
+        termDeposit.Id, termDeposit.Name, institutionName, termDeposit.Currency,
         termDeposit.Balance, termDeposit.MaturityDate, termDeposit.Rate, termDeposit.RateType);
 }

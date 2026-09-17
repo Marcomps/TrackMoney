@@ -19,6 +19,7 @@
             <converters:LoanRateTypeToLabelConverter x:Key="LoanRateTypeToLabelConverter" />
             <converters:TermDepositRateTypeToLabelConverter x:Key="TermDepositRateTypeToLabelConverter" />
             <converters:TermDepositInterestFrequencyToLabelConverter x:Key="TermDepositInterestFrequencyToLabelConverter" />
+            <converters:PersonRelationshipTypeToLabelConverter x:Key="PersonRelationshipTypeToLabelConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

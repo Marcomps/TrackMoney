@@ -25,7 +25,7 @@ public sealed class NetWorthSnapshotServiceTests
     {
         var (service, accounts, creditAccounts, snapshots) = CreateSut();
         accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 500m));
-        creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m,
+        creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m,
             statementCutOffDay: 1, paymentDueDay: 15, openingAmountOwed: 200m));
 
         var asOfDate = new DateOnly(2026, 9, 13);

@@ -169,8 +169,12 @@ public sealed partial class DashboardViewModel : ObservableObject
 
             // Tile 5: upcoming payments — recurring expenses due now or due within the next 7 days
             // (README §30 question 4, "What do I need to pay?"). Read-only here: confirming or
-            // deactivating an occurrence stays exclusively on the Recurring Expenses screen.
+            // deactivating an occurrence stays exclusively on the Recurring Expenses screen. Hoisted
+            // from the Net Worth tile below (was fetched there only) so this dictionary can resolve a
+            // credit-card-backed recurring expense's account name without a second, redundant fetch.
             var accountNames = accounts.ToDictionary(a => a.Id, a => a.Name);
+            var activeCreditAccounts = await _creditAccountRepository.GetActiveAsync();
+            var creditAccountNames = activeCreditAccounts.ToDictionary(a => a.Id, a => a.Name);
             var dueSoonCutoff = today.AddDays(7);
 
             UpcomingPayments.Clear();
@@ -179,17 +183,18 @@ public sealed partial class DashboardViewModel : ObservableObject
                          .OrderBy(r => r.NextOccurrenceDate))
             {
                 var categoryName = categoryNames.TryGetValue(recurringExpense.CategoryId, out var name) ? name : "?";
-                var accountName = accountNames.TryGetValue(recurringExpense.AccountId, out var accName) ? accName : "?";
+                var accountName = recurringExpense.IsCreditCardBacked
+                    ? "💳 " + (creditAccountNames.TryGetValue(recurringExpense.CreditAccountId!.Value, out var cardName) ? cardName : "?")
+                    : (accountNames.TryGetValue(recurringExpense.AccountId!.Value, out var accName) ? accName : "?");
                 UpcomingPayments.Add(RecurringExpenseListItem.FromDomain(recurringExpense, categoryName, accountName));
             }
 
             // Net worth tile (README §24) — sum of ALL active FinancialAccount balances (regardless of
             // CountsAsAvailableBalance, unlike Tile 1 above) minus active CreditAccount debt, per
             // currency, never blended across currencies. Computed here directly from the active accounts
-            // already fetched (plus a fresh active-only credit account fetch, since Tile 2 above needs
-            // ALL credit accounts, not active-only) so the tile never needs to re-read the snapshot table
-            // that RecordSnapshotAsync below writes to.
-            var activeCreditAccounts = await _creditAccountRepository.GetActiveAsync();
+            // already fetched, plus the active-only credit account fetch hoisted above for Tile 5 (since
+            // Tile 2 above needs ALL credit accounts, not active-only) so the tile never needs to re-read
+            // the snapshot table that RecordSnapshotAsync below writes to.
             var netWorthSummary = _netWorthCalculator.Calculate(accounts, activeCreditAccounts);
 
             NetWorthByCurrency.Clear();

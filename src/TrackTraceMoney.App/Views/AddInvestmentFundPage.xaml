@@ -14,7 +14,7 @@
             <Entry Text="{Binding Name}" />
 
             <Label Text="{x:Static resources:AppResources.AddInvestmentFund_InstitutionLabel}" />
-            <Entry Text="{Binding Institution}" />
+            <Picker ItemsSource="{Binding InstitutionOptions}" SelectedItem="{Binding SelectedInstitution}" />
 
             <Label Text="{x:Static resources:AppResources.AddInvestmentFund_CurrencyLabel}" />
             <Picker ItemsSource="{Binding AvailableCurrencies}"

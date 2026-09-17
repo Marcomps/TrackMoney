@@ -25,7 +25,7 @@
                     <DataTemplate x:DataType="models:LoanListItem">
                         <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
                             <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="16" />
-                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding Institution}" FontSize="12" Opacity="0.7" />
+                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding InstitutionName}" FontSize="12" Opacity="0.7" />
                             <Label Grid.Row="2" Grid.Column="0"
                                    Text="{Binding Kind, Converter={StaticResource LoanKindToLabelConverter}}"
                                    FontSize="12" Opacity="0.7" />

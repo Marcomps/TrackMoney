@@ -10,7 +10,22 @@ namespace TrackTraceMoney.Domain.Accounts;
 /// </summary>
 public sealed class InvestmentFund : FinancialAccount
 {
-    public string Institution { get; private set; } = null!;
+    /// <summary>
+    /// Legacy free-text institution, superseded by <see cref="InstitutionId"/> (see the
+    /// financial-institution-card-network-slice-spec's Decision 2). Kept — nullable, no longer
+    /// constructor-validated — only so <c>FinancialInstitutionBackfillService</c> can read a
+    /// not-yet-backfilled row's value; no code path after this slice writes it. Never dropped this
+    /// slice (zero production users; see the spec).
+    /// </summary>
+    public string? Institution { get; private set; }
+
+    /// <summary>
+    /// The fund's <c>FinancialInstitution</c>. Nullable only to let EF materialize legacy rows
+    /// (pre-dating this slice) that have not yet been backfilled — every public constructor still
+    /// requires a real, non-empty id; <see langword="null"/> is only ever reachable via EF's private
+    /// parameterless constructor.
+    /// </summary>
+    public Guid? InstitutionId { get; private set; }
 
     public DateOnly InvestmentDate { get; private set; }
 
@@ -32,7 +47,7 @@ public sealed class InvestmentFund : FinancialAccount
     public InvestmentFund(
         string name,
         CurrencyCode currency,
-        string institution,
+        Guid institutionId,
         DateOnly investmentDate,
         decimal contributions,
         decimal openingBalance,
@@ -41,10 +56,8 @@ public sealed class InvestmentFund : FinancialAccount
         string? notes = null)
         : base(name, currency, openingBalance, notes)
     {
-        if (string.IsNullOrWhiteSpace(institution))
-            throw new ArgumentException("Institution cannot be empty.", nameof(institution));
-        if (institution.Trim().Length > 200)
-            throw new ArgumentException("Institution cannot exceed 200 characters.", nameof(institution));
+        if (institutionId == Guid.Empty)
+            throw new ArgumentException("Institution id is required.", nameof(institutionId));
         if (contributions <= 0)
             throw new ArgumentOutOfRangeException(nameof(contributions), "Contributions must be positive.");
         if (openingBalance < 0)
@@ -54,11 +67,25 @@ public sealed class InvestmentFund : FinancialAccount
         if (fees < 0)
             throw new ArgumentOutOfRangeException(nameof(fees), "Fees cannot be negative.");
 
-        Institution = institution.Trim();
+        InstitutionId = institutionId;
         InvestmentDate = investmentDate;
         Contributions = contributions;
         Withdrawals = withdrawals;
         Fees = fees;
+    }
+
+    /// <summary>
+    /// Sets <see cref="InstitutionId"/> on a legacy row (constructed via EF's private materialization
+    /// path, so its <see cref="InstitutionId"/> is transiently null) — called only by
+    /// <c>FinancialInstitutionBackfillService</c>. Every row reachable through the public constructor
+    /// already has a non-null <see cref="InstitutionId"/> and never needs this.
+    /// </summary>
+    public void SetInstitutionId(Guid institutionId)
+    {
+        if (institutionId == Guid.Empty)
+            throw new ArgumentException("Institution id is required.", nameof(institutionId));
+
+        InstitutionId = institutionId;
     }
 
     /// <summary>README §23's "Gain" — Current value minus net money contributed. Can be negative.

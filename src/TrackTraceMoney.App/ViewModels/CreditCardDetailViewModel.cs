@@ -19,7 +19,7 @@ namespace TrackTraceMoney.App.ViewModels;
 /// statement — never stored — so this stays correct even if a statement is edited or the card's
 /// cut-off day were to change in a later slice.
 /// </summary>
-[QueryProperty(nameof(CreditAccountId), "creditAccountId")]
+[QueryProperty(nameof(CreditAccountIdText), "creditAccountId")]
 public sealed partial class CreditCardDetailViewModel : ObservableObject
 {
     private readonly ICreditAccountRepository _creditAccountRepository;
@@ -32,6 +32,25 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
 
     [ObservableProperty]
     private Guid creditAccountId;
+
+    /// <summary>
+    /// The actual <c>[QueryProperty]</c> target. MAUI Shell's query-string navigation always hands a
+    /// <c>string</c> to the receiving property and internally does a plain <c>Convert.ChangeType</c> --
+    /// which throws <see cref="InvalidCastException"/> for a non-nullable <see cref="Guid"/> target
+    /// (<see cref="Guid"/> has no <see cref="IConvertible"/> implementation), crashing the app on every
+    /// single navigation into this page. Bound here as a string and parsed defensively instead, same
+    /// idiom this codebase already uses for its optional Guid query properties (e.g.
+    /// <c>RecordCreditCardStatementViewModel.StatementId</c>) -- the only difference is this one is
+    /// always expected to be present, so an unparseable value is a genuine error, not "create mode".
+    /// </summary>
+    [ObservableProperty]
+    private string? creditAccountIdText;
+
+    partial void OnCreditAccountIdTextChanged(string? value)
+    {
+        if (Guid.TryParse(value, out var parsed))
+            CreditAccountId = parsed;
+    }
 
     [ObservableProperty]
     private bool isBusy;

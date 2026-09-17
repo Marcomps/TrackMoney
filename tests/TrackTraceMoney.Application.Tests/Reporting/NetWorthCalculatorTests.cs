@@ -19,11 +19,11 @@ public sealed class NetWorthCalculatorTests
         // them — this is the explicit proof that NetWorthCalculator does NOT consult that flag.
         var cash = new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m);
         var termDeposit = new TermDeposit(
-            "CD", CurrencyCode.USD, "Bank", initialPrincipal: 500m, openingBalance: 500m, rate: 0.03m,
+            "CD", CurrencyCode.USD, Guid.NewGuid(), initialPrincipal: 500m, openingBalance: 500m, rate: 0.03m,
             TermDepositRateType.Nominal, new DateOnly(2026, 1, 1), new DateOnly(2027, 1, 1),
             TermDepositInterestFrequency.AtMaturity, isCompounding: false, autoRenewal: false);
         var investmentFund = new InvestmentFund(
-            "Index Fund", CurrencyCode.USD, "Broker", new DateOnly(2026, 1, 1),
+            "Index Fund", CurrencyCode.USD, Guid.NewGuid(), new DateOnly(2026, 1, 1),
             contributions: 300m, openingBalance: 350m);
 
         Assert.False(termDeposit.CountsAsAvailableBalance);
@@ -37,9 +37,9 @@ public sealed class NetWorthCalculatorTests
     [Fact]
     public void Calculate_SumsCreditCardAndLoanAsLiabilities()
     {
-        var creditCard = new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m,
+        var creditCard = new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m,
             statementCutOffDay: 1, paymentDueDay: 15, openingAmountOwed: 200m);
-        var loan = new Loan("Car Loan", CurrencyCode.USD, "Bank", LoanKind.AutoLoan,
+        var loan = new Loan("Car Loan", CurrencyCode.USD, Guid.NewGuid(), LoanKind.AutoLoan,
             originalAmount: 10000m, currentBalance: 4000m, interestRate: 0.1m, LoanRateType.Fixed,
             monthlyInstallment: 300m, nextPaymentDate: new DateOnly(2026, 2, 1), requiredPayment: 300m);
 
@@ -65,7 +65,7 @@ public sealed class NetWorthCalculatorTests
     public void Calculate_MultiCurrencyIsolation_NeverCombinesUsdAssetAndMxnLiability()
     {
         var usdCash = new CashAccount("Wallet USD", CurrencyCode.USD, openingBalance: 500m);
-        var mxnCard = new CreditCard("Tarjeta", CurrencyCode.MXN, "Banco", creditLimit: 5000m,
+        var mxnCard = new CreditCard("Tarjeta", CurrencyCode.MXN, Guid.NewGuid(), creditLimit: 5000m,
             statementCutOffDay: 1, paymentDueDay: 15, openingAmountOwed: 1000m);
 
         var summary = new NetWorthCalculator().Calculate([usdCash], [mxnCard]);
@@ -88,7 +88,7 @@ public sealed class NetWorthCalculatorTests
     public void Calculate_NetWorthCanBeNegativeForACurrency()
     {
         var cash = new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m);
-        var creditCard = new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 5000m,
+        var creditCard = new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 5000m,
             statementCutOffDay: 1, paymentDueDay: 15, openingAmountOwed: 900m);
 
         var summary = new NetWorthCalculator().Calculate([cash], [creditCard]);

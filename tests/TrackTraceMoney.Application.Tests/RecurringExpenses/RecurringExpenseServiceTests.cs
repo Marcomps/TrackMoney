@@ -29,7 +29,8 @@ public sealed class RecurringExpenseServiceTests
         InMemoryRecurringExpenseRepository RecurringExpenses,
         InMemoryAccountRepository Accounts,
         InMemoryTransactionRepository Transactions,
-        FakeUnitOfWork UnitOfWork) CreateSut(bool throwOnRecurringExpenseSave = false)
+        FakeUnitOfWork UnitOfWork,
+        InMemoryCreditAccountRepository CreditAccounts) CreateSut(bool throwOnRecurringExpenseSave = false)
     {
         var accounts = new InMemoryAccountRepository();
         var creditAccounts = new InMemoryCreditAccountRepository();
@@ -45,13 +46,13 @@ public sealed class RecurringExpenseServiceTests
 
         var service = new RecurringExpenseService(recurringExpenses, transactionEntryService, unitOfWork);
 
-        return (service, recurringExpenses, accounts, transactions, unitOfWork);
+        return (service, recurringExpenses, accounts, transactions, unitOfWork, creditAccounts);
     }
 
     [Fact]
     public async Task ConfirmOccurrenceAsync_HappyPath_RecordsExactlyOneExpense_AndAdvancesLastConfirmedDate()
     {
-        var (service, recurringExpenses, accounts, transactions, unitOfWork) = CreateSut();
+        var (service, recurringExpenses, accounts, transactions, unitOfWork, _) = CreateSut();
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
         var categoryId = Guid.NewGuid();
         var startDate = DateOnly.FromDateTime(DateTime.Today);
@@ -83,7 +84,7 @@ public sealed class RecurringExpenseServiceTests
         // part isn't observable through these in-memory Application-layer fakes, so this test proves
         // the piece that *is* observable at this layer: the service must roll back rather than commit,
         // and must propagate the failure rather than swallowing it, whenever the second save fails.
-        var (service, recurringExpenses, accounts, transactions, unitOfWork) = CreateSut(throwOnRecurringExpenseSave: true);
+        var (service, recurringExpenses, accounts, transactions, unitOfWork, _) = CreateSut(throwOnRecurringExpenseSave: true);
         var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
         var categoryId = Guid.NewGuid();
         var startDate = DateOnly.FromDateTime(DateTime.Today);
@@ -94,6 +95,43 @@ public sealed class RecurringExpenseServiceTests
 
         Assert.False(unitOfWork.LastTransaction!.Committed);
         Assert.True(unitOfWork.LastTransaction!.RolledBack);
+    }
+
+    /// <summary>
+    /// Proves the routing this whole slice exists for: a credit-card-backed recurring expense
+    /// (<c>RecurringExpense.ForCreditCard</c>) must confirm through
+    /// <c>ITransactionEntryService.RecordCreditCardPurchaseAsync</c>, not <c>RecordExpenseAsync</c> —
+    /// asserted the same way this file's other tests assert Application-layer behavior (a real
+    /// <c>TransactionEntryService</c> wired to in-memory repositories, inspecting the resulting
+    /// persisted state) rather than a mock verifying a method call. A posted <c>Expense</c> would never
+    /// touch <c>CreditCard.AmountOwed</c>, and <c>RecordExpenseAsync</c>'s own <c>accountId</c> lookup
+    /// would have thrown (no <c>FinancialAccount</c> exists for the card's id in this test) had the
+    /// wrong branch been taken — so both the transaction's concrete type and the card's increased debt
+    /// directly prove no double-counting/desync (CLAUDE.md's #1 risk).
+    /// </summary>
+    [Fact]
+    public async Task ConfirmOccurrenceAsync_CreditCardBacked_RecordsCreditCardPurchase_NotExpense_AndIncreasesCardAmountOwed()
+    {
+        var (service, recurringExpenses, _, transactions, unitOfWork, creditAccounts) = CreateSut();
+        var card = new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 25, paymentDueDay: 10);
+        await creditAccounts.AddAsync(card);
+        var categoryId = Guid.NewGuid();
+        var startDate = DateOnly.FromDateTime(DateTime.Today);
+        var recurringExpense = recurringExpenses.Add(RecurringExpense.ForCreditCard(
+            "ChatGPT Personal", 20m, categoryId, card.Id, RecurringExpenseFrequency.Monthly, startDate, endDate: null));
+
+        await service.ConfirmOccurrenceAsync(recurringExpense.Id);
+
+        var recorded = Assert.Single(transactions.All);
+        Assert.IsType<CreditCardPurchase>(recorded);
+        Assert.True(recorded.CountsAsExpense);
+        Assert.Equal(20m, recorded.Amount);
+        Assert.Equal(20m, card.AmountOwed);
+
+        Assert.Equal(startDate, recurringExpense.LastConfirmedDate);
+
+        Assert.True(unitOfWork.LastTransaction!.Committed);
+        Assert.False(unitOfWork.LastTransaction!.RolledBack);
     }
 
     private sealed class FakeUnitOfWork : IUnitOfWork

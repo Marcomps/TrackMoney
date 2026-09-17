@@ -14,7 +14,7 @@
             <Entry Text="{Binding Name}" />
 
             <Label Text="{x:Static resources:AppResources.AddTermDeposit_InstitutionLabel}" />
-            <Entry Text="{Binding Institution}" />
+            <Picker ItemsSource="{Binding InstitutionOptions}" SelectedItem="{Binding SelectedInstitution}" />
 
             <Label Text="{x:Static resources:AppResources.AddTermDeposit_InitialPrincipalLabel}" />
             <Entry Text="{Binding InitialPrincipalText}" Keyboard="Numeric" />

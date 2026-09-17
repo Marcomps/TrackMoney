@@ -16,7 +16,7 @@ namespace TrackTraceMoney.App.ViewModels;
 /// badge is Pending/Reimbursed/Rejected (see <c>HistoryPage.xaml</c>), so a missing detail here means
 /// something upstream navigated incorrectly rather than a normal empty state.
 /// </summary>
-[QueryProperty(nameof(TransactionId), "transactionId")]
+[QueryProperty(nameof(TransactionIdText), "transactionId")]
 public sealed partial class MedicalExpenseDetailViewModel : ObservableObject
 {
     private readonly ITransactionRepository _transactionRepository;
@@ -26,6 +26,21 @@ public sealed partial class MedicalExpenseDetailViewModel : ObservableObject
 
     [ObservableProperty]
     private Guid transactionId;
+
+    /// <summary>
+    /// The actual <c>[QueryProperty]</c> target -- see
+    /// <c>CreditCardDetailViewModel.CreditAccountIdText</c>'s doc comment: a non-nullable <see cref="Guid"/>
+    /// can't be a direct <c>[QueryProperty]</c> target (MAUI Shell's internal <c>Convert.ChangeType</c>
+    /// throws <see cref="InvalidCastException"/> for it), so this parses defensively from a string instead.
+    /// </summary>
+    [ObservableProperty]
+    private string? transactionIdText;
+
+    partial void OnTransactionIdTextChanged(string? value)
+    {
+        if (Guid.TryParse(value, out var parsed))
+            TransactionId = parsed;
+    }
 
     [ObservableProperty]
     private bool isBusy;

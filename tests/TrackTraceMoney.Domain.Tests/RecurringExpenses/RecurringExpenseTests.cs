@@ -187,4 +187,42 @@ public sealed class RecurringExpenseTests
         expense.Reactivate();
         Assert.True(expense.IsActive);
     }
+
+    [Fact]
+    public void ForCreditCard_SetsCreditAccountId_LeavesAccountIdNull_AndIsCreditCardBackedTrue()
+    {
+        var creditAccountId = Guid.NewGuid();
+
+        var expense = RecurringExpense.ForCreditCard(
+            "ChatGPT Personal",
+            20m,
+            Guid.NewGuid(),
+            creditAccountId,
+            RecurringExpenseFrequency.Monthly,
+            new DateOnly(2026, 1, 15),
+            null);
+
+        Assert.True(expense.IsCreditCardBacked);
+        Assert.Equal(creditAccountId, expense.CreditAccountId);
+        Assert.Null(expense.AccountId);
+    }
+
+    [Fact]
+    public void Constructor_FinancialAccountBacked_IsCreditCardBackedFalse_AndCreditAccountIdNull()
+    {
+        var accountId = Guid.NewGuid();
+
+        var expense = new RecurringExpense(
+            "Netflix",
+            15m,
+            Guid.NewGuid(),
+            accountId,
+            RecurringExpenseFrequency.Monthly,
+            new DateOnly(2026, 1, 15),
+            null);
+
+        Assert.False(expense.IsCreditCardBacked);
+        Assert.Equal(accountId, expense.AccountId);
+        Assert.Null(expense.CreditAccountId);
+    }
 }

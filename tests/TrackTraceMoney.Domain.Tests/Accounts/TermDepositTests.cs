@@ -16,7 +16,7 @@ public sealed class TermDepositTests
         new(
             "12-Month CD",
             CurrencyCode.USD,
-            "Bank of Example",
+            Guid.NewGuid(),
             initialPrincipal,
             openingBalance,
             rate,
@@ -29,16 +29,14 @@ public sealed class TermDepositTests
             estimatedInterest,
             interestReceived);
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Constructor_WithEmptyOrWhitespaceInstitution_Throws(string institution)
+    [Fact]
+    public void Constructor_WithEmptyInstitutionId_Throws()
     {
         Assert.Throws<ArgumentException>(() =>
             new TermDeposit(
                 "12-Month CD",
                 CurrencyCode.USD,
-                institution,
+                Guid.Empty,
                 10000m,
                 10000m,
                 0.05m,
@@ -48,6 +46,47 @@ public sealed class TermDepositTests
                 TermDepositInterestFrequency.Monthly,
                 isCompounding: true,
                 autoRenewal: false));
+    }
+
+    [Fact]
+    public void Constructor_SetsInstitutionId()
+    {
+        var institutionId = Guid.NewGuid();
+
+        var termDeposit = new TermDeposit(
+            "12-Month CD",
+            CurrencyCode.USD,
+            institutionId,
+            10000m,
+            10000m,
+            0.05m,
+            TermDepositRateType.Nominal,
+            new DateOnly(2026, 1, 1),
+            new DateOnly(2027, 1, 1),
+            TermDepositInterestFrequency.Monthly,
+            isCompounding: true,
+            autoRenewal: false);
+
+        Assert.Equal(institutionId, termDeposit.InstitutionId);
+    }
+
+    [Fact]
+    public void SetInstitutionId_UpdatesInstitutionId()
+    {
+        var termDeposit = CreateTermDeposit();
+        var newInstitutionId = Guid.NewGuid();
+
+        termDeposit.SetInstitutionId(newInstitutionId);
+
+        Assert.Equal(newInstitutionId, termDeposit.InstitutionId);
+    }
+
+    [Fact]
+    public void SetInstitutionId_WithEmptyGuid_Throws()
+    {
+        var termDeposit = CreateTermDeposit();
+
+        Assert.Throws<ArgumentException>(() => termDeposit.SetInstitutionId(Guid.Empty));
     }
 
     [Fact]
@@ -148,7 +187,7 @@ public sealed class TermDepositTests
         new(
             "12-Month CD",
             CurrencyCode.USD,
-            "Bank of Example",
+            Guid.NewGuid(),
             initialPrincipal: openingBalance,
             openingBalance,
             0.05m,
@@ -200,7 +239,7 @@ public sealed class TermDepositTests
 
         Assert.Equal(termDeposit.Name, renewal.Name);
         Assert.Equal(termDeposit.Currency, renewal.Currency);
-        Assert.Equal(termDeposit.Institution, renewal.Institution);
+        Assert.Equal(termDeposit.InstitutionId, renewal.InstitutionId);
         Assert.Equal(termDeposit.Rate, renewal.Rate);
         Assert.Equal(termDeposit.RateType, renewal.RateType);
         Assert.Equal(termDeposit.InterestFrequency, renewal.InterestFrequency);

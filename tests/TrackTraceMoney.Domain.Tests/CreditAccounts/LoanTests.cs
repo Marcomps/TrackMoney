@@ -16,7 +16,7 @@ public sealed class LoanTests
         new(
             "Car Loan",
             CurrencyCode.USD,
-            "Bank of Example",
+            Guid.NewGuid(),
             LoanKind.AutoLoan,
             originalAmount,
             currentBalance,
@@ -34,7 +34,7 @@ public sealed class LoanTests
             new Loan(
                 " ",
                 CurrencyCode.USD,
-                "Bank of Example",
+                Guid.NewGuid(),
                 LoanKind.AutoLoan,
                 5000m,
                 3250m,
@@ -46,13 +46,13 @@ public sealed class LoanTests
     }
 
     [Fact]
-    public void Constructor_WithEmptyInstitution_Throws()
+    public void Constructor_WithEmptyInstitutionId_Throws()
     {
         Assert.Throws<ArgumentException>(() =>
             new Loan(
                 "Car Loan",
                 CurrencyCode.USD,
-                " ",
+                Guid.Empty,
                 LoanKind.AutoLoan,
                 5000m,
                 3250m,
@@ -61,6 +61,46 @@ public sealed class LoanTests
                 150m,
                 new DateOnly(2026, 10, 1),
                 150m));
+    }
+
+    [Fact]
+    public void Constructor_SetsInstitutionId()
+    {
+        var institutionId = Guid.NewGuid();
+
+        var loan = new Loan(
+            "Car Loan",
+            CurrencyCode.USD,
+            institutionId,
+            LoanKind.AutoLoan,
+            5000m,
+            3250m,
+            0.12m,
+            LoanRateType.Fixed,
+            150m,
+            new DateOnly(2026, 10, 1),
+            150m);
+
+        Assert.Equal(institutionId, loan.InstitutionId);
+    }
+
+    [Fact]
+    public void SetInstitutionId_UpdatesInstitutionId()
+    {
+        var loan = CreateLoan();
+        var newInstitutionId = Guid.NewGuid();
+
+        loan.SetInstitutionId(newInstitutionId);
+
+        Assert.Equal(newInstitutionId, loan.InstitutionId);
+    }
+
+    [Fact]
+    public void SetInstitutionId_WithEmptyGuid_Throws()
+    {
+        var loan = CreateLoan();
+
+        Assert.Throws<ArgumentException>(() => loan.SetInstitutionId(Guid.Empty));
     }
 
     [Fact]

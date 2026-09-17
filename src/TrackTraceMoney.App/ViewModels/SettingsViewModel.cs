@@ -116,6 +116,18 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private static async Task GoToManageFinancialInstitutionsAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(FinancialInstitutionsListPage));
+    }
+
+    [RelayCommand]
+    private static async Task GoToManageCardNetworksAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(CardNetworksListPage));
+    }
+
+    [RelayCommand]
     private async Task RefreshCloudAccountStateAsync()
     {
         IsCloudAuthenticated = await _cloudAuthService.IsAuthenticatedAsync();

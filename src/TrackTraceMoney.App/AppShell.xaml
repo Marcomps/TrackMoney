@@ -50,6 +50,12 @@
                 ContentTemplate="{DataTemplate views:RecurringExpensesListPage}"
                 Route="RecurringExpensesList" />
         </Tab>
+        <Tab Title="{x:Static resources:AppResources.People_Title}">
+            <ShellContent
+                Title="{x:Static resources:AppResources.People_Title}"
+                ContentTemplate="{DataTemplate views:PeopleListPage}"
+                Route="PeopleList" />
+        </Tab>
         <Tab Title="{x:Static resources:AppResources.Settings_Title}">
             <ShellContent
                 Title="{x:Static resources:AppResources.Settings_Title}"

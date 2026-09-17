@@ -120,6 +120,25 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                     b.ToTable("Budgets", (string)null);
                 });
 
+            modelBuilder.Entity("TrackTraceMoney.Domain.CardNetworks.CardNetwork", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CardNetworks", (string)null);
+                });
+
             modelBuilder.Entity("TrackTraceMoney.Domain.Categories.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -225,6 +244,25 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                     b.ToTable("CreditCardStatements", (string)null);
                 });
 
+            modelBuilder.Entity("TrackTraceMoney.Domain.Institutions.FinancialInstitution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FinancialInstitutions", (string)null);
+                });
+
             modelBuilder.Entity("TrackTraceMoney.Domain.MedicalExpenses.MedicalExpenseDetail", b =>
                 {
                     b.Property<Guid>("Id")
@@ -324,7 +362,7 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("AccountId")
+                    b.Property<Guid?>("AccountId")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Amount")
@@ -334,6 +372,9 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("CreditAccountId")
                         .HasColumnType("TEXT");
 
                     b.Property<DateOnly?>("EndDate")
@@ -436,11 +477,15 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Institution")
-                        .IsRequired()
                         .ValueGeneratedOnUpdateSometimes()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT")
                         .HasColumnName("Institution");
+
+                    b.Property<Guid?>("InstitutionId")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("InstitutionId");
 
                     b.Property<DateOnly>("InvestmentDate")
                         .HasColumnType("TEXT");
@@ -475,11 +520,15 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Institution")
-                        .IsRequired()
                         .ValueGeneratedOnUpdateSometimes()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT")
                         .HasColumnName("Institution");
+
+                    b.Property<Guid?>("InstitutionId")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("InstitutionId");
 
                     b.Property<string>("InterestFrequency")
                         .IsRequired()
@@ -517,8 +566,12 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                     b.Property<decimal>("CreditLimit")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("InstitutionId")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("InstitutionId");
+
                     b.Property<string>("Issuer")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
@@ -527,6 +580,9 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal?>("MonthlyInterestRate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("NetworkId")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("PaymentDueDay")
@@ -546,9 +602,13 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Institution")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("InstitutionId")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("InstitutionId");
 
                     b.Property<decimal>("InterestRate")
                         .HasColumnType("TEXT");

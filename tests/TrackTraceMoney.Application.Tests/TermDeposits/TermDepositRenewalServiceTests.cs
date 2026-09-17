@@ -2,6 +2,7 @@ using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.TermDeposits;
 using TrackTraceMoney.Domain.Accounts;
 using TrackTraceMoney.Domain.Enums;
+using TrackTraceMoney.Domain.Institutions;
 
 namespace TrackTraceMoney.Application.Tests.TermDeposits;
 
@@ -14,23 +15,25 @@ namespace TrackTraceMoney.Application.Tests.TermDeposits;
 /// </summary>
 public sealed class TermDepositRenewalServiceTests
 {
-    private static (TermDepositRenewalService Service, InMemoryFinancialAccountRepository Accounts, FakeUnitOfWork UnitOfWork) CreateSut()
+    private static (TermDepositRenewalService Service, InMemoryFinancialAccountRepository Accounts, InMemoryFinancialInstitutionRepository Institutions, FakeUnitOfWork UnitOfWork) CreateSut()
     {
         var accounts = new InMemoryFinancialAccountRepository();
+        var institutions = new InMemoryFinancialInstitutionRepository();
         var unitOfWork = new FakeUnitOfWork();
-        var service = new TermDepositRenewalService(accounts, unitOfWork);
-        return (service, accounts, unitOfWork);
+        var service = new TermDepositRenewalService(accounts, institutions, unitOfWork);
+        return (service, accounts, institutions, unitOfWork);
     }
 
     private static TermDeposit CreateMaturedAutoRenewingDeposit(
         decimal balance = 10000m,
         DateOnly? startDate = null,
         DateOnly? maturityDate = null,
-        bool autoRenewal = true) =>
+        bool autoRenewal = true,
+        Guid? institutionId = null) =>
         new(
             "12-Month CD",
             CurrencyCode.USD,
-            "Bank of Example",
+            institutionId ?? Guid.NewGuid(),
             initialPrincipal: balance,
             openingBalance: balance,
             rate: 0.05m,
@@ -44,8 +47,9 @@ public sealed class TermDepositRenewalServiceTests
     [Fact]
     public async Task ProcessMaturedRenewalsAsync_RenewsEligibleMaturedDeposit_AndReturnsResult()
     {
-        var (service, accounts, _) = CreateSut();
-        var deposit = accounts.Add(CreateMaturedAutoRenewingDeposit(maturityDate: new DateOnly(2027, 1, 1)));
+        var (service, accounts, institutions, _) = CreateSut();
+        var institution = institutions.Add(new FinancialInstitution("Bank of Example"));
+        var deposit = accounts.Add(CreateMaturedAutoRenewingDeposit(maturityDate: new DateOnly(2027, 1, 1), institutionId: institution.Id));
         var asOfDate = new DateOnly(2027, 1, 1);
 
         var results = await service.ProcessMaturedRenewalsAsync(asOfDate);
@@ -62,7 +66,7 @@ public sealed class TermDepositRenewalServiceTests
     [Fact]
     public async Task ProcessMaturedRenewalsAsync_SkipsDepositWithAutoRenewalFalse()
     {
-        var (service, accounts, _) = CreateSut();
+        var (service, accounts, _, _) = CreateSut();
         accounts.Add(CreateMaturedAutoRenewingDeposit(maturityDate: new DateOnly(2027, 1, 1), autoRenewal: false));
 
         var results = await service.ProcessMaturedRenewalsAsync(new DateOnly(2027, 1, 1));
@@ -73,7 +77,7 @@ public sealed class TermDepositRenewalServiceTests
     [Fact]
     public async Task ProcessMaturedRenewalsAsync_SkipsDepositNotYetMatured()
     {
-        var (service, accounts, _) = CreateSut();
+        var (service, accounts, _, _) = CreateSut();
         accounts.Add(CreateMaturedAutoRenewingDeposit(maturityDate: new DateOnly(2027, 1, 1)));
 
         var results = await service.ProcessMaturedRenewalsAsync(new DateOnly(2026, 12, 31));
@@ -86,7 +90,7 @@ public sealed class TermDepositRenewalServiceTests
     {
         // Proves idempotency across repeated calls: a deposit renewed by a first call is deactivated,
         // so it must not be reconsidered (or renewed again) by a second call.
-        var (service, accounts, _) = CreateSut();
+        var (service, accounts, _, _) = CreateSut();
         accounts.Add(CreateMaturedAutoRenewingDeposit(maturityDate: new DateOnly(2027, 1, 1)));
         var asOfDate = new DateOnly(2027, 1, 1);
 
@@ -99,13 +103,13 @@ public sealed class TermDepositRenewalServiceTests
         // Exactly one renewal exists in the store, not two.
         var allDeposits = (await accounts.GetAllAsync()).OfType<TermDeposit>().ToList();
         Assert.Equal(2, allDeposits.Count); // original (inactive) + the one renewal (active).
-        Assert.Single(allDeposits.Where(d => d.IsActive));
+        Assert.Single(allDeposits, d => d.IsActive);
     }
 
     [Fact]
     public async Task ProcessMaturedRenewalsAsync_WhenOneDepositFailsToRenew_StillRenewsOthersInTheSameBatch()
     {
-        var (service, accounts, _) = CreateSut();
+        var (service, accounts, _, _) = CreateSut();
         var asOfDate = new DateOnly(2027, 1, 1);
 
         // Unhealthy: matured, auto-renewal enabled, but a zero balance makes RenewAtMaturity throw.
@@ -127,7 +131,7 @@ public sealed class TermDepositRenewalServiceTests
     [Fact]
     public async Task ProcessMaturedRenewalsAsync_PersistsBothDeactivationAndNewAccount_Atomically()
     {
-        var (service, accounts, _) = CreateSut();
+        var (service, accounts, _, _) = CreateSut();
         var deposit = accounts.Add(CreateMaturedAutoRenewingDeposit(maturityDate: new DateOnly(2027, 1, 1)));
         var asOfDate = new DateOnly(2027, 1, 1);
 
@@ -167,6 +171,33 @@ public sealed class TermDepositRenewalServiceTests
         }
 
         public void Remove(FinancialAccount entity) => _accounts.Remove(entity.Id);
+
+        public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class InMemoryFinancialInstitutionRepository : IFinancialInstitutionRepository
+    {
+        private readonly Dictionary<Guid, FinancialInstitution> _institutions = new();
+
+        public FinancialInstitution Add(FinancialInstitution institution)
+        {
+            _institutions[institution.Id] = institution;
+            return institution;
+        }
+
+        public Task<FinancialInstitution?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+            Task.FromResult(_institutions.GetValueOrDefault(id));
+
+        public Task<IReadOnlyList<FinancialInstitution>> GetAllAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<FinancialInstitution>>(_institutions.Values.ToList());
+
+        public Task AddAsync(FinancialInstitution entity, CancellationToken ct = default)
+        {
+            _institutions[entity.Id] = entity;
+            return Task.CompletedTask;
+        }
+
+        public void Remove(FinancialInstitution entity) => _institutions.Remove(entity.Id);
 
         public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
     }

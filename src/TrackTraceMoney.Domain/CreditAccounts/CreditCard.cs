@@ -10,7 +10,31 @@ namespace TrackTraceMoney.Domain.CreditAccounts;
 /// </summary>
 public sealed class CreditCard : CreditAccount
 {
-    public string Issuer { get; private set; } = null!;
+    /// <summary>
+    /// Legacy free-text issuer, superseded by <see cref="InstitutionId"/> (see the
+    /// financial-institution-card-network-slice-spec's Decision 2). Kept — nullable, no longer
+    /// constructor-validated — only so <c>FinancialInstitutionBackfillService</c> can read a
+    /// not-yet-backfilled row's value; no code path after this slice writes it (new cards only ever set
+    /// <see cref="InstitutionId"/>). Never dropped this slice (zero production users; see the spec).
+    /// </summary>
+    public string? Issuer { get; private set; }
+
+    /// <summary>
+    /// The card's issuing <c>FinancialInstitution</c> — a card's issuer bank IS its institution, so this
+    /// folds in what <see cref="Issuer"/> used to mean. Nullable only to let EF materialize legacy rows
+    /// (pre-dating this slice) that have not yet been backfilled — every public constructor still
+    /// requires a real, non-empty id; <see langword="null"/> is only ever reachable via EF's private
+    /// parameterless constructor.
+    /// </summary>
+    public Guid? InstitutionId { get; private set; }
+
+    /// <summary>
+    /// The card's network/brand (e.g. Visa, Mastercard) — Slice B of the slice spec. Genuinely optional
+    /// (unlike <see cref="InstitutionId"/>, which preserves <see cref="Issuer"/>'s old required-ness):
+    /// this is a brand-new enrichment field with no prior free-text data to replace, and nothing in this
+    /// app's accounting rules (semáforo, purchased-vs-paid, snowball) ever references it.
+    /// </summary>
+    public Guid? NetworkId { get; private set; }
 
     /// <summary>
     /// Optional, masked identifier for display (e.g. "•••• 1234"). When provided, must be exactly
@@ -53,7 +77,7 @@ public sealed class CreditCard : CreditAccount
     public CreditCard(
         string name,
         CurrencyCode currency,
-        string issuer,
+        Guid institutionId,
         decimal creditLimit,
         int statementCutOffDay,
         int paymentDueDay,
@@ -61,14 +85,12 @@ public sealed class CreditCard : CreditAccount
         string? lastFourDigits = null,
         decimal? annualInterestRate = null,
         decimal? monthlyInterestRate = null,
-        string? notes = null)
+        string? notes = null,
+        Guid? networkId = null)
         : base(name, currency, openingAmountOwed, notes)
     {
-        if (string.IsNullOrWhiteSpace(issuer))
-            throw new ArgumentException("Issuer cannot be empty.", nameof(issuer));
-
-        if (issuer.Trim().Length > 200)
-            throw new ArgumentException("Issuer cannot exceed 200 characters.", nameof(issuer));
+        if (institutionId == Guid.Empty)
+            throw new ArgumentException("Institution id is required.", nameof(institutionId));
 
         if (lastFourDigits is not null && (lastFourDigits.Length != 4 || !lastFourDigits.All(char.IsDigit)))
             throw new ArgumentException("Last four digits must be exactly 4 numeric characters.", nameof(lastFourDigits));
@@ -88,13 +110,28 @@ public sealed class CreditCard : CreditAccount
         if (monthlyInterestRate is < 0)
             throw new ArgumentOutOfRangeException(nameof(monthlyInterestRate), "Monthly interest rate cannot be negative.");
 
-        Issuer = issuer.Trim();
+        InstitutionId = institutionId;
+        NetworkId = networkId;
         LastFourDigits = lastFourDigits;
         CreditLimit = creditLimit;
         StatementCutOffDay = statementCutOffDay;
         PaymentDueDay = paymentDueDay;
         AnnualInterestRate = annualInterestRate;
         MonthlyInterestRate = monthlyInterestRate;
+    }
+
+    /// <summary>
+    /// Sets <see cref="InstitutionId"/> on a legacy row (constructed via EF's private materialization
+    /// path, so its <see cref="InstitutionId"/> is transiently null) — called only by
+    /// <c>FinancialInstitutionBackfillService</c>. Every row reachable through the public constructor
+    /// already has a non-null <see cref="InstitutionId"/> and never needs this.
+    /// </summary>
+    public void SetInstitutionId(Guid institutionId)
+    {
+        if (institutionId == Guid.Empty)
+            throw new ArgumentException("Institution id is required.", nameof(institutionId));
+
+        InstitutionId = institutionId;
     }
 
     /// <summary>

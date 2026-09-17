@@ -206,7 +206,7 @@ public sealed class TransactionEntryServiceTests
     {
         // CLAUDE.md's #1 correctness risk: the purchase is the expense and must increase card debt.
         var (service, _, creditAccounts, transactions, _, _, _, _) = CreateSut();
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var categoryId = Guid.NewGuid();
 
         await service.RecordCreditCardPurchaseAsync(DateOnly.FromDateTime(DateTime.Today), 60m, card.Id, categoryId, null, null, "Groceries", null);
@@ -225,7 +225,7 @@ public sealed class TransactionEntryServiceTests
         // The later payment (a future CreditCardPayment slice) is what debits a bank account.
         var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 500m));
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var categoryId = Guid.NewGuid();
 
         await service.RecordCreditCardPurchaseAsync(DateOnly.FromDateTime(DateTime.Today), 60m, card.Id, categoryId, null, null, "Groceries", null);
@@ -237,7 +237,7 @@ public sealed class TransactionEntryServiceTests
     public async Task RecordCreditCardPurchaseAsync_CrossingBudgetLimit_TriggersExactlyOneNotification()
     {
         var (service, _, creditAccounts, transactions, budgets, categories, notifier, _) = CreateSut();
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
         var today = DateOnly.FromDateTime(DateTime.Today);
         budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
@@ -292,7 +292,7 @@ public sealed class TransactionEntryServiceTests
         // calculation. Neither $60 nor $50 alone crosses the $100 budget, but together they must.
         var (service, accounts, creditAccounts, transactions, budgets, categories, notifier, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 500m));
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
         var today = DateOnly.FromDateTime(DateTime.Today);
         budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
@@ -417,7 +417,7 @@ public sealed class TransactionEntryServiceTests
     public async Task RecordMedicalCreditCardPurchaseAsync_PendingReimbursement_IncreasesCardDebt_AndCreatesDetail()
     {
         var (service, _, creditAccounts, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var categoryId = Guid.NewGuid();
         var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 20m, InsurancePaidProviderDirectly: false);
 
@@ -439,7 +439,7 @@ public sealed class TransactionEntryServiceTests
     public async Task RecordMedicalCreditCardPurchaseAsync_InsurancePaidProviderDirectly_GrossAmountIncludesInsurancePortion()
     {
         var (service, _, creditAccounts, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var categoryId = Guid.NewGuid();
         var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 20m, InsurancePaidProviderDirectly: true);
 
@@ -456,7 +456,7 @@ public sealed class TransactionEntryServiceTests
     public async Task RecordMedicalCreditCardPurchaseAsync_CrossingBudgetLimit_TriggersExactlyOneNotification()
     {
         var (service, _, creditAccounts, transactions, budgets, categories, notifier, _) = CreateSut();
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var category = categories.Add(Category.CreateUserDefined("Health"));
         var today = DateOnly.FromDateTime(DateTime.Today);
         budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
@@ -495,7 +495,7 @@ public sealed class TransactionEntryServiceTests
     {
         // Regression guard: a plain (non-medical) card purchase must never create a MedicalExpenseDetail row.
         var (service, _, creditAccounts, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var categoryId = Guid.NewGuid();
 
         await service.RecordCreditCardPurchaseAsync(DateOnly.FromDateTime(DateTime.Today), 60m, card.Id, categoryId, null, null, "Groceries", null);
@@ -508,7 +508,7 @@ public sealed class TransactionEntryServiceTests
     {
         var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         card.RegisterCharge(500m);
 
         await service.RecordCreditCardPaymentAsync(DateOnly.FromDateTime(DateTime.Today), 300m, checking.Id, card.Id, "Card payment", null);
@@ -527,7 +527,7 @@ public sealed class TransactionEntryServiceTests
         // correctness risk, inverse direction — do not wire ISpendingCalculator/ILocalNotifier here).
         var (service, accounts, creditAccounts, transactions, budgets, categories, notifier, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var category = categories.Add(Category.CreateUserDefined("Dining"));
         var today = DateOnly.FromDateTime(DateTime.Today);
         budgets.Add(new Budget(category.Id, 100m, today.Year, today.Month, CurrencyCode.USD));
@@ -549,7 +549,7 @@ public sealed class TransactionEntryServiceTests
     {
         var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         card.RegisterCharge(200m);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -565,7 +565,7 @@ public sealed class TransactionEntryServiceTests
     {
         var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
-        var card = creditAccounts.Add(new CreditCard("Tarjeta MXN", CurrencyCode.MXN, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Tarjeta MXN", CurrencyCode.MXN, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         card.RegisterCharge(500m);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -674,7 +674,7 @@ public sealed class TransactionEntryServiceTests
     {
         var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.RecordLoanPaymentAsync(
@@ -940,7 +940,7 @@ public sealed class TransactionEntryServiceTests
     {
         var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var termDeposit = (TermDeposit)accounts.Add(CreateTermDeposit(CurrencyCode.USD, openingBalance: 10000m));
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         card.RegisterCharge(200m);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -1162,7 +1162,7 @@ public sealed class TransactionEntryServiceTests
     public async Task RecordMedicalReimbursementAsync_LinkedCreditCardPurchaseCurrencyDiffersFromDestination_ThrowsAndDoesNotMutateAnything()
     {
         var (service, accounts, creditAccounts, transactions, _, categories, _, medicalExpenseDetails) = CreateSut();
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, "Bank", creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
         var mxnBank = accounts.Add(new BankAccount("Cuenta MXN", CurrencyCode.MXN, openingBalance: 0m));
         var category = categories.Add(Category.CreateUserDefined("Health"));
         var medicalInfo = new MedicalInsuranceInput("Acme Insurance", 20m, InsurancePaidProviderDirectly: false);
@@ -1277,7 +1277,7 @@ public sealed class TransactionEntryServiceTests
         new(
             "12-Month CD",
             currency,
-            "Bank of Example",
+            Guid.NewGuid(),
             initialPrincipal: 10000m,
             openingBalance,
             rate: 0.05m,
@@ -1295,7 +1295,7 @@ public sealed class TransactionEntryServiceTests
         new(
             "Growth Fund",
             currency,
-            "Example Asset Management",
+            Guid.NewGuid(),
             new DateOnly(2026, 1, 1),
             contributions,
             openingBalance);
@@ -1304,7 +1304,7 @@ public sealed class TransactionEntryServiceTests
         new(
             "Car Loan",
             currency,
-            "Bank",
+            Guid.NewGuid(),
             LoanKind.AutoLoan,
             originalAmount: 1000m,
             currentBalance: currentBalance,

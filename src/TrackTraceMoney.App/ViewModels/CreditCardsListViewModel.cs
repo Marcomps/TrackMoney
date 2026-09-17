@@ -15,6 +15,7 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
     private readonly ICreditCardStatementRepository _statementRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICreditCardHealthEvaluator _healthEvaluator;
+    private readonly IFinancialInstitutionRepository _institutionRepository;
 
     [ObservableProperty]
     private bool isBusy;
@@ -31,12 +32,14 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
         ICreditAccountRepository creditAccountRepository,
         ICreditCardStatementRepository statementRepository,
         ITransactionRepository transactionRepository,
-        ICreditCardHealthEvaluator healthEvaluator)
+        ICreditCardHealthEvaluator healthEvaluator,
+        IFinancialInstitutionRepository institutionRepository)
     {
         _creditAccountRepository = creditAccountRepository;
         _statementRepository = statementRepository;
         _transactionRepository = transactionRepository;
         _healthEvaluator = healthEvaluator;
+        _institutionRepository = institutionRepository;
     }
 
     [RelayCommand]
@@ -53,6 +56,10 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
 
             var cards = creditAccounts.OfType<CreditCard>().ToList();
             var cardIds = cards.Select(c => c.Id).ToList();
+
+            // GetAllAsync, not a hypothetical "active only" filter: FinancialInstitution has no
+            // IsActive concept (mirrors Category/Person), so every institution is always eligible.
+            var institutionNames = (await _institutionRepository.GetAllAsync()).ToDictionary(i => i.Id, i => i.Name);
 
             // Batched instead of two per-card queries inside the loop below (finding 10 of the Phase 2
             // checkpoint review): one query for every card's latest statement, and one query for every
@@ -74,7 +81,11 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
 
                 var assessment = _healthEvaluator.Evaluate(card, latestStatement, paymentsMadeThisCycle, today);
 
-                CreditCards.Add(CreditCardListItem.FromDomain(card, assessment.Status));
+                var institutionName = card.InstitutionId is { } institutionId && institutionNames.TryGetValue(institutionId, out var name)
+                    ? name
+                    : "?";
+
+                CreditCards.Add(CreditCardListItem.FromDomain(card, assessment.Status, institutionName));
             }
 
             HasLoaded = true;

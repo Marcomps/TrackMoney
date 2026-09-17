@@ -15,13 +15,16 @@ namespace TrackTraceMoney.Application.TermDeposits;
 public sealed class TermDepositRenewalService : ITermDepositRenewalService
 {
     private readonly IFinancialAccountRepository _financialAccountRepository;
+    private readonly IFinancialInstitutionRepository _financialInstitutionRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public TermDepositRenewalService(
         IFinancialAccountRepository financialAccountRepository,
+        IFinancialInstitutionRepository financialInstitutionRepository,
         IUnitOfWork unitOfWork)
     {
         _financialAccountRepository = financialAccountRepository;
+        _financialInstitutionRepository = financialInstitutionRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -47,6 +50,13 @@ public sealed class TermDepositRenewalService : ITermDepositRenewalService
             {
                 var renewal = candidate.RenewAtMaturity(asOfDate);
 
+                // Resolved before AddAsync/SaveChangesAsync/CommitAsync below, deliberately: if this
+                // lookup ever fails, nothing must have been persisted yet, so the existing catch/rollback
+                // below still means what it says (this candidate's renewal did not happen) instead of
+                // rolling back an already-committed transaction. RenewAtMaturity's own defensive guard
+                // already rejects a null InstitutionId, so .Value here is safe.
+                var institution = await _financialInstitutionRepository.GetByIdAsync(renewal.InstitutionId!.Value, ct);
+
                 await _financialAccountRepository.AddAsync(renewal, ct);
                 await _financialAccountRepository.SaveChangesAsync(ct);
 
@@ -55,7 +65,7 @@ public sealed class TermDepositRenewalService : ITermDepositRenewalService
                 results.Add(new TermDepositRenewalResult(
                     candidate.Id,
                     renewal.Id,
-                    renewal.Institution,
+                    institution?.Name ?? "?",
                     renewal.Currency,
                     renewal.Balance,
                     renewal.MaturityDate));

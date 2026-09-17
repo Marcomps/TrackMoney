@@ -130,6 +130,11 @@ public static class MauiProgram
 		builder.Services.AddTransient<AddCategoryViewModel>();
 		builder.Services.AddTransient<AddCategoryPage>();
 
+		builder.Services.AddTransient<PeopleListViewModel>();
+		builder.Services.AddTransient<PeopleListPage>();
+		builder.Services.AddTransient<AddPersonViewModel>();
+		builder.Services.AddTransient<AddPersonPage>();
+
 		builder.Services.AddSingleton<ISpendingCalculator, SpendingCalculator>();
 		builder.Services.AddSingleton<IBudgetEvaluator, BudgetEvaluator>();
 		builder.Services.AddTransient<BudgetsListViewModel>();
@@ -142,6 +147,15 @@ public static class MauiProgram
 		builder.Services.AddTransient<RecurringExpensesListPage>();
 		builder.Services.AddTransient<AddRecurringExpenseViewModel>();
 		builder.Services.AddTransient<AddRecurringExpensePage>();
+
+		builder.Services.AddTransient<FinancialInstitutionsListViewModel>();
+		builder.Services.AddTransient<FinancialInstitutionsListPage>();
+		builder.Services.AddTransient<AddFinancialInstitutionViewModel>();
+		builder.Services.AddTransient<AddFinancialInstitutionPage>();
+		builder.Services.AddTransient<CardNetworksListViewModel>();
+		builder.Services.AddTransient<CardNetworksListPage>();
+		builder.Services.AddTransient<AddCardNetworkViewModel>();
+		builder.Services.AddTransient<AddCardNetworkPage>();
 
 		builder.Services.AddTransient<SettingsViewModel>();
 		builder.Services.AddTransient<SettingsPage>();

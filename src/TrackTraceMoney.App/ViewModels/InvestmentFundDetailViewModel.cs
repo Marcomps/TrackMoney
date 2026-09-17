@@ -13,14 +13,31 @@ namespace TrackTraceMoney.App.ViewModels;
 /// <see cref="CreditCardDetailViewModel"/>'s statement recording, there is no "cycle closed" gate here —
 /// a valuation can be recorded at any time, so RecordValuationCommand is always enabled.
 /// </summary>
-[QueryProperty(nameof(InvestmentFundId), "investmentFundId")]
+[QueryProperty(nameof(InvestmentFundIdText), "investmentFundId")]
 public sealed partial class InvestmentFundDetailViewModel : ObservableObject
 {
     private readonly IFinancialAccountRepository _financialAccountRepository;
     private readonly IInvestmentValuationRepository _valuationRepository;
+    private readonly IFinancialInstitutionRepository _institutionRepository;
 
     [ObservableProperty]
     private Guid investmentFundId;
+
+    /// <summary>
+    /// The actual <c>[QueryProperty]</c> target -- see
+    /// <c>CreditCardDetailViewModel.CreditAccountIdText</c>'s doc comment: MAUI Shell's query-string
+    /// navigation can't populate a non-nullable <see cref="Guid"/> property directly (its internal
+    /// <c>Convert.ChangeType</c> throws <see cref="InvalidCastException"/>), so this parses defensively
+    /// from a string instead.
+    /// </summary>
+    [ObservableProperty]
+    private string? investmentFundIdText;
+
+    partial void OnInvestmentFundIdTextChanged(string? value)
+    {
+        if (Guid.TryParse(value, out var parsed))
+            InvestmentFundId = parsed;
+    }
 
     [ObservableProperty]
     private bool isBusy;
@@ -62,10 +79,12 @@ public sealed partial class InvestmentFundDetailViewModel : ObservableObject
 
     public InvestmentFundDetailViewModel(
         IFinancialAccountRepository financialAccountRepository,
-        IInvestmentValuationRepository valuationRepository)
+        IInvestmentValuationRepository valuationRepository,
+        IFinancialInstitutionRepository institutionRepository)
     {
         _financialAccountRepository = financialAccountRepository;
         _valuationRepository = valuationRepository;
+        _institutionRepository = institutionRepository;
     }
 
     [RelayCommand]
@@ -82,7 +101,9 @@ public sealed partial class InvestmentFundDetailViewModel : ObservableObject
                 return;
 
             Name = fund.Name;
-            Institution = fund.Institution;
+            Institution = fund.InstitutionId is { } institutionId
+                ? (await _institutionRepository.GetByIdAsync(institutionId))?.Name ?? "?"
+                : "?";
             InvestmentDate = fund.InvestmentDate;
             Balance = fund.Balance;
             Contributions = fund.Contributions;

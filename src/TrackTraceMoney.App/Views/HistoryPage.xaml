@@ -9,7 +9,16 @@
              x:Name="Root"
              Title="{x:Static resources:AppResources.History_Title}">
 
-    <Grid RowDefinitions="Auto,*" Padding="16">
+    <!-- Row 0 is a fixed height, not "Auto": a ScrollView's natural/desired size request is unbounded
+         (it reports "as much as you'll give me", not "the size of my content"), so an Auto row containing
+         one claims the Grid's entire height, leaving Row 1's "*" with zero space. The filters rendered
+         fine but the results CollectionView below them was permanently invisible (not merely empty; it
+         never got laid out with any height at all, on every device, regardless of data/filters). Found via
+         live on-device testing: History with real, correctly filtered, in-range transactions still showed
+         nothing, no empty-state message either. Confirmed via uiautomator dump that no results element
+         existed in the render tree at all. A fixed height keeps the filters independently scrollable
+         within their own budget while guaranteeing the results list always gets the rest of the screen. -->
+    <Grid RowDefinitions="240,*" Padding="16">
 
         <ScrollView Grid.Row="0">
             <VerticalStackLayout Spacing="8">
