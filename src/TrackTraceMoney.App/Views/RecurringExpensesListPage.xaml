@@ -47,6 +47,7 @@
                                     Text="{x:Static resources:AppResources.RecurringExpenses_ConfirmButton}"
                                     Command="{Binding Source={x:Reference Root}, Path=BindingContext.ConfirmCommand}"
                                     CommandParameter="{Binding Id}"
+                                    AutomationId="{Binding Name, StringFormat='RecurringExpenses_ConfirmButton_{0}'}"
                                     VerticalOptions="Center" />
                         </Grid>
                     </Border>
@@ -107,6 +108,7 @@
         <Button Grid.Row="3"
                 Text="{x:Static resources:AppResources.RecurringExpenses_AddButton}"
                 Command="{Binding AddRecurringExpenseCommand}"
+                AutomationId="RecurringExpenses_AddButton"
                 HorizontalOptions="Fill"
                 Margin="0,12,0,0" />
 

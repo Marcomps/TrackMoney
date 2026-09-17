@@ -21,6 +21,7 @@
 
             <Button Text="{x:Static resources:AppResources.Profiles_ManageButton}"
                     Command="{Binding GoToManageProfilesCommand}"
+                    AutomationId="Settings_ManageProfilesButton"
                     HorizontalOptions="Fill" />
 
             <Label Text="{x:Static resources:AppResources.Settings_InstitutionsSectionTitle}"
@@ -29,10 +30,38 @@
 
             <Button Text="{x:Static resources:AppResources.Settings_ManageFinancialInstitutionsButton}"
                     Command="{Binding GoToManageFinancialInstitutionsCommand}"
+                    AutomationId="Settings_ManageFinancialInstitutionsButton"
                     HorizontalOptions="Fill" />
 
             <Button Text="{x:Static resources:AppResources.Settings_ManageCardNetworksButton}"
                     Command="{Binding GoToManageCardNetworksCommand}"
+                    AutomationId="Settings_ManageCardNetworksButton"
+                    HorizontalOptions="Fill" />
+
+            <Label Text="{x:Static resources:AppResources.Settings_ExpenseManagementSectionTitle}"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+
+            <Button Text="{x:Static resources:AppResources.Settings_ManageCategoriesButton}"
+                    Command="{Binding GoToManageCategoriesCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.Settings_ManageBudgetsButton}"
+                    Command="{Binding GoToManageBudgetsCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.Settings_ManageRecurringExpensesButton}"
+                    Command="{Binding GoToManageRecurringExpensesCommand}"
+                    AutomationId="Settings_ManageRecurringExpensesButton"
+                    HorizontalOptions="Fill" />
+
+            <Label Text="{x:Static resources:AppResources.People_Title}"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+
+            <Button Text="{x:Static resources:AppResources.Settings_ManagePeopleButton}"
+                    Command="{Binding GoToManagePeopleCommand}"
+                    AutomationId="Settings_ManagePeopleButton"
                     HorizontalOptions="Fill" />
 
             <Label Text="{x:Static resources:AppResources.Settings_BackupSectionTitle}"

@@ -7,21 +7,26 @@
              x:DataType="viewModels:AddRecurringExpenseViewModel"
              Title="{x:Static resources:AppResources.AddRecurringExpense_Title}">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+    <Grid RowDefinitions="*,Auto" Padding="16">
+
+        <ScrollView Grid.Row="0">
+        <VerticalStackLayout Spacing="12">
 
             <Label Text="{x:Static resources:AppResources.AddRecurringExpense_NameLabel}" />
             <Entry Text="{Binding Name}"
+                   AutomationId="AddRecurringExpense_NameEntry"
                    Placeholder="{x:Static resources:AppResources.AddRecurringExpense_NamePlaceholder}" />
 
             <Label Text="{x:Static resources:AppResources.AddRecurringExpense_AmountLabel}" />
-            <Entry Text="{Binding AmountText}" Keyboard="Numeric" />
+            <Entry Text="{Binding AmountText}" Keyboard="Numeric" AutomationId="AddRecurringExpense_AmountEntry" />
 
             <Label Text="{x:Static resources:AppResources.AddRecurringExpense_CategoryLabel}" />
-            <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" />
+            <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
+                    AutomationId="AddRecurringExpense_CategoryPicker" />
 
             <Label Text="{x:Static resources:AppResources.AddRecurringExpense_AccountLabel}" />
-            <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}" />
+            <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}"
+                    AutomationId="AddRecurringExpense_AccountPicker" />
 
             <Label Text="{x:Static resources:AppResources.AddRecurringExpense_FrequencyLabel}" />
             <Picker ItemsSource="{Binding AvailableFrequencies}"
@@ -47,15 +52,20 @@
 
             <Label Text="{Binding ErrorMessage}" TextColor="Red" />
 
+        </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="12" Margin="0,12,0,0">
             <Button Text="{x:Static resources:AppResources.AddRecurringExpense_SaveButton}"
                     Command="{Binding SaveCommand}"
+                    AutomationId="AddRecurringExpense_SaveButton"
                     HorizontalOptions="Fill" />
 
             <Button Text="{x:Static resources:AppResources.AddRecurringExpense_CancelButton}"
                     Command="{Binding CancelCommand}"
                     HorizontalOptions="Fill" />
-
         </VerticalStackLayout>
-    </ScrollView>
+
+    </Grid>
 
 </ContentPage>

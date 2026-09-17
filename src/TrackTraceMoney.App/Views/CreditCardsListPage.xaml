@@ -24,7 +24,8 @@
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:CreditCardListItem">
-                        <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+                        <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto"
+                              AutomationId="{Binding Name, StringFormat='CreditCardsList_Row_{0}'}">
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer
                                     Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenCreditCardCommand}"
@@ -46,6 +47,7 @@
                                    FontSize="12" Opacity="0.7" />
                             <Label Grid.Row="0" Grid.Column="1"
                                    VerticalOptions="Center"
+                                   AutomationId="{Binding Name, StringFormat='CreditCardsList_AmountOwed_{0}'}"
                                    Text="{Binding AmountOwed, StringFormat='{0:N2}'}" />
                             <Label Grid.Row="1" Grid.Column="1"
                                    VerticalOptions="Center"
@@ -64,6 +66,7 @@
         <Button Grid.Row="1"
                 Text="{x:Static resources:AppResources.CreditCards_AddButton}"
                 Command="{Binding AddCreditCardCommand}"
+                AutomationId="CreditCardsList_AddButton"
                 HorizontalOptions="Fill"
                 Margin="0,12,0,0" />
 

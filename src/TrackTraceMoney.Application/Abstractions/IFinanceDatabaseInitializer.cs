@@ -18,5 +18,13 @@ namespace TrackTraceMoney.Application.Abstractions;
 /// </summary>
 public interface IFinanceDatabaseInitializer
 {
-    Task EnsureReadyAsync(CancellationToken ct = default);
+    /// <param name="defaultPersonName">
+    /// The display name for the auto-seeded "Me" person (README §7) on a profile that doesn't have one
+    /// yet. Supplied by the App layer (typically <c>AppResources.PersonRelationshipType_Me</c>) rather
+    /// than hardcoded here, so it renders in the device's current locale instead of a fixed language —
+    /// Infrastructure has no access to App-layer resx resources. Falls back to a literal "Me" if not
+    /// supplied, matching this parameter's only non-App caller (none exist today, but keeps the
+    /// interface usable without forcing every caller to plumb a resource string).
+    /// </param>
+    Task EnsureReadyAsync(string defaultPersonName = "Me", CancellationToken ct = default);
 }

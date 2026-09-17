@@ -127,6 +127,33 @@ public sealed partial class SettingsViewModel : ObservableObject
         await Shell.Current.GoToAsync(nameof(CardNetworksListPage));
     }
 
+    // Categories/Budgets/RecurringExpenses/People moved here from the TabBar (see AppShell.xaml's
+    // comment) — occasional "manage/configure" screens, not daily-driver tabs, same reachability
+    // pattern as Profiles/FinancialInstitutions/CardNetworks above.
+    [RelayCommand]
+    private static async Task GoToManageCategoriesAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(CategoriesListPage));
+    }
+
+    [RelayCommand]
+    private static async Task GoToManageBudgetsAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(BudgetsListPage));
+    }
+
+    [RelayCommand]
+    private static async Task GoToManageRecurringExpensesAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(RecurringExpensesListPage));
+    }
+
+    [RelayCommand]
+    private static async Task GoToManagePeopleAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(PeopleListPage));
+    }
+
     [RelayCommand]
     private async Task RefreshCloudAccountStateAsync()
     {

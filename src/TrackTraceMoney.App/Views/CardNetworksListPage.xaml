@@ -23,7 +23,7 @@
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:CardNetworkListItem">
-                        <Grid Padding="0,12">
+                        <Grid Padding="0,12" AutomationId="{Binding Name, StringFormat='CardNetworks_Item_{0}'}">
                             <Label Text="{Binding Name}" FontSize="16" />
                         </Grid>
                     </DataTemplate>
@@ -34,6 +34,7 @@
         <Button Grid.Row="1"
                 Text="{x:Static resources:AppResources.CardNetworks_AddButton}"
                 Command="{Binding AddCardNetworkCommand}"
+                AutomationId="CardNetworks_AddButton"
                 HorizontalOptions="Fill"
                 Margin="0,12,0,0" />
 

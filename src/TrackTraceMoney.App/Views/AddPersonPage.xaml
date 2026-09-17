@@ -7,16 +7,20 @@
              x:DataType="viewModels:AddPersonViewModel"
              Title="{x:Static resources:AppResources.AddPerson_Title}">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+    <Grid RowDefinitions="*,Auto" Padding="16">
+
+        <ScrollView Grid.Row="0">
+        <VerticalStackLayout Spacing="12">
 
             <Label Text="{x:Static resources:AppResources.AddPerson_NameLabel}" />
             <Entry Text="{Binding Name}"
+                   AutomationId="AddPerson_NameEntry"
                    Placeholder="{x:Static resources:AppResources.AddPerson_NamePlaceholder}" />
 
             <Label Text="{x:Static resources:AppResources.AddPerson_RelationshipLabel}" />
             <Picker ItemsSource="{Binding AvailableRelationshipTypes}"
-                    SelectedItem="{Binding SelectedRelationshipType}">
+                    SelectedItem="{Binding SelectedRelationshipType}"
+                    AutomationId="AddPerson_RelationshipPicker">
                 <Picker.ItemDisplayBinding>
                     <Binding Path="." Converter="{StaticResource PersonRelationshipTypeToLabelConverter}" />
                 </Picker.ItemDisplayBinding>
@@ -33,15 +37,20 @@
 
             <Label Text="{Binding ErrorMessage}" TextColor="Red" />
 
+        </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="12" Margin="0,12,0,0">
             <Button Text="{x:Static resources:AppResources.AddPerson_SaveButton}"
                     Command="{Binding SaveCommand}"
+                    AutomationId="AddPerson_SaveButton"
                     HorizontalOptions="Fill" />
 
             <Button Text="{x:Static resources:AppResources.AddPerson_CancelButton}"
                     Command="{Binding CancelCommand}"
                     HorizontalOptions="Fill" />
-
         </VerticalStackLayout>
-    </ScrollView>
+
+    </Grid>
 
 </ContentPage>

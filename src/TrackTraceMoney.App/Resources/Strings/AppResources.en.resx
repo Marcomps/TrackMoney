@@ -659,7 +659,10 @@
     <value>Dashboard</value>
   </data>
   <data name="Dashboard_BalanceSectionTitle" xml:space="preserve">
-    <value>Available balance</value>
+    <value>Total balance</value>
+  </data>
+  <data name="Dashboard_ThisMonthSectionTitle" xml:space="preserve">
+    <value>This month</value>
   </data>
   <data name="Dashboard_IncomeLabel" xml:space="preserve">
     <value>Income this month</value>
@@ -1638,5 +1641,20 @@
   </data>
   <data name="AddCreditCard_NetworkLabel" xml:space="preserve">
     <value>Network</value>
+  </data>
+  <data name="Settings_ExpenseManagementSectionTitle" xml:space="preserve">
+    <value>Expense management</value>
+  </data>
+  <data name="Settings_ManageCategoriesButton" xml:space="preserve">
+    <value>Manage categories</value>
+  </data>
+  <data name="Settings_ManageBudgetsButton" xml:space="preserve">
+    <value>Manage budgets</value>
+  </data>
+  <data name="Settings_ManageRecurringExpensesButton" xml:space="preserve">
+    <value>Manage recurring expenses</value>
+  </data>
+  <data name="Settings_ManagePeopleButton" xml:space="preserve">
+    <value>Manage people</value>
   </data>
 </root>

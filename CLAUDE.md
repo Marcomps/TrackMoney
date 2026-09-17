@@ -37,6 +37,8 @@ tests/
   TrackTraceMoney.Domain.Tests/         # xUnit, refs Domain
   TrackTraceMoney.Application.Tests/    # xUnit, refs Application + Domain
   TrackTraceMoney.Infrastructure.Tests/ # xUnit, refs Infrastructure + Application + Domain
+  TrackTraceMoney.E2E.Tests/            # xUnit + Appium.WebDriver, no project refs (drives the built APK
+                                         #   over Appium/HTTP, not in-process) — see Commands section below
 ```
 
 No `TrackTraceMoney.Api.Tests` project yet — deliberately deferred until the Api project has real logic worth testing (the skeleton's only endpoint is a built-in health check).
@@ -47,7 +49,10 @@ Reference direction: `App` → `Infrastructure`/`Application`/`Domain`; `Infrast
 
 ```
 dotnet build                        # build everything (App + Domain + Application + Infrastructure + all test projects)
-dotnet test                         # run all test projects (currently 0 tests — none written yet)
+dotnet test                         # run all test projects -- INCLUDES TrackTraceMoney.E2E.Tests, which needs a live
+                                     #   emulator + Appium server (see that project's own Commands subsection below)
+                                     #   and fails loudly (not silently skips) without one; prefer the per-project form
+                                     #   below unless you actually want E2E in the mix
 dotnet test tests/TrackTraceMoney.Domain.Tests           # run one test project (dotnet test rejects multiple project paths in one invocation — run separately or use the .sln)
 dotnet test --filter FullyQualifiedName~ClassName.MethodName  # run a single test
 ```
@@ -65,6 +70,25 @@ docker compose down                 # stop (data survives); add -v to also wipe 
 ```
 
 Unlike `TrackTraceMoney.Infrastructure` (see the `ef-core-migration` skill), `TrackTraceMoney.Api` is a normal runnable ASP.NET Core host, so it can be its own EF `--project`/`--startup-project` with no `IDesignTimeDbContextFactory` workaround needed — `dotnet-ef` discovers `TrackTraceMoneyCloudDbContext` straight from `Program.cs`'s `builder.Services.AddDbContext<...>()` registration. Connection string comes from `appsettings.Development.json`'s `ConnectionStrings:CloudDatabase` (dev-only throwaway credentials, matching `docker-compose.yml`) — never hardcode real credentials into committed source.
+
+### End-to-end UI tests (`TrackTraceMoney.E2E.Tests`, Appium)
+
+Drives the real, installed Android app through Appium's UiAutomator2 driver — not a ViewModel-in-isolation unit test. Local-only, like the Postgres section above: nothing here runs in CI yet. Full "how do I run this" narrative lives in `E2ETestBase`'s own doc comment (single source of truth, so it can't drift out of sync with this file); short version:
+
+```
+# One-time setup (already done on the dev machine this suite was authored on):
+#   - Android SDK with `emulator` + platform-tools at C:\Users\PC\android-sdk-local
+#   - AVD `TrackMoneyTest` (Pixel 5, API 34, google_apis, x86_64)
+#   - npm install -g appium && appium driver install uiautomator2
+
+C:\Users\PC\android-sdk-local\emulator\emulator.exe -avd TrackMoneyTest -no-boot-anim   # start the emulator
+dotnet build src/TrackTraceMoney.App/TrackTraceMoney.App.csproj -f net10.0-android -p:RuntimeIdentifier=android-x64 -p:AndroidPackageFormat=apk -p:EmbedAssembliesIntoApk=true
+"C:\Users\PC\android-sdk-local\platform-tools\adb.exe" install -r src\TrackTraceMoney.App\bin\Debug\net10.0-android\android-x64\com.tracktracemoney.mobile-Signed.apk
+set ANDROID_HOME=C:\Users\PC\android-sdk-local & set ANDROID_SDK_ROOT=C:\Users\PC\android-sdk-local & appium --address 127.0.0.1 --port 4723   # Appium server needs these env vars to find adb/uiautomator2, not just adb itself
+dotnet test tests/TrackTraceMoney.E2E.Tests
+```
+
+Every `[Fact]` clears app data (`adb shell pm clear`) and relaunches as its own first step (`E2ETestBase.ResetApp`), so tests are safe to run in any order/subset and the whole suite is safe to rerun repeatedly without manually resetting device state between runs. Screenshots land in `tests/TrackTraceMoney.E2E.Tests/Evidence/<ScenarioName>/<step>.png` (gitignored — regenerated every run, not source). Two non-obvious Appium/MAUI gotchas discovered building this suite (both documented at their point of use in `E2ETestBase.cs`, repeated here since they're easy to rediscover the hard way otherwise): (1) MAUI's Android renderer maps `AutomationId` to the native view's `resource-id`, not `content-desc` — the usual "accessibility id" Appium strategy silently finds nothing on this app; locate by resource-id via a `-android uiautomator`/`UiSelector().resourceId(...)` query instead. (2) Plain `By.Id` doesn't reach the server as an "id" strategy lookup either (Selenium's .NET client rewrites it to a CSS selector, which UiAutomator2 can't resolve against a native app) — same fix applies.
 
 ## Non-obvious domain rules (easy to get wrong)
 

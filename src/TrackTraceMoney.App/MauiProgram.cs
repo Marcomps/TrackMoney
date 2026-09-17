@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.App.Services;
 using TrackTraceMoney.App.Services.Cloud;
 using TrackTraceMoney.App.Services.Profiles;
@@ -195,13 +196,14 @@ public static class MauiProgram
 				// profile so it keeps working exactly as before, just now as that profile's data.
 				var profileManagementService = services.GetRequiredService<IProfileManagementService>();
 
-				// Hardcoded Spanish rather than AppResources.Profiles_MigratedDefaultName, mirroring
-				// CategorySeeder's own precedent for startup-time seeded text ("Default names are
-				// Spanish (the app's neutral culture); resolving a localized display name ... is an
-				// App layer concern [at render time]") -- this runs before any page exists to resolve
-				// a UI culture against, and it's a one-time, silent migration nobody chooses or sees
-				// happen, not user-entered text a user picked in their own language.
-				var migratedProfile = profileManagementService.CreateProfileAsync("Mi perfil").GetAwaiter().GetResult();
+				// Localized via AppResources.Profiles_MigratedDefaultName, unlike CategorySeeder's
+				// default category names -- those resolve through a live culture-aware converter keyed
+				// off SystemCategoryKey at render time (the stored literal never reaches the screen),
+				// but a LocalProfile's Name has no such converter, so it renders exactly as stored,
+				// permanently, everywhere (Settings, the profile switcher). AppResources resolves
+				// against CurrentUICulture, which .NET MAUI's platform startup has already established
+				// by the time CreateMauiApp() runs this far -- confirmed live, not just assumed.
+				var migratedProfile = profileManagementService.CreateProfileAsync(AppResources.Profiles_MigratedDefaultName).GetAwaiter().GetResult();
 
 				// Release any idle pooled native connections before touching the file on disk -- see
 				// LocalBackupService's remarks and ProfileManagementService.DeleteProfileDatabaseFiles
@@ -232,7 +234,7 @@ public static class MauiProgram
 			if (activeProfileId is not null)
 			{
 				var financeDatabaseInitializer = services.GetRequiredService<IFinanceDatabaseInitializer>();
-				financeDatabaseInitializer.EnsureReadyAsync().GetAwaiter().GetResult();
+				financeDatabaseInitializer.EnsureReadyAsync(AppResources.PersonRelationshipType_Me).GetAwaiter().GetResult();
 			}
 		}
 

@@ -26,11 +26,11 @@ public sealed class FinanceDatabaseInitializer : IFinanceDatabaseInitializer
         _dbContext = dbContext;
     }
 
-    public async Task EnsureReadyAsync(CancellationToken ct = default)
+    public async Task EnsureReadyAsync(string defaultPersonName = "Me", CancellationToken ct = default)
     {
         await _dbContext.Database.MigrateAsync(ct).ConfigureAwait(false);
         await CategorySeeder.SeedDefaultCategoriesAsync(_dbContext, ct).ConfigureAwait(false);
-        await PersonSeeder.SeedDefaultPeopleAsync(_dbContext, ct).ConfigureAwait(false);
+        await PersonSeeder.SeedDefaultPeopleAsync(_dbContext, defaultPersonName, ct).ConfigureAwait(false);
         await FinancialInstitutionBackfillService.BackfillInstitutionsAsync(_dbContext, ct).ConfigureAwait(false);
     }
 }

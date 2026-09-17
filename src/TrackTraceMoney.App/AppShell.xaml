@@ -32,30 +32,15 @@
                 ContentTemplate="{DataTemplate views:TransactionsListPage}"
                 Route="TransactionsList" />
         </Tab>
-        <Tab Title="{x:Static resources:AppResources.Categories_Title}">
-            <ShellContent
-                Title="{x:Static resources:AppResources.Categories_Title}"
-                ContentTemplate="{DataTemplate views:CategoriesListPage}"
-                Route="CategoriesList" />
-        </Tab>
-        <Tab Title="{x:Static resources:AppResources.Budgets_Title}">
-            <ShellContent
-                Title="{x:Static resources:AppResources.Budgets_Title}"
-                ContentTemplate="{DataTemplate views:BudgetsListPage}"
-                Route="BudgetsList" />
-        </Tab>
-        <Tab Title="{x:Static resources:AppResources.RecurringExpenses_Title}">
-            <ShellContent
-                Title="{x:Static resources:AppResources.RecurringExpenses_Title}"
-                ContentTemplate="{DataTemplate views:RecurringExpensesListPage}"
-                Route="RecurringExpensesList" />
-        </Tab>
-        <Tab Title="{x:Static resources:AppResources.People_Title}">
-            <ShellContent
-                Title="{x:Static resources:AppResources.People_Title}"
-                ContentTemplate="{DataTemplate views:PeopleListPage}"
-                Route="PeopleList" />
-        </Tab>
+        <!-- Categories/Budgets/RecurringExpenses/People deliberately have no Tab here — Android's Shell
+             renderer auto-collapses tabs beyond what fits the Material BottomNavigationView into a native
+             "More" BottomSheetDialog themed by the untouched Android-level Maui.SplashTheme (not this
+             app's Styles.xaml/dark theme), which is how a stark white popup was reaching an otherwise
+             dark-themed app. These 4 screens are occasional "manage/configure" destinations, not daily-
+             driver ones, so they moved to SettingsPage.xaml buttons instead (same reachability pattern as
+             Profiles/FinancialInstitutions/CardNetworks) — see SettingsViewModel's GoToManageXxx commands
+             and AppShell.xaml.cs's Routing.RegisterRoute calls for each page's route now that it's pushed
+             rather than a Tab's ShellContent. -->
         <Tab Title="{x:Static resources:AppResources.Settings_Title}">
             <ShellContent
                 Title="{x:Static resources:AppResources.Settings_Title}"

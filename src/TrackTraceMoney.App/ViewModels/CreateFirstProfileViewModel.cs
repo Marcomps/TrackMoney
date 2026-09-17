@@ -69,7 +69,7 @@ public sealed partial class CreateFirstProfileViewModel : ObservableObject
             using (var scope = _serviceProvider.CreateScope())
             {
                 var financeDatabaseInitializer = scope.ServiceProvider.GetRequiredService<IFinanceDatabaseInitializer>();
-                await financeDatabaseInitializer.EnsureReadyAsync();
+                await financeDatabaseInitializer.EnsureReadyAsync(AppResources.PersonRelationshipType_Me);
             }
 
             // Live root-page swap -- supported without a restart specifically because nothing has

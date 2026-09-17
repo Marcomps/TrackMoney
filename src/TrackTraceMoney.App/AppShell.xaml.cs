@@ -14,9 +14,16 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(AddTransactionPage), typeof(AddTransactionPage));
 		Routing.RegisterRoute(nameof(HistoryPage), typeof(HistoryPage));
 		Routing.RegisterRoute(nameof(MedicalExpenseDetailPage), typeof(MedicalExpenseDetailPage));
+		// Categories/People/Budgets/RecurringExpenses are no longer Tabs (see AppShell.xaml's comment) --
+		// each List page now needs its own explicit registration here, same as every other pushed
+		// (non-Tab) List page below, since a Tab's ShellContent used to register its route implicitly.
+		Routing.RegisterRoute(nameof(CategoriesListPage), typeof(CategoriesListPage));
 		Routing.RegisterRoute(nameof(AddCategoryPage), typeof(AddCategoryPage));
+		Routing.RegisterRoute(nameof(PeopleListPage), typeof(PeopleListPage));
 		Routing.RegisterRoute(nameof(AddPersonPage), typeof(AddPersonPage));
+		Routing.RegisterRoute(nameof(BudgetsListPage), typeof(BudgetsListPage));
 		Routing.RegisterRoute(nameof(AddBudgetPage), typeof(AddBudgetPage));
+		Routing.RegisterRoute(nameof(RecurringExpensesListPage), typeof(RecurringExpensesListPage));
 		Routing.RegisterRoute(nameof(AddRecurringExpensePage), typeof(AddRecurringExpensePage));
 		Routing.RegisterRoute(nameof(LoansListPage), typeof(LoansListPage));
 		Routing.RegisterRoute(nameof(AddLoanPage), typeof(AddLoanPage));

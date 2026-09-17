@@ -659,7 +659,10 @@
     <value>Inicio</value>
   </data>
   <data name="Dashboard_BalanceSectionTitle" xml:space="preserve">
-    <value>Saldo disponible</value>
+    <value>Saldo total</value>
+  </data>
+  <data name="Dashboard_ThisMonthSectionTitle" xml:space="preserve">
+    <value>Este mes</value>
   </data>
   <data name="Dashboard_IncomeLabel" xml:space="preserve">
     <value>Ingresos del mes</value>
@@ -1638,5 +1641,20 @@
   </data>
   <data name="AddCreditCard_NetworkLabel" xml:space="preserve">
     <value>Red</value>
+  </data>
+  <data name="Settings_ExpenseManagementSectionTitle" xml:space="preserve">
+    <value>Gestión de gastos</value>
+  </data>
+  <data name="Settings_ManageCategoriesButton" xml:space="preserve">
+    <value>Gestionar categorías</value>
+  </data>
+  <data name="Settings_ManageBudgetsButton" xml:space="preserve">
+    <value>Gestionar presupuestos</value>
+  </data>
+  <data name="Settings_ManageRecurringExpensesButton" xml:space="preserve">
+    <value>Gestionar gastos recurrentes</value>
+  </data>
+  <data name="Settings_ManagePeopleButton" xml:space="preserve">
+    <value>Gestionar personas</value>
   </data>
 </root>

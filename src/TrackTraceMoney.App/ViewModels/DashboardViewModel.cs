@@ -251,12 +251,19 @@ public sealed partial class DashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private static async Task GoToAddTransactionAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(AddTransactionPage));
+    }
+
+    [RelayCommand]
     private static async Task GoToRecurringExpensesAsync()
     {
-        // The Recurring Expenses tab's ShellContent registers "RecurringExpensesList" as its own
-        // route (see AppShell.xaml) rather than the page type name — it's reached by switching tabs
-        // (an absolute "//" route), unlike the "AddXxxPage" pages pushed via Routing.RegisterRoute.
-        await Shell.Current.GoToAsync("//RecurringExpensesList");
+        // RecurringExpensesListPage is a pushed page (Routing.RegisterRoute in AppShell.xaml.cs), not a
+        // Tab, since the bottom-nav-overflow fix moved it into Settings — same relative-route idiom as
+        // GoToNetWorthHistoryAsync below. Previously an absolute "//RecurringExpensesList" route, back
+        // when this page's ShellContent lived directly in the TabBar.
+        await Shell.Current.GoToAsync(nameof(RecurringExpensesListPage));
     }
 
     [RelayCommand]

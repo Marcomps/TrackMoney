@@ -13,11 +13,19 @@
         <ScrollView>
             <VerticalStackLayout Padding="16" Spacing="18">
 
+                <!-- Quick action: the single most common thing a user does, surfaced at the very top
+                     rather than requiring a trip to the Transactions tab first. -->
+                <Button Text="{x:Static resources:AppResources.Transactions_AddButton}"
+                        Command="{Binding GoToAddTransactionCommand}"
+                        AutomationId="Dashboard_AddTransactionButton"
+                        HorizontalOptions="Fill" />
+
                 <!-- Tile 4: financial health indicator -->
                 <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
-                    <VerticalStackLayout Spacing="4">
+                    <VerticalStackLayout Spacing="4" AutomationId="Dashboard_HealthTile">
                         <Label FontSize="40" HorizontalOptions="Center" Text="{Binding HealthEmoji}" />
                         <Label FontSize="16" HorizontalOptions="Center" Text="{Binding HealthLabel}"
+                               AutomationId="Dashboard_HealthLabel"
                                TextColor="{StaticResource Gray100}" />
                     </VerticalStackLayout>
                 </Border>
@@ -78,6 +86,8 @@
                 <!-- Tile 2: income / expenses / available this month — one block per currency, never blended -->
                 <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
                     <VerticalStackLayout Spacing="8">
+                        <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                               Text="{x:Static resources:AppResources.Dashboard_ThisMonthSectionTitle}" />
                         <CollectionView ItemsSource="{Binding IncomeExpenseSummaries}" SelectionMode="None">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:CurrencyIncomeExpense">
@@ -85,15 +95,18 @@
                                         <Label Text="{Binding Currency}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Gray100}" />
                                         <Grid ColumnDefinitions="*,Auto">
                                             <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_IncomeLabel}" FontSize="16" TextColor="{StaticResource Gray200}" />
-                                            <Label Grid.Column="1" Text="{Binding Income, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Primary}" />
+                                            <Label Grid.Column="1" Text="{Binding Income, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Primary}"
+                                                   AutomationId="Dashboard_IncomeAmount" />
                                         </Grid>
                                         <Grid ColumnDefinitions="*,Auto">
                                             <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_ExpensesLabel}" FontSize="16" TextColor="{StaticResource Gray200}" />
-                                            <Label Grid.Column="1" Text="{Binding Expenses, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Tertiary}" />
+                                            <Label Grid.Column="1" Text="{Binding Expenses, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Tertiary}"
+                                                   AutomationId="Dashboard_ExpensesAmount" />
                                         </Grid>
                                         <Grid ColumnDefinitions="*,Auto">
                                             <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AvailableLabel}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource White}" />
-                                            <Label Grid.Column="1" Text="{Binding Available, StringFormat='{0:N2}'}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                            <Label Grid.Column="1" Text="{Binding Available, StringFormat='{0:N2}'}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                                                   AutomationId="Dashboard_AvailableAmount" />
                                         </Grid>
                                     </VerticalStackLayout>
                                 </DataTemplate>
