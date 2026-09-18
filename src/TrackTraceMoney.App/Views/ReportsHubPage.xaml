@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.ReportsHubPage"
+             x:DataType="viewModels:ReportsHubViewModel"
+             Title="{x:Static resources:AppResources.ReportsHub_Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18" AutomationId="ReportsHub_ExpensesByCategoryRow">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToExpensesByCategoryCommand}" />
+                </Border.GestureRecognizers>
+                <VerticalStackLayout Spacing="4">
+                    <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                           Text="{x:Static resources:AppResources.ReportsHub_ExpensesByCategoryTitle}" />
+                    <Label FontSize="13" TextColor="{StaticResource Gray200}"
+                           Text="{x:Static resources:AppResources.ReportsHub_ExpensesByCategoryDescription}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18" AutomationId="ReportsHub_IncomeVsExpensesRow">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToIncomeVsExpensesCommand}" />
+                </Border.GestureRecognizers>
+                <VerticalStackLayout Spacing="4">
+                    <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                           Text="{x:Static resources:AppResources.ReportsHub_IncomeVsExpensesTitle}" />
+                    <Label FontSize="13" TextColor="{StaticResource Gray200}"
+                           Text="{x:Static resources:AppResources.ReportsHub_IncomeVsExpensesDescription}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18" AutomationId="ReportsHub_BudgetVsSpendingRow">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToBudgetVsSpendingCommand}" />
+                </Border.GestureRecognizers>
+                <VerticalStackLayout Spacing="4">
+                    <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                           Text="{x:Static resources:AppResources.ReportsHub_BudgetVsSpendingTitle}" />
+                    <Label FontSize="13" TextColor="{StaticResource Gray200}"
+                           Text="{x:Static resources:AppResources.ReportsHub_BudgetVsSpendingDescription}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18" AutomationId="ReportsHub_MonthlyTrendRow">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToMonthlyTrendCommand}" />
+                </Border.GestureRecognizers>
+                <VerticalStackLayout Spacing="4">
+                    <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                           Text="{x:Static resources:AppResources.ReportsHub_MonthlyTrendTitle}" />
+                    <Label FontSize="13" TextColor="{StaticResource Gray200}"
+                           Text="{x:Static resources:AppResources.ReportsHub_MonthlyTrendDescription}" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

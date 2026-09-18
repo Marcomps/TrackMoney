@@ -7,6 +7,8 @@ using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
+using TrackTraceMoney.Application.Reporting;
+using TrackTraceMoney.Domain.Enums;
 
 namespace TrackTraceMoney.App.ViewModels;
 
@@ -30,8 +32,28 @@ public sealed partial class HistoryViewModel : ObservableObject
 
     private List<HistoryEntryItem> _allEntries = [];
 
+    // The flat filtered list ApplyFilters() computes GroupedEntries from — GroupedEntries alone loses
+    // the flat shape Export needs (a CollectionView-friendly IGrouping structure, not a plain list).
+    // Kept in sync with GroupedEntries so Export always exports exactly what's currently on screen.
+    private IReadOnlyList<HistoryEntryItem> _filteredEntries = [];
+
+    private IReadOnlyDictionary<Guid, string> _categoryNames = new Dictionary<Guid, string>();
+
+    private IReadOnlyDictionary<Guid, string> _personNames = new Dictionary<Guid, string>();
+
+    private IReadOnlyDictionary<Guid, CurrencyCode> _accountCurrencies = new Dictionary<Guid, CurrencyCode>();
+
     [ObservableProperty]
     private bool isBusy;
+
+    [ObservableProperty]
+    private bool isExporting;
+
+    [ObservableProperty]
+    private string? exportStatusMessage;
+
+    [ObservableProperty]
+    private string? exportErrorMessage;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEmpty))]
@@ -112,6 +134,9 @@ public sealed partial class HistoryViewModel : ObservableObject
 
             var accountNames = AccountNameMapBuilder.Build(accounts, creditAccounts);
             var categoryNames = categories.ToDictionary(c => c.Id, SystemCategoryKeyToLabelConverter.GetDisplayName);
+            _categoryNames = categoryNames;
+            _personNames = people.ToDictionary(p => p.Id, p => p.Name);
+            _accountCurrencies = AccountCurrencyMapBuilder.Build(accounts, creditAccounts);
 
             // Batched instead of one GetForTransactionAsync call per row below (same anti-N+1 pattern as
             // the Phase 2 checkpoint's batch-fetch fixes) — a single query for every transaction id on
@@ -215,7 +240,9 @@ public sealed partial class HistoryViewModel : ObservableObject
         if (decimal.TryParse(MaxAmountText, NumberStyles.Number, CultureInfo.CurrentCulture, out var maxAmount))
             query = query.Where(e => e.Amount <= maxAmount);
 
-        var groups = query
+        _filteredEntries = query.ToList();
+
+        var groups = _filteredEntries
             .GroupBy(e => e.Date)
             .OrderByDescending(g => g.Key)
             .Select(g => new HistoryDateGroup(
@@ -227,6 +254,52 @@ public sealed partial class HistoryViewModel : ObservableObject
             GroupedEntries.Add(group);
 
         OnPropertyChanged(nameof(IsEmpty));
+    }
+
+    /// <summary>
+    /// Exports exactly what's currently filtered/visible (<see cref="_filteredEntries"/>, kept in sync
+    /// with <see cref="GroupedEntries"/> by <see cref="ApplyFilters"/>) as a CSV file and hands it to
+    /// the platform share sheet — same mechanism §42's local backup export already uses
+    /// (<c>SettingsViewModel.ExportAsync</c>: write to <see cref="FileSystem.CacheDirectory"/>, then
+    /// <c>Share.Default.RequestAsync</c>), not a new file-sharing approach.
+    /// </summary>
+    [RelayCommand]
+    private async Task ExportCsvAsync()
+    {
+        ExportErrorMessage = null;
+        ExportStatusMessage = null;
+
+        if (_filteredEntries.Count == 0)
+        {
+            ExportErrorMessage = AppResources.History_ExportCsvEmpty;
+            return;
+        }
+
+        IsExporting = true;
+        try
+        {
+            var csv = TransactionCsvRowBuilder.Build(_filteredEntries, _categoryNames, _personNames, _accountCurrencies);
+
+            var fileName = $"tracktracemoney-transactions-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+            var exportPath = Path.Combine(FileSystem.CacheDirectory, fileName);
+            await File.WriteAllTextAsync(exportPath, csv);
+
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = AppResources.History_ExportCsvButton,
+                File = new ShareFile(exportPath)
+            });
+
+            ExportStatusMessage = AppResources.History_ExportCsvSuccess;
+        }
+        catch (Exception)
+        {
+            ExportErrorMessage = AppResources.History_ExportCsvError;
+        }
+        finally
+        {
+            IsExporting = false;
+        }
     }
 
     /// <summary>

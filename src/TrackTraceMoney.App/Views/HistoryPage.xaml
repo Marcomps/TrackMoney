@@ -56,6 +56,14 @@
                         HorizontalOptions="Fill"
                         Margin="0,4,0,0" />
 
+                <Button Text="{x:Static resources:AppResources.History_ExportCsvButton}"
+                        Command="{Binding ExportCsvCommand}"
+                        HorizontalOptions="Fill"
+                        Margin="0,4,0,0" />
+
+                <Label Text="{Binding ExportStatusMessage}" TextColor="Green" FontSize="12" />
+                <Label Text="{Binding ExportErrorMessage}" TextColor="Red" FontSize="12" />
+
             </VerticalStackLayout>
         </ScrollView>
 

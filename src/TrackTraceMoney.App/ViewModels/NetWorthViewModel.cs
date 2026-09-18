@@ -61,7 +61,18 @@ public sealed partial class NetWorthViewModel : ObservableObject
                 // avoids loading rows twice on the common "first load, nothing selected yet" path.
                 SelectedCurrency = AvailableCurrencies[0];
             else
+            {
+                // SelectedCurrency already equals AvailableCurrencies[0] here in the common case --
+                // both are CurrencyCode's default value (USD) on first load. The generated property
+                // setter's equality check means the assignment above would be a no-op and never raise
+                // PropertyChanged, so the Picker's SelectedItem binding -- synced once when
+                // AvailableCurrencies was still empty, at BindingContext-set time -- never gets a
+                // second chance to resync now that the list actually has a matching item. Found live:
+                // the Picker rendered permanently blank despite SelectedCurrency and the loaded rows
+                // both being correct. Force the resync explicitly.
+                OnPropertyChanged(nameof(SelectedCurrency));
                 await LoadRowsForSelectedCurrencyAsync();
+            }
 
             HasLoaded = true;
             OnPropertyChanged(nameof(IsEmpty));

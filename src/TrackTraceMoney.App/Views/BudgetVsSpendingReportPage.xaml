@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.BudgetVsSpendingReportPage"
+             x:DataType="viewModels:BudgetVsSpendingReportViewModel"
+             Title="{x:Static resources:AppResources.BudgetVsSpendingReport_Title}">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+
+                <Label Text="{x:Static resources:AppResources.Reports_MonthLabel}" />
+                <DatePicker Date="{Binding SelectedMonth}" Format="Y" AutomationId="BudgetVsSpendingReport_MonthPicker" />
+
+                <Label Text="{x:Static resources:AppResources.Reports_EmptyForMonth}"
+                       IsVisible="{Binding IsEmpty}" />
+
+                <!-- Unlike Dashboard's Tile 3 (which only ever lists OVER-budget categories), every
+                     budget for the month is shown here: the 🟢/🟡/🔴 semáforo is what distinguishes
+                     "comfortably under" from "close" from "over". -->
+                <CollectionView ItemsSource="{Binding Groups}" IsGrouped="True" SelectionMode="None">
+                    <CollectionView.GroupHeaderTemplate>
+                        <DataTemplate x:DataType="models:BudgetSpendReportGroup">
+                            <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                                   Text="{Binding Currency}" Margin="0,12,0,4" />
+                        </DataTemplate>
+                    </CollectionView.GroupHeaderTemplate>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:BudgetSpendReportItem">
+                            <Grid Padding="0,6" RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto">
+                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding ListItem.SemaforoEmoji}"
+                                       FontSize="14" VerticalOptions="Center" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding ListItem.CategoryName}"
+                                       FontSize="14" TextColor="{StaticResource Gray100}" Margin="8,0,0,0" />
+                                <Label Grid.Row="0" Grid.Column="2" TextColor="{StaticResource Gray100}" FontSize="14">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding ListItem.Spent, StringFormat='{0:N2}'}" />
+                                            <Span Text=" / " />
+                                            <Span Text="{Binding ListItem.BudgetAmount, StringFormat='{0:N2}'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Grid Grid.Row="1" Grid.ColumnSpan="3" HeightRequest="10" Margin="0,4,0,0">
+                                    <BoxView HeightRequest="10" CornerRadius="5"
+                                             Color="{StaticResource Gray600}"
+                                             WidthRequest="{x:Static models:ReportBarWidth.MaxWidth}"
+                                             HorizontalOptions="Start" />
+                                    <BoxView HeightRequest="10" CornerRadius="5"
+                                             Color="{StaticResource Primary}"
+                                             WidthRequest="{Binding BarWidthRequest}"
+                                             HorizontalOptions="Start" />
+                                </Grid>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

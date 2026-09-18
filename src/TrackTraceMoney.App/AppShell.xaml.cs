@@ -43,7 +43,16 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(AddFinancialInstitutionPage), typeof(AddFinancialInstitutionPage));
 		Routing.RegisterRoute(nameof(CardNetworksListPage), typeof(CardNetworksListPage));
 		Routing.RegisterRoute(nameof(AddCardNetworkPage), typeof(AddCardNetworkPage));
-		// CreateFirstProfilePage deliberately has no route here -- it's never navigated to via Shell,
-		// only ever constructed directly as the app's initial root page (see App.xaml.cs).
+		Routing.RegisterRoute(nameof(SetPinPage), typeof(SetPinPage));
+		// Reports (README §40 slice 1) -- reachable from Settings, not a Tab (see AppShell.xaml's
+		// comment about the 6th-tab "More" overflow bug), same pushed-page registration pattern as
+		// Categories/Budgets/RecurringExpenses/People/Profiles/FinancialInstitutions/CardNetworks above.
+		Routing.RegisterRoute(nameof(ReportsHubPage), typeof(ReportsHubPage));
+		Routing.RegisterRoute(nameof(ExpensesByCategoryReportPage), typeof(ExpensesByCategoryReportPage));
+		Routing.RegisterRoute(nameof(IncomeVsExpensesReportPage), typeof(IncomeVsExpensesReportPage));
+		Routing.RegisterRoute(nameof(BudgetVsSpendingReportPage), typeof(BudgetVsSpendingReportPage));
+		Routing.RegisterRoute(nameof(MonthlyExpensesTrendReportPage), typeof(MonthlyExpensesTrendReportPage));
+		// CreateFirstProfilePage/AppLockPage deliberately have no route here -- neither is ever
+		// navigated to via Shell, only ever constructed directly as the app's root page (see App.xaml.cs).
 	}
 }

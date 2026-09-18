@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.AppLockPage"
+             x:DataType="viewModels:AppLockViewModel"
+             Title="{x:Static resources:AppResources.AppLock_LockScreenTitle}">
+
+    <!-- No back button, no Shell/NavigationPage chrome, no route into this page: constructed directly
+         by App.xaml.cs as a bare Window.Page (same precedent as CreateFirstProfilePage), so there is
+         nothing to navigate back into except AppShell/CreateFirstProfilePage, both of which only
+         become reachable via a correct PIN. -->
+    <VerticalStackLayout Padding="24" Spacing="16" VerticalOptions="Center">
+
+        <Label Text="{x:Static resources:AppResources.AppLock_LockScreenTitle}"
+               FontSize="22"
+               FontAttributes="Bold"
+               HorizontalTextAlignment="Center" />
+
+        <Label Text="{x:Static resources:AppResources.AppLock_EnterPinLabel}"
+               HorizontalTextAlignment="Center" />
+
+        <Entry Text="{Binding Pin}"
+               Keyboard="Numeric"
+               MaxLength="6"
+               IsPassword="True"
+               IsEnabled="{Binding IsNotCooldownActive}"
+               HorizontalTextAlignment="Center"
+               AutomationId="AppLock_PinEntry" />
+
+        <Label Text="{Binding ErrorMessage}" TextColor="Red" HorizontalTextAlignment="Center"
+               IsVisible="{Binding IsNotCooldownActive}" />
+
+        <Label Text="{Binding CooldownMessage}" TextColor="Red" HorizontalTextAlignment="Center"
+               IsVisible="{Binding IsCooldownActive}" />
+
+        <Button Text="{x:Static resources:AppResources.AppLock_UnlockButton}"
+                Command="{Binding SubmitCommand}"
+                IsEnabled="{Binding IsNotCooldownActive}"
+                AutomationId="AppLock_UnlockButton"
+                HorizontalOptions="Fill" />
+
+    </VerticalStackLayout>
+
+</ContentPage>

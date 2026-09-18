@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.SetPinPage"
+             x:DataType="viewModels:SetPinViewModel"
+             Title="{x:Static resources:AppResources.SetPin_Title}">
+
+    <Grid RowDefinitions="*,Auto" Padding="16">
+
+        <ScrollView Grid.Row="0">
+        <VerticalStackLayout Spacing="12">
+
+            <Label Text="{x:Static resources:AppResources.SetPin_PinLabel}" />
+            <Entry Text="{Binding Pin}" Keyboard="Numeric" MaxLength="6" IsPassword="True" AutomationId="SetPin_PinEntry" />
+
+            <Label Text="{x:Static resources:AppResources.SetPin_ConfirmPinLabel}" />
+            <Entry Text="{Binding ConfirmPin}" Keyboard="Numeric" MaxLength="6" IsPassword="True" AutomationId="SetPin_ConfirmPinEntry" />
+
+            <!-- Decision 5: shown unconditionally, before the PIN can be saved; there is no in-app
+                 "forgot PIN" reset, so this is disclosed once, here, not left as a silent trap. -->
+            <Label Text="{x:Static resources:AppResources.SetPin_ForgotPinDisclosure}"
+                   FontSize="12" Opacity="0.7" />
+
+            <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+        </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="12" Margin="0,12,0,0">
+            <Button Text="{x:Static resources:AppResources.SetPin_SaveButton}"
+                    Command="{Binding SaveCommand}"
+                    AutomationId="SetPin_SaveButton"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.SetPin_CancelButton}"
+                    Command="{Binding CancelCommand}"
+                    HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

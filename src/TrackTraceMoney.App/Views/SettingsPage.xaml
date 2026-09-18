@@ -24,6 +24,17 @@
                     AutomationId="Settings_ManageProfilesButton"
                     HorizontalOptions="Fill" />
 
+            <Label Text="{x:Static resources:AppResources.AppLock_SectionTitle}"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+
+            <HorizontalStackLayout Spacing="8">
+                <Label Text="{x:Static resources:AppResources.AppLock_ToggleLabel}" VerticalOptions="Center" />
+                <Switch IsToggled="{Binding IsAppLockEnabled}"
+                        Toggled="OnAppLockToggled"
+                        AutomationId="Settings_AppLockToggle" />
+            </HorizontalStackLayout>
+
             <Label Text="{x:Static resources:AppResources.Settings_InstitutionsSectionTitle}"
                    FontSize="18"
                    FontAttributes="Bold" />
@@ -62,6 +73,15 @@
             <Button Text="{x:Static resources:AppResources.Settings_ManagePeopleButton}"
                     Command="{Binding GoToManagePeopleCommand}"
                     AutomationId="Settings_ManagePeopleButton"
+                    HorizontalOptions="Fill" />
+
+            <Label Text="{x:Static resources:AppResources.Settings_ReportsSectionTitle}"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+
+            <Button Text="{x:Static resources:AppResources.Settings_ManageReportsButton}"
+                    Command="{Binding GoToManageReportsCommand}"
+                    AutomationId="Settings_ManageReportsButton"
                     HorizontalOptions="Fill" />
 
             <Label Text="{x:Static resources:AppResources.Settings_BackupSectionTitle}"

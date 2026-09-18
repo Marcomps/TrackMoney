@@ -790,6 +790,42 @@
   <data name="History_ClearFiltersButton" xml:space="preserve">
     <value>Limpiar filtros</value>
   </data>
+  <data name="History_ExportCsvButton" xml:space="preserve">
+    <value>Exportar CSV</value>
+  </data>
+  <data name="History_ExportCsvSuccess" xml:space="preserve">
+    <value>CSV exportado correctamente.</value>
+  </data>
+  <data name="History_ExportCsvError" xml:space="preserve">
+    <value>No se pudo exportar el CSV. Inténtalo de nuevo.</value>
+  </data>
+  <data name="History_ExportCsvEmpty" xml:space="preserve">
+    <value>No hay movimientos que exportar con los filtros seleccionados.</value>
+  </data>
+  <data name="Export_Header_Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Export_Header_Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Export_Header_Amount" xml:space="preserve">
+    <value>Monto</value>
+  </data>
+  <data name="Export_Header_Currency" xml:space="preserve">
+    <value>Moneda</value>
+  </data>
+  <data name="Export_Header_Account" xml:space="preserve">
+    <value>Cuenta</value>
+  </data>
+  <data name="Export_Header_Category" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="Export_Header_Person" xml:space="preserve">
+    <value>Persona</value>
+  </data>
+  <data name="Export_Header_Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
   <data name="Settings_Title" xml:space="preserve">
     <value>Ajustes</value>
   </data>
@@ -1656,5 +1692,140 @@
   </data>
   <data name="Settings_ManagePeopleButton" xml:space="preserve">
     <value>Gestionar personas</value>
+  </data>
+  <data name="Dashboard_RealSurplusSectionTitle" xml:space="preserve">
+    <value>Sobrante real</value>
+  </data>
+  <data name="Dashboard_RealSurplusBalanceLabel" xml:space="preserve">
+    <value>Saldo disponible</value>
+  </data>
+  <data name="Dashboard_RealSurplusUpcomingExpensesLabel" xml:space="preserve">
+    <value>Gastos próximos</value>
+  </data>
+  <data name="Dashboard_RealSurplusDebtPaymentsLabel" xml:space="preserve">
+    <value>Pagos de deuda</value>
+  </data>
+  <data name="Dashboard_RealSurplusResultLabel" xml:space="preserve">
+    <value>Sobrante real</value>
+  </data>
+  <data name="AppLock_SectionTitle" xml:space="preserve">
+    <value>Bloqueo de la app</value>
+  </data>
+  <data name="AppLock_ToggleLabel" xml:space="preserve">
+    <value>Habilitar bloqueo con PIN</value>
+  </data>
+  <data name="SetPin_Title" xml:space="preserve">
+    <value>Configurar PIN</value>
+  </data>
+  <data name="SetPin_PinLabel" xml:space="preserve">
+    <value>PIN (6 dígitos)</value>
+  </data>
+  <data name="SetPin_ConfirmPinLabel" xml:space="preserve">
+    <value>Confirmar PIN</value>
+  </data>
+  <data name="SetPin_ForgotPinDisclosure" xml:space="preserve">
+    <value>Si olvidas este PIN, la única forma de volver a entrar es desinstalar y reinstalar la app, lo que borra todos los datos locales a menos que hayas exportado un respaldo antes. Ver Ajustes → Exportar respaldo.</value>
+  </data>
+  <data name="SetPin_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="SetPin_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="SetPin_ValidationPinInvalid" xml:space="preserve">
+    <value>El PIN debe tener exactamente 6 dígitos.</value>
+  </data>
+  <data name="SetPin_ValidationPinMismatch" xml:space="preserve">
+    <value>Los PIN no coinciden.</value>
+  </data>
+  <data name="AppLock_DisablePromptTitle" xml:space="preserve">
+    <value>Desactivar bloqueo</value>
+  </data>
+  <data name="AppLock_DisablePromptMessage" xml:space="preserve">
+    <value>Ingresa tu PIN actual para desactivar el bloqueo.</value>
+  </data>
+  <data name="AppLock_DisablePromptAccept" xml:space="preserve">
+    <value>Confirmar</value>
+  </data>
+  <data name="AppLock_DisablePromptCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AppLock_DisableWrongPin" xml:space="preserve">
+    <value>PIN incorrecto.</value>
+  </data>
+  <data name="AppLock_DisabledSuccess" xml:space="preserve">
+    <value>Bloqueo desactivado.</value>
+  </data>
+  <data name="AppLock_LockScreenTitle" xml:space="preserve">
+    <value>App bloqueada</value>
+  </data>
+  <data name="AppLock_EnterPinLabel" xml:space="preserve">
+    <value>Ingresa tu PIN</value>
+  </data>
+  <data name="AppLock_ValidationPinInvalid" xml:space="preserve">
+    <value>Ingresa los 6 dígitos.</value>
+  </data>
+  <data name="AppLock_ValidationWrongPin" xml:space="preserve">
+    <value>PIN incorrecto.</value>
+  </data>
+  <data name="AppLock_CooldownMessage" xml:space="preserve">
+    <value>Demasiados intentos. Intenta de nuevo en {0} segundos.</value>
+  </data>
+  <data name="AppLock_UnlockButton" xml:space="preserve">
+    <value>Desbloquear</value>
+  </data>
+  <data name="ReportsHub_Title" xml:space="preserve">
+    <value>Reportes</value>
+  </data>
+  <data name="ReportsHub_ExpensesByCategoryTitle" xml:space="preserve">
+    <value>Gastos por categoría</value>
+  </data>
+  <data name="ReportsHub_ExpensesByCategoryDescription" xml:space="preserve">
+    <value>Cuánto gastaste en cada categoría durante un mes específico.</value>
+  </data>
+  <data name="ReportsHub_IncomeVsExpensesTitle" xml:space="preserve">
+    <value>Ingresos vs. gastos</value>
+  </data>
+  <data name="ReportsHub_IncomeVsExpensesDescription" xml:space="preserve">
+    <value>Compara tus ingresos y gastos de un mes específico.</value>
+  </data>
+  <data name="ReportsHub_BudgetVsSpendingTitle" xml:space="preserve">
+    <value>Presupuesto vs. gasto</value>
+  </data>
+  <data name="ReportsHub_BudgetVsSpendingDescription" xml:space="preserve">
+    <value>Cómo se compara tu gasto real con el presupuesto de cada categoría.</value>
+  </data>
+  <data name="ReportsHub_MonthlyTrendTitle" xml:space="preserve">
+    <value>Tendencia mensual de gastos</value>
+  </data>
+  <data name="ReportsHub_MonthlyTrendDescription" xml:space="preserve">
+    <value>La evolución de tus gastos mes a mes para una moneda.</value>
+  </data>
+  <data name="ExpensesByCategoryReport_Title" xml:space="preserve">
+    <value>Gastos por categoría</value>
+  </data>
+  <data name="IncomeVsExpensesReport_Title" xml:space="preserve">
+    <value>Ingresos vs. gastos</value>
+  </data>
+  <data name="BudgetVsSpendingReport_Title" xml:space="preserve">
+    <value>Presupuesto vs. gasto</value>
+  </data>
+  <data name="MonthlyExpensesTrendReport_Title" xml:space="preserve">
+    <value>Tendencia mensual de gastos</value>
+  </data>
+  <data name="Reports_MonthLabel" xml:space="preserve">
+    <value>Mes</value>
+  </data>
+  <data name="Reports_EmptyForMonth" xml:space="preserve">
+    <value>No hay gastos registrados para este mes.</value>
+  </data>
+  <data name="Reports_EmptyForCurrency" xml:space="preserve">
+    <value>No hay historial para esta moneda.</value>
+  </data>
+  <data name="Settings_ReportsSectionTitle" xml:space="preserve">
+    <value>Reportes</value>
+  </data>
+  <data name="Settings_ManageReportsButton" xml:space="preserve">
+    <value>Ver reportes</value>
   </data>
 </root>

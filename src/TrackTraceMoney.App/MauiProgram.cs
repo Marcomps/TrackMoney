@@ -44,6 +44,10 @@ public static class MauiProgram
 		// different Essentials API.
 		builder.Services.AddSingleton(Preferences.Default);
 		builder.Services.AddSingleton<IActiveProfileStore, PreferencesActiveProfileStore>();
+		// SecureStorage-backed, not Preferences-backed, since a PIN hash is a secret -- mirrors
+		// CloudAuthService's own precedent (see IAppLockService's remarks). Registered here, alongside
+		// IActiveProfileStore, since App.xaml.cs's CreateWindow needs both at cold start.
+		builder.Services.AddSingleton<IAppLockService, AppLockService>();
 
 		var profileCatalogDbPath = Path.Combine(FileSystem.AppDataDirectory, "tracktracemoney_profiles.db3");
 		builder.Services.AddTrackTraceMoneyProfileCatalog($"Data Source={profileCatalogDbPath}", FileSystem.AppDataDirectory);
@@ -73,6 +77,7 @@ public static class MauiProgram
 
 		builder.Services.AddSingleton<IIncomeCalculator, IncomeCalculator>();
 		builder.Services.AddSingleton<INetWorthCalculator, NetWorthCalculator>();
+		builder.Services.AddSingleton<IRealSurplusCalculator, RealSurplusCalculator>();
 		builder.Services.AddScoped<INetWorthSnapshotService, NetWorthSnapshotService>();
 		builder.Services.AddScoped<ITermDepositRenewalService, TermDepositRenewalService>();
 		builder.Services.AddTransient<DashboardViewModel>();
@@ -143,6 +148,20 @@ public static class MauiProgram
 		builder.Services.AddTransient<AddBudgetViewModel>();
 		builder.Services.AddTransient<AddBudgetPage>();
 
+		// Reports (README §40 slice 1) -- pure calculators mirror ISpendingCalculator/INetWorthCalculator
+		// above (registered singleton, stateless); ViewModels/Pages transient like every other screen.
+		builder.Services.AddSingleton<IMonthlySpendingTrendCalculator, MonthlySpendingTrendCalculator>();
+		builder.Services.AddTransient<ReportsHubViewModel>();
+		builder.Services.AddTransient<ReportsHubPage>();
+		builder.Services.AddTransient<ExpensesByCategoryReportViewModel>();
+		builder.Services.AddTransient<ExpensesByCategoryReportPage>();
+		builder.Services.AddTransient<IncomeVsExpensesReportViewModel>();
+		builder.Services.AddTransient<IncomeVsExpensesReportPage>();
+		builder.Services.AddTransient<BudgetVsSpendingReportViewModel>();
+		builder.Services.AddTransient<BudgetVsSpendingReportPage>();
+		builder.Services.AddTransient<MonthlyExpensesTrendReportViewModel>();
+		builder.Services.AddTransient<MonthlyExpensesTrendReportPage>();
+
 		builder.Services.AddScoped<IRecurringExpenseService, RecurringExpenseService>();
 		builder.Services.AddTransient<RecurringExpensesListViewModel>();
 		builder.Services.AddTransient<RecurringExpensesListPage>();
@@ -171,6 +190,14 @@ public static class MauiProgram
 		builder.Services.AddTransient<AddProfilePage>();
 		builder.Services.AddTransient<CreateFirstProfileViewModel>();
 		builder.Services.AddTransient<CreateFirstProfilePage>();
+
+		builder.Services.AddTransient<SetPinViewModel>();
+		builder.Services.AddTransient<SetPinPage>();
+		// Transient, not Singleton: a fresh AppLockViewModel (fresh failed-attempt count, no stale
+		// cooldown) every time it's constructed, whether at cold start or on an auto-lock resume swap
+		// (see App.xaml.cs's OnWindowActivated).
+		builder.Services.AddTransient<AppLockViewModel>();
+		builder.Services.AddTransient<AppLockPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();

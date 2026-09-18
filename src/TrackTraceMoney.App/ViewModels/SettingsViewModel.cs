@@ -14,9 +14,14 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly ICloudBackupService _cloudBackupService;
     private readonly IActiveProfileStore _activeProfileStore;
     private readonly ILocalProfileRepository _profileRepository;
+    private readonly IAppLockService _appLockService;
+    private bool _suppressAppLockToggleCommand;
 
     [ObservableProperty]
     private string? activeProfileName;
+
+    [ObservableProperty]
+    private bool isAppLockEnabled;
 
     [ObservableProperty]
     private string? errorMessage;
@@ -53,13 +58,15 @@ public sealed partial class SettingsViewModel : ObservableObject
         ICloudAuthService cloudAuthService,
         ICloudBackupService cloudBackupService,
         IActiveProfileStore activeProfileStore,
-        ILocalProfileRepository profileRepository)
+        ILocalProfileRepository profileRepository,
+        IAppLockService appLockService)
     {
         _backupService = backupService;
         _cloudAuthService = cloudAuthService;
         _cloudBackupService = cloudBackupService;
         _activeProfileStore = activeProfileStore;
         _profileRepository = profileRepository;
+        _appLockService = appLockService;
     }
 
     public bool IsCloudUnauthenticated => !IsCloudAuthenticated;
@@ -116,6 +123,98 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task RefreshAppLockStateAsync()
+    {
+        // Guarded like RequestAppLockToggleAsync below: assigning IsAppLockEnabled re-fires the bound
+        // Switch's Toggled event, and loading the real persisted state on page appear is not a user
+        // toggle request.
+        if (_suppressAppLockToggleCommand)
+            return;
+
+        _suppressAppLockToggleCommand = true;
+        try
+        {
+            IsAppLockEnabled = await _appLockService.IsEnabledAsync();
+        }
+        finally
+        {
+            _suppressAppLockToggleCommand = false;
+        }
+    }
+
+    /// <summary>
+    /// README §43 app-lock Story 1. Not a bare two-way-bound switch: <see cref="IsAppLockEnabled"/> is
+    /// reverted immediately in both directions below, since nothing actually changes until either
+    /// <c>SetPinPage</c> saves a new PIN (turning on) or the current PIN is verified (turning off) --
+    /// <see cref="Views.SettingsPage"/>'s own <c>OnAppearing</c> re-runs <see cref="RefreshAppLockStateAsync"/>
+    /// afterward, so the toggle always ends up reflecting the real persisted state, not an
+    /// optimistically-flipped one.
+    /// <para>
+    /// The whole method body runs under <c>_suppressAppLockToggleCommand</c>, released only in a
+    /// <c>finally</c> once every await here has completed -- not just around the property assignment.
+    /// <c>IsAppLockEnabled</c> is two-way bound to the Switch's <c>IsToggled</c>, and MAUI's Switch
+    /// raises <c>Toggled</c> for a programmatic change exactly like a user tap; that re-entrant fire
+    /// was observed landing on a later main-thread dispatch, not synchronously within the property
+    /// assignment, so a guard that cleared immediately after the assignment (tried first) did not
+    /// actually block it. Without the guard held for the full method, the re-entrant call reverts the
+    /// opposite way, re-triggering Toggled again -- an infinite ping-pong that, on the disable branch,
+    /// stacks a new native <c>Shell.Current.DisplayPromptAsync</c> dialog on every iteration. Found
+    /// live: a single tap exhausted the emulator's window/memory budget (900+ leaked "Disable app
+    /// lock" dialog windows within seconds) and froze the whole device, not just this app.
+    /// </para>
+    /// </summary>
+    [RelayCommand]
+    private async Task RequestAppLockToggleAsync(bool requestedEnabled)
+    {
+        if (_suppressAppLockToggleCommand)
+            return;
+
+        _suppressAppLockToggleCommand = true;
+        try
+        {
+            ErrorMessage = null;
+            StatusMessage = null;
+
+            if (requestedEnabled)
+            {
+                IsAppLockEnabled = false;
+                await Shell.Current.GoToAsync(nameof(SetPinPage));
+                return;
+            }
+
+            // Turning off requires re-entering the current PIN first (Story 1's explicit acceptance
+            // criterion) -- otherwise anyone with the phone already unlocked could silently disable
+            // protection with one tap.
+            IsAppLockEnabled = true;
+
+            var enteredPin = await Shell.Current.DisplayPromptAsync(
+                AppResources.AppLock_DisablePromptTitle,
+                AppResources.AppLock_DisablePromptMessage,
+                AppResources.AppLock_DisablePromptAccept,
+                AppResources.AppLock_DisablePromptCancel,
+                keyboard: Keyboard.Numeric,
+                maxLength: 6);
+
+            if (string.IsNullOrEmpty(enteredPin))
+                return;
+
+            if (!await _appLockService.VerifyPinAsync(enteredPin))
+            {
+                ErrorMessage = AppResources.AppLock_DisableWrongPin;
+                return;
+            }
+
+            await _appLockService.DisableAsync();
+            IsAppLockEnabled = false;
+            StatusMessage = AppResources.AppLock_DisabledSuccess;
+        }
+        finally
+        {
+            _suppressAppLockToggleCommand = false;
+        }
+    }
+
+    [RelayCommand]
     private static async Task GoToManageFinancialInstitutionsAsync()
     {
         await Shell.Current.GoToAsync(nameof(FinancialInstitutionsListPage));
@@ -152,6 +251,16 @@ public sealed partial class SettingsViewModel : ObservableObject
     private static async Task GoToManagePeopleAsync()
     {
         await Shell.Current.GoToAsync(nameof(PeopleListPage));
+    }
+
+    // Reports (README §40 slice 1) live here, not as a 6th Tab: Android's Material bottom-nav
+    // auto-collapses a 6th+ tab into a native "More" sheet that ignores this app's dark theme -- a bug
+    // already found and fixed once for Categories/Budgets/RecurringExpenses/People (see AppShell.xaml's
+    // comment). Same reachability pattern as those.
+    [RelayCommand]
+    private static async Task GoToManageReportsAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(ReportsHubPage));
     }
 
     [RelayCommand]

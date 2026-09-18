@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.IncomeVsExpensesReportPage"
+             x:DataType="viewModels:IncomeVsExpensesReportViewModel"
+             Title="{x:Static resources:AppResources.IncomeVsExpensesReport_Title}">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+
+                <Label Text="{x:Static resources:AppResources.Reports_MonthLabel}" />
+                <DatePicker Date="{Binding SelectedMonth}" Format="Y" AutomationId="IncomeVsExpensesReport_MonthPicker" />
+
+                <Label Text="{x:Static resources:AppResources.Reports_EmptyForMonth}"
+                       IsVisible="{Binding IsEmpty}" />
+
+                <CollectionView ItemsSource="{Binding Groups}" IsGrouped="True" SelectionMode="None">
+                    <CollectionView.GroupHeaderTemplate>
+                        <DataTemplate x:DataType="models:IncomeExpenseReportGroup">
+                            <VerticalStackLayout Margin="0,12,0,4" Spacing="2">
+                                <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                                       Text="{Binding Currency}" />
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_AvailableLabel}"
+                                           FontSize="14" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                    <Label Grid.Column="1" Text="{Binding Available, StringFormat='{0:N2}'}"
+                                           FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                </Grid>
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </CollectionView.GroupHeaderTemplate>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:IncomeExpenseBarItem">
+                            <Grid Padding="0,6" RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding Label}"
+                                       FontSize="14" TextColor="{StaticResource Gray100}" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding Amount, StringFormat='{0:N2}'}"
+                                       FontSize="14" TextColor="{StaticResource Gray100}" />
+                                <Grid Grid.Row="1" Grid.ColumnSpan="2" HeightRequest="10" Margin="0,4,0,0">
+                                    <BoxView HeightRequest="10" CornerRadius="5"
+                                             Color="{StaticResource Gray600}"
+                                             WidthRequest="{x:Static models:ReportBarWidth.MaxWidth}"
+                                             HorizontalOptions="Start" />
+                                    <BoxView HeightRequest="10" CornerRadius="5"
+                                             Color="{StaticResource Tertiary}"
+                                             WidthRequest="{Binding BarWidthRequest}"
+                                             HorizontalOptions="Start" />
+                                </Grid>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

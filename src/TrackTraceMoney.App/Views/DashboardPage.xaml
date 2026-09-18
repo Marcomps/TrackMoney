@@ -176,6 +176,42 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- Real surplus tile (README §35): Tile 1's available balance minus known upcoming
+                     recurring expenses (through the end of the current calendar month, wider than Tile
+                     5's 7-day window above) minus debt payments (active loans' required payments + active
+                     cards' remaining minimums this cycle), per currency — never blended across currencies. -->
+                <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                               Text="{x:Static resources:AppResources.Dashboard_RealSurplusSectionTitle}" />
+                        <CollectionView ItemsSource="{Binding RealSurplusByCurrency}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:RealSurplusTileItem">
+                                    <VerticalStackLayout Spacing="4" Padding="0,4">
+                                        <Label Text="{Binding Currency}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Gray100}" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_RealSurplusBalanceLabel}" FontSize="16" TextColor="{StaticResource Gray200}" />
+                                            <Label Grid.Column="1" Text="{Binding AvailableBalance, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Gray100}" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_RealSurplusUpcomingExpensesLabel}" FontSize="16" TextColor="{StaticResource Gray200}" />
+                                            <Label Grid.Column="1" Text="{Binding UpcomingExpenses, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Gray100}" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_RealSurplusDebtPaymentsLabel}" FontSize="16" TextColor="{StaticResource Gray200}" />
+                                            <Label Grid.Column="1" Text="{Binding DebtPayments, StringFormat='{0:N2}'}" FontSize="16" TextColor="{StaticResource Gray100}" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{x:Static resources:AppResources.Dashboard_RealSurplusResultLabel}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                            <Label Grid.Column="1" Text="{Binding Amount, StringFormat='{0:N2}'}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>
