@@ -7,10 +7,11 @@ using TrackTraceMoney.Infrastructure.Persistence;
 namespace TrackTraceMoney.Infrastructure.Seeding;
 
 /// <summary>
-/// One-time-per-row backfill from the 4 legacy free-text institution fields (<c>CreditCard.Issuer</c>,
-/// <c>Loan.Institution</c>, <c>TermDeposit.Institution</c>, <c>InvestmentFund.Institution</c>) into the
-/// new, user-managed <see cref="FinancialInstitution"/> list (see the
-/// financial-institution-card-network-slice-spec's Decision 2). Called from the same
+/// One-time-per-row backfill from the 5 legacy free-text institution fields (<c>CreditCard.Issuer</c>,
+/// <c>Loan.Institution</c>, <c>TermDeposit.Institution</c>, <c>InvestmentFund.Institution</c>,
+/// <c>BankAccount.BankName</c>) into the new, user-managed <see cref="FinancialInstitution"/> list (see
+/// the financial-institution-card-network-slice-spec's Decision 2 — <c>BankAccount</c> was missed in the
+/// original slice and added in a follow-up pass). Called from the same
 /// <see cref="TrackTraceMoney.Application.Abstractions.IFinanceDatabaseInitializer"/> hook as
 /// <see cref="CategorySeeder"/>/<see cref="PersonSeeder"/>, immediately after both — that hook already
 /// runs on every app startup and on every new-profile creation (Local Profiles feature), so it is the
@@ -29,8 +30,8 @@ namespace TrackTraceMoney.Infrastructure.Seeding;
 /// the accepted trade-off, a pre-existing near-duplicate becoming two distinct <see cref="FinancialInstitution"/>
 /// rows the user can trivially rename/consolidate by hand afterward via the new list screen.
 ///
-/// Distinct names are pooled *across all four* entity types together, not four separate per-type pools —
-/// the same typed string on e.g. a CreditCard and a Loan collapses onto one shared
+/// Distinct names are pooled *across all five* entity types together, not five separate per-type pools —
+/// the same typed string on e.g. a CreditCard and a BankAccount collapses onto one shared
 /// <see cref="FinancialInstitution"/> row, matching how a user would expect "the bank I already typed
 /// once" to be recognized regardless of which screen they typed it on.
 /// </summary>
@@ -50,17 +51,21 @@ public static class FinancialInstitutionBackfillService
         var investmentFunds = await context.Set<InvestmentFund>()
             .Where(f => f.InstitutionId == null && f.Institution != null)
             .ToListAsync(ct);
+        var bankAccounts = await context.Set<BankAccount>()
+            .Where(b => b.InstitutionId == null && b.BankName != null)
+            .ToListAsync(ct);
 
-        if (creditCards.Count == 0 && loans.Count == 0 && termDeposits.Count == 0 && investmentFunds.Count == 0)
+        if (creditCards.Count == 0 && loans.Count == 0 && termDeposits.Count == 0 && investmentFunds.Count == 0 && bankAccounts.Count == 0)
             return;
 
-        // One shared pool across all 4 entity types (see remarks). Each free-text column is filtered
+        // One shared pool across all 5 entity types (see remarks). Each free-text column is filtered
         // non-null above, so the null-forgiving `!` below is safe. Ordinal (case-sensitive) comparison,
         // deliberately no trimming-only-no-casing-normalization shortcuts — exact match, full stop.
         var distinctTrimmedNames = creditCards.Select(c => c.Issuer!.Trim())
             .Concat(loans.Select(l => l.Institution!.Trim()))
             .Concat(termDeposits.Select(t => t.Institution!.Trim()))
             .Concat(investmentFunds.Select(f => f.Institution!.Trim()))
+            .Concat(bankAccounts.Select(b => b.BankName!.Trim()))
             .Distinct(StringComparer.Ordinal);
 
         var institutionsByName = distinctTrimmedNames.ToDictionary(
@@ -78,6 +83,8 @@ public static class FinancialInstitutionBackfillService
             termDeposit.SetInstitutionId(institutionsByName[termDeposit.Institution!.Trim()].Id);
         foreach (var investmentFund in investmentFunds)
             investmentFund.SetInstitutionId(institutionsByName[investmentFund.Institution!.Trim()].Id);
+        foreach (var bankAccount in bankAccounts)
+            bankAccount.SetInstitutionId(institutionsByName[bankAccount.BankName!.Trim()].Id);
 
         await context.SaveChangesAsync(ct);
     }

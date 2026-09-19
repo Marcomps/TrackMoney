@@ -135,6 +135,55 @@ public sealed class CreditCard : CreditAccount
     }
 
     /// <summary>
+    /// Edits every in-place-editable field on this card (edit/delete slice spec §2.1) — validation
+    /// mirrors the constructor's exactly. <see cref="CreditAccount.AmountOwed"/> is deliberately not a
+    /// parameter here: it has no direct setter anywhere except <see cref="CreditAccount.RegisterCharge"/>/
+    /// <see cref="CreditAccount.RegisterPayment"/>, and this mutator must not become a backdoor around
+    /// that invariant. <see cref="AvailableCredit"/> is computed live from <see cref="CreditLimit"/>/
+    /// <see cref="CreditAccount.AmountOwed"/>, never cached, so it needs no separate update here.
+    /// </summary>
+    public void UpdateDetails(
+        Guid institutionId,
+        Guid? networkId,
+        string? lastFourDigits,
+        decimal creditLimit,
+        int statementCutOffDay,
+        int paymentDueDay,
+        decimal? annualInterestRate,
+        decimal? monthlyInterestRate)
+    {
+        if (institutionId == Guid.Empty)
+            throw new ArgumentException("Institution id is required.", nameof(institutionId));
+
+        if (lastFourDigits is not null && (lastFourDigits.Length != 4 || !lastFourDigits.All(char.IsDigit)))
+            throw new ArgumentException("Last four digits must be exactly 4 numeric characters.", nameof(lastFourDigits));
+
+        if (creditLimit <= 0)
+            throw new ArgumentOutOfRangeException(nameof(creditLimit), "Credit limit must be positive.");
+
+        if (statementCutOffDay is < 1 or > 31)
+            throw new ArgumentOutOfRangeException(nameof(statementCutOffDay), "Statement cut-off day must be between 1 and 31.");
+
+        if (paymentDueDay is < 1 or > 31)
+            throw new ArgumentOutOfRangeException(nameof(paymentDueDay), "Payment due day must be between 1 and 31.");
+
+        if (annualInterestRate is < 0)
+            throw new ArgumentOutOfRangeException(nameof(annualInterestRate), "Annual interest rate cannot be negative.");
+
+        if (monthlyInterestRate is < 0)
+            throw new ArgumentOutOfRangeException(nameof(monthlyInterestRate), "Monthly interest rate cannot be negative.");
+
+        InstitutionId = institutionId;
+        NetworkId = networkId;
+        LastFourDigits = lastFourDigits;
+        CreditLimit = creditLimit;
+        StatementCutOffDay = statementCutOffDay;
+        PaymentDueDay = paymentDueDay;
+        AnnualInterestRate = annualInterestRate;
+        MonthlyInterestRate = monthlyInterestRate;
+    }
+
+    /// <summary>
     /// The next date on/after <paramref name="onOrAfter"/> whose day-of-month is <paramref name="dayOfMonth"/>,
     /// clamping to the last day of a short month (e.g. day 31 in February becomes the 28th/29th) rather than
     /// rolling into the next month. Always recomputed from the target year/month — never derived by AddMonths-ing

@@ -17,17 +17,8 @@ public sealed class MonthlySpendingTrendCalculator : IMonthlySpendingTrendCalcul
 
         foreach (var transaction in transactions)
         {
-            if (!transaction.CountsAsExpense)
+            if (!SpendCurrencyResolver.TryResolve(transaction, accountCurrencies, out var currency))
                 continue;
-
-            if (transaction.SpendAccountId is not { } accountId
-                || !accountCurrencies.TryGetValue(accountId, out var currency))
-            {
-                // Defensive: shouldn't happen in practice (every expense's account should be in the
-                // lookup), but a lookup gap must not crash the whole calculation — same stance as
-                // SpendingCalculator.
-                continue;
-            }
 
             var key = (currency, transaction.Date.Year, transaction.Date.Month);
             byCurrencyAndMonth[key] = byCurrencyAndMonth.GetValueOrDefault(key) + transaction.Amount;

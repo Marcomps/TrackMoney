@@ -9,79 +9,86 @@
              x:Name="Root"
              Title="{x:Static resources:AppResources.Credit_Title}">
 
-    <Grid RowDefinitions="*,Auto,Auto,Auto" Padding="16">
+    <!-- ScrollView + VerticalStackLayout, not a Grid with a "*" list row: see AccountsListPage.xaml's
+         identical remark for why (same user-reported wasted-space issue, same fix, same precedent). -->
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCreditCardsCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="8">
 
-        <RefreshView Grid.Row="0"
-                     IsRefreshing="{Binding IsBusy}"
-                     Command="{Binding LoadCreditCardsCommand}">
-            <CollectionView ItemsSource="{Binding CreditCards}"
-                             SelectionMode="None">
-                <CollectionView.EmptyView>
-                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
-                        <Label Text="{x:Static resources:AppResources.CreditCards_Empty}"
-                               HorizontalTextAlignment="Center" />
-                    </VerticalStackLayout>
-                </CollectionView.EmptyView>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:CreditCardListItem">
-                        <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto"
-                              AutomationId="{Binding Name, StringFormat='CreditCardsList_Row_{0}'}">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer
-                                    Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenCreditCardCommand}"
-                                    CommandParameter="{Binding Id}" />
-                            </Grid.GestureRecognizers>
-                            <Label Grid.Row="0" Grid.Column="0" FontSize="16">
-                                <Label.FormattedText>
-                                    <FormattedString>
-                                        <Span Text="{Binding HealthEmoji}" />
-                                        <Span Text=" " />
-                                        <Span Text="{Binding Name}" />
-                                    </FormattedString>
-                                </Label.FormattedText>
-                            </Label>
-                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding InstitutionName}" FontSize="12" Opacity="0.7" />
-                            <Label Grid.Row="2" Grid.Column="0"
-                                   Text="{Binding MaskedLastFourDigits}"
-                                   IsVisible="{Binding HasLastFourDigits}"
-                                   FontSize="12" Opacity="0.7" />
-                            <Label Grid.Row="0" Grid.Column="1"
-                                   VerticalOptions="Center"
-                                   AutomationId="{Binding Name, StringFormat='CreditCardsList_AmountOwed_{0}'}"
-                                   Text="{Binding AmountOwed, StringFormat='{0:N2}'}" />
-                            <Label Grid.Row="1" Grid.Column="1"
-                                   VerticalOptions="Center"
-                                   Text="{Binding CreditLimit, StringFormat='{0:N2}'}"
-                                   FontSize="12" Opacity="0.7" />
-                            <Label Grid.Row="2" Grid.Column="1"
-                                   VerticalOptions="Center"
-                                   Text="{Binding AvailableCredit, StringFormat='{0:N2}'}"
-                                   FontSize="12" Opacity="0.7" />
-                        </Grid>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </RefreshView>
+                <HorizontalStackLayout Spacing="8">
+                    <Switch IsToggled="{Binding ShowInactive}" AutomationId="CreditCardsList_ShowInactiveSwitch" />
+                    <Label Text="{x:Static resources:AppResources.AccountsList_ShowInactiveLabel}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
 
-        <Button Grid.Row="1"
-                Text="{x:Static resources:AppResources.CreditCards_AddButton}"
-                Command="{Binding AddCreditCardCommand}"
-                AutomationId="CreditCardsList_AddButton"
-                HorizontalOptions="Fill"
-                Margin="0,12,0,0" />
+                <CollectionView ItemsSource="{Binding CreditCards}" SelectionMode="None">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
+                            <Label Text="{x:Static resources:AppResources.CreditCards_Empty}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:CreditCardListItem">
+                            <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto"
+                                  AutomationId="{Binding Name, StringFormat='CreditCardsList_Row_{0}'}">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenCreditCardCommand}"
+                                        CommandParameter="{Binding Id}" />
+                                </Grid.GestureRecognizers>
+                                <Label Grid.Row="0" Grid.Column="0" FontSize="16">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding HealthEmoji}" />
+                                            <Span Text=" " />
+                                            <Span Text="{Binding Name}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label Grid.Row="1" Grid.Column="0" Text="{Binding InstitutionName}" FontSize="12" Opacity="0.7" />
+                                <Label Grid.Row="2" Grid.Column="0"
+                                       Text="{Binding MaskedLastFourDigits}"
+                                       IsVisible="{Binding HasLastFourDigits}"
+                                       FontSize="12" Opacity="0.7" />
+                                <Label Grid.Row="3" Grid.Column="0"
+                                       Text="{x:Static resources:AppResources.AccountsList_InactiveBadge}"
+                                       IsVisible="{Binding IsInactive}"
+                                       FontSize="12" Opacity="0.6" />
+                                <Label Grid.Row="0" Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       AutomationId="{Binding Name, StringFormat='CreditCardsList_AmountOwed_{0}'}"
+                                       Text="{Binding AmountOwed, StringFormat='{0:N2}'}" />
+                                <Label Grid.Row="1" Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       Text="{Binding CreditLimit, StringFormat='{0:N2}'}"
+                                       FontSize="12" Opacity="0.7" />
+                                <Label Grid.Row="2" Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       Text="{Binding AvailableCredit, StringFormat='{0:N2}'}"
+                                       FontSize="12" Opacity="0.7" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
 
-        <Button Grid.Row="2"
-                Text="{x:Static resources:AppResources.CreditCards_ViewLoansButton}"
-                Command="{Binding ViewLoansCommand}"
-                HorizontalOptions="Fill"
-                Margin="0,8,0,0" />
+                <Button Text="{x:Static resources:AppResources.CreditCards_AddButton}"
+                        Command="{Binding AddCreditCardCommand}"
+                        AutomationId="CreditCardsList_AddButton"
+                        HorizontalOptions="Fill"
+                        Margin="0,12,0,0" />
 
-        <Button Grid.Row="3"
-                Text="{x:Static resources:AppResources.CreditCards_ViewSnowballButton}"
-                Command="{Binding ViewSnowballPlanCommand}"
-                HorizontalOptions="Fill"
-                Margin="0,8,0,0" />
+                <Button Text="{x:Static resources:AppResources.CreditCards_ViewLoansButton}"
+                        Command="{Binding ViewLoansCommand}"
+                        HorizontalOptions="Fill"
+                        Margin="0,8,0,0" />
 
-    </Grid>
+                <Button Text="{x:Static resources:AppResources.CreditCards_ViewSnowballButton}"
+                        Command="{Binding ViewSnowballPlanCommand}"
+                        HorizontalOptions="Fill"
+                        Margin="0,8,0,0" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
 
 </ContentPage>

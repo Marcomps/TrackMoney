@@ -1273,6 +1273,143 @@ public sealed class TransactionEntryServiceTests
             service.RejectMedicalReimbursementAsync(plainExpense.Id));
     }
 
+    // --- ReverseExpenseAsync/ReverseIncomeAsync/ReverseTransferAsync (edit/delete slice spec §4.1) ---
+
+    [Fact]
+    public async Task ReverseExpenseAsync_CreditsAccountByExactAmount_AndRemovesTransaction()
+    {
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
+        var categoryId = Guid.NewGuid();
+        await service.RecordExpenseAsync(DateOnly.FromDateTime(DateTime.Today), 30m, account.Id, categoryId, null, null, "Groceries", null);
+        var expense = Assert.Single(transactions.All);
+        Assert.Equal(70m, account.Balance);
+
+        await service.ReverseExpenseAsync(expense.Id);
+
+        Assert.Equal(100m, account.Balance);
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task ReverseExpenseAsync_UnknownTransaction_Throws()
+    {
+        var (service, _, _, _, _, _, _, _) = CreateSut();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseExpenseAsync(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task ReverseExpenseAsync_TransactionIsNotAnExpense_Throws()
+    {
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var source = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 200m));
+        var destination = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+        await service.RecordTransferAsync(DateOnly.FromDateTime(DateTime.Today), 50m, source.Id, destination.Id, null, null);
+        var transfer = Assert.Single(transactions.All);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseExpenseAsync(transfer.Id));
+    }
+
+    [Fact]
+    public async Task ReverseIncomeAsync_DebitsAccountByExactAmount_AndRemovesTransaction()
+    {
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
+        var categoryId = Guid.NewGuid();
+        await service.RecordIncomeAsync(DateOnly.FromDateTime(DateTime.Today), 50m, account.Id, categoryId, null, "Salary", null);
+        var income = Assert.Single(transactions.All);
+        Assert.Equal(150m, account.Balance);
+
+        await service.ReverseIncomeAsync(income.Id);
+
+        Assert.Equal(100m, account.Balance);
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task ReverseIncomeAsync_UnknownTransaction_Throws()
+    {
+        var (service, _, _, _, _, _, _, _) = CreateSut();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseIncomeAsync(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task ReverseIncomeAsync_TransactionIsNotAnIncome_Throws()
+    {
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
+        var categoryId = Guid.NewGuid();
+        await service.RecordExpenseAsync(DateOnly.FromDateTime(DateTime.Today), 30m, account.Id, categoryId, null, null, "Groceries", null);
+        var expense = Assert.Single(transactions.All);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseIncomeAsync(expense.Id));
+    }
+
+    [Fact]
+    public async Task ReverseTransferAsync_MovesFundsBackExactlyOnceEachSide_AndRemovesTransaction()
+    {
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var source = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 200m));
+        var destination = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+        await service.RecordTransferAsync(DateOnly.FromDateTime(DateTime.Today), 75m, source.Id, destination.Id, "Move to bank", null);
+        var transfer = Assert.Single(transactions.All);
+        Assert.Equal(125m, source.Balance);
+        Assert.Equal(75m, destination.Balance);
+
+        await service.ReverseTransferAsync(transfer.Id);
+
+        Assert.Equal(200m, source.Balance);
+        Assert.Equal(0m, destination.Balance);
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task ReverseTransferAsync_RefetchesBothAccountsFresh_RatherThanTrustingStaleState()
+    {
+        // Mirrors how RecordTransferAsync's own tests prove the same fetch-fresh discipline: mutate
+        // each account's Balance directly (as if another operation had touched it between recording and
+        // reversing) and confirm the reversal's Credit/Debit lands on top of that intervening mutation
+        // rather than on some stale snapshot captured earlier.
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var source = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 200m));
+        var destination = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 0m));
+        await service.RecordTransferAsync(DateOnly.FromDateTime(DateTime.Today), 75m, source.Id, destination.Id, "Move to bank", null);
+        var transfer = Assert.Single(transactions.All);
+
+        // Intervening mutation on both accounts, simulating another operation racing in between.
+        source.Debit(10m);
+        destination.Credit(20m);
+
+        await service.ReverseTransferAsync(transfer.Id);
+
+        // 125 (post-transfer) - 10 (intervening debit) + 75 (reversal credit) = 190.
+        Assert.Equal(190m, source.Balance);
+        // 75 (post-transfer) + 20 (intervening credit) - 75 (reversal debit) = 20.
+        Assert.Equal(20m, destination.Balance);
+    }
+
+    [Fact]
+    public async Task ReverseTransferAsync_UnknownTransaction_Throws()
+    {
+        var (service, _, _, _, _, _, _, _) = CreateSut();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseTransferAsync(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task ReverseTransferAsync_TransactionIsNotATransfer_Throws()
+    {
+        var (service, accounts, _, transactions, _, _, _, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 100m));
+        var categoryId = Guid.NewGuid();
+        await service.RecordExpenseAsync(DateOnly.FromDateTime(DateTime.Today), 30m, account.Id, categoryId, null, null, "Groceries", null);
+        var expense = Assert.Single(transactions.All);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseTransferAsync(expense.Id));
+    }
+
     private static TermDeposit CreateTermDeposit(CurrencyCode currency, decimal openingBalance = 10000m) =>
         new(
             "12-Month CD",
@@ -1431,6 +1568,30 @@ public sealed class TransactionEntryServiceTests
         public void Remove(Transaction entity) => _transactions.Remove(entity);
 
         public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+
+        public Task<bool> HasAnyTransactionReferencingFinancialAccountAsync(Guid accountId, CancellationToken ct = default) =>
+            Task.FromResult(_transactions.Any(t => t switch
+            {
+                Expense e => e.AccountId == accountId,
+                Income i => i.DestinationAccountId == accountId,
+                Transfer tr => tr.SourceAccountId == accountId || tr.DestinationAccountId == accountId,
+                CreditCardPayment p => p.SourceAccountId == accountId,
+                LoanPayment lp => lp.SourceAccountId == accountId,
+                InvestmentContribution ic => ic.SourceAccountId == accountId || ic.DestinationAccountId == accountId,
+                InvestmentWithdrawal iw => iw.SourceAccountId == accountId || iw.DestinationAccountId == accountId,
+                InterestIncome ii => ii.DestinationAccountId == accountId,
+                Reimbursement r => r.DestinationAccountId == accountId,
+                _ => false,
+            }));
+
+        public Task<bool> HasAnyTransactionReferencingCreditAccountAsync(Guid creditAccountId, CancellationToken ct = default) =>
+            Task.FromResult(_transactions.Any(t => t switch
+            {
+                CreditCardPurchase p => p.CreditAccountId == creditAccountId,
+                CreditCardPayment p => p.CreditAccountId == creditAccountId,
+                LoanPayment lp => lp.CreditAccountId == creditAccountId,
+                _ => false,
+            }));
     }
 
     private sealed class InMemoryBudgetRepository : IBudgetRepository

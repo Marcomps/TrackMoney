@@ -405,6 +405,52 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                     b.ToTable("RecurringExpenses", (string)null);
                 });
 
+            modelBuilder.Entity("TrackTraceMoney.Domain.RecurringIncomes.RecurringIncome", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("DestinationAccountId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly?>("LastConfirmedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("RecurringIncomes", (string)null);
+                });
+
             modelBuilder.Entity("TrackTraceMoney.Domain.Transactions.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -455,6 +501,11 @@ namespace TrackTraceMoney.Infrastructure.Migrations
                     b.Property<string>("BankName")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("InstitutionId")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("InstitutionId");
 
                     b.HasDiscriminator().HasValue("Bank");
                 });

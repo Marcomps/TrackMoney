@@ -33,6 +33,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<IBudgetRepository, BudgetRepository>();
         services.AddScoped<IRecurringExpenseRepository, RecurringExpenseRepository>();
+        services.AddScoped<IRecurringIncomeRepository, RecurringIncomeRepository>();
         services.AddScoped<ICreditCardStatementRepository, CreditCardStatementRepository>();
         services.AddScoped<IInvestmentValuationRepository, InvestmentValuationRepository>();
         services.AddScoped<INetWorthSnapshotRepository, NetWorthSnapshotRepository>();

@@ -24,6 +24,15 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsEmpty))]
     private bool hasLoaded;
 
+    /// <summary>
+    /// Non-optional per the edit/delete slice spec §1.3/§2.2 -- an inactive card is still reachable
+    /// through this toggle, then its own <c>CreditCardDetailPage</c> offers the Reactivate button (no
+    /// SwipeView needed here, unlike Accounts/Loans, since this list already routes every row through
+    /// a detail page).
+    /// </summary>
+    [ObservableProperty]
+    private bool showInactive;
+
     public ObservableCollection<CreditCardListItem> CreditCards { get; } = [];
 
     public bool IsEmpty => HasLoaded && CreditCards.Count == 0;
@@ -42,6 +51,8 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
         _institutionRepository = institutionRepository;
     }
 
+    partial void OnShowInactiveChanged(bool value) => LoadCreditCardsCommand.Execute(null);
+
     [RelayCommand]
     private async Task LoadCreditCardsAsync()
     {
@@ -51,7 +62,9 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            var creditAccounts = await _creditAccountRepository.GetActiveAsync();
+            var creditAccounts = ShowInactive
+                ? await _creditAccountRepository.GetAllAsync()
+                : await _creditAccountRepository.GetActiveAsync();
             var today = DateOnly.FromDateTime(DateTime.Today);
 
             var cards = creditAccounts.OfType<CreditCard>().ToList();

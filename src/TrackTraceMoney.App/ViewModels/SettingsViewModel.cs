@@ -138,7 +138,10 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
         finally
         {
-            _suppressAppLockToggleCommand = false;
+            // Deferred clear, not a bare assignment -- see RequestAppLockToggleAsync's finally for why:
+            // this method's own property assignment above has no await after it either, so a
+            // synchronous clear here would have the identical race.
+            MainThread.BeginInvokeOnMainThread(() => _suppressAppLockToggleCommand = false);
         }
     }
 
@@ -210,7 +213,19 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
         finally
         {
-            _suppressAppLockToggleCommand = false;
+            // Not a bare synchronous clear: a post-Phase-4-style checkpoint code review caught a real
+            // gap this left open. The disable-success branch's final "IsAppLockEnabled = false" has no
+            // await after it, unlike every other branch here -- so a synchronous clear would race the
+            // deferred Toggled re-fire that assignment triggers (same MAUI Switch behavior documented
+            // on this method above) and lose: the flag clears, THEN the deferred Toggled dispatch
+            // arrives unguarded, re-entering this command with the stale value and popping a second,
+            // spurious "enter PIN to disable" dialog against a PIN that DisableAsync already erased.
+            // Posting the clear itself onto the main-thread queue -- instead of running it inline --
+            // guarantees it lands after any Toggled dispatch queued earlier in this same method call,
+            // since both share one FIFO main-thread queue. Applied to every exit path uniformly rather
+            // than auditing each branch for "is there an await after the last mutation," so this can't
+            // regress the same way if a future edit adds or reorders a branch.
+            MainThread.BeginInvokeOnMainThread(() => _suppressAppLockToggleCommand = false);
         }
     }
 
@@ -245,6 +260,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     private static async Task GoToManageRecurringExpensesAsync()
     {
         await Shell.Current.GoToAsync(nameof(RecurringExpensesListPage));
+    }
+
+    [RelayCommand]
+    private static async Task GoToManageRecurringIncomeAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(RecurringIncomesListPage));
     }
 
     [RelayCommand]

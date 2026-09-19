@@ -5,7 +5,7 @@
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.AddCreditCardPage"
              x:DataType="viewModels:AddCreditCardViewModel"
-             Title="{x:Static resources:AppResources.AddCreditCard_Title}">
+             Title="{Binding PageTitle}">
 
     <Grid RowDefinitions="*,Auto" Padding="16">
 
@@ -18,6 +18,10 @@
             <Label Text="{x:Static resources:AppResources.AddCreditCard_IssuerLabel}" />
             <Picker ItemsSource="{Binding InstitutionOptions}" SelectedItem="{Binding SelectedInstitution}"
                     AutomationId="AddCreditCard_InstitutionPicker" />
+            <Label Text="{x:Static resources:AppResources.AddCreditCard_NoInstitutionsHint}"
+                   IsVisible="{Binding HasNoInstitutions}"
+                   TextColor="{StaticResource Tertiary}"
+                   FontSize="12" />
 
             <Label Text="{x:Static resources:AppResources.AddCreditCard_NetworkLabel}" />
             <Picker ItemsSource="{Binding NetworkOptions}" SelectedItem="{Binding SelectedNetwork}"
@@ -29,13 +33,19 @@
             <Label Text="{x:Static resources:AppResources.AddCreditCard_CurrencyLabel}" />
             <Picker ItemsSource="{Binding AvailableCurrencies}"
                     SelectedItem="{Binding SelectedCurrency}"
+                    IsEnabled="{Binding IsCurrencyPickerEnabled}"
                     AutomationId="AddCreditCard_CurrencyPicker" />
+            <Label Text="{x:Static resources:AppResources.AddCreditCard_CurrencyLockedMessage}"
+                   IsVisible="{Binding IsCurrencyLockedMessageVisible}"
+                   FontSize="12" Opacity="0.8" />
 
             <Label Text="{x:Static resources:AppResources.AddCreditCard_CreditLimitLabel}" />
             <Entry Text="{Binding CreditLimitText}" Keyboard="Numeric" AutomationId="AddCreditCard_CreditLimitEntry" />
 
-            <Label Text="{x:Static resources:AppResources.AddCreditCard_AmountOwedLabel}" />
-            <Entry Text="{Binding OpeningAmountOwedText}" Keyboard="Numeric" AutomationId="AddCreditCard_AmountOwedEntry" />
+            <VerticalStackLayout IsVisible="{Binding IsAmountOwedVisible}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddCreditCard_AmountOwedLabel}" />
+                <Entry Text="{Binding OpeningAmountOwedText}" Keyboard="Numeric" AutomationId="AddCreditCard_AmountOwedEntry" />
+            </VerticalStackLayout>
 
             <Label Text="{x:Static resources:AppResources.AddCreditCard_AnnualInterestRateLabel}" />
             <Entry Text="{Binding AnnualInterestRateText}" Keyboard="Numeric" AutomationId="AddCreditCard_AnnualInterestRateEntry" />

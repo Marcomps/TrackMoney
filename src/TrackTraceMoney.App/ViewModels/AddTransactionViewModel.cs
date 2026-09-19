@@ -15,6 +15,7 @@ using TrackTraceMoney.Domain.Transactions;
 namespace TrackTraceMoney.App.ViewModels;
 
 [QueryProperty(nameof(LinkedTransactionId), "linkedTransactionId")]
+[QueryProperty(nameof(EditingTransactionIdText), "editingTransactionId")]
 public sealed partial class AddTransactionViewModel : ObservableObject
 {
     private readonly ITransactionEntryService _transactionEntryService;
@@ -24,6 +25,53 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private readonly IPersonRepository _personRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly IMedicalExpenseDetailRepository _medicalExpenseDetailRepository;
+
+    /// <summary>
+    /// The actual <c>[QueryProperty]</c> target for edit mode (edit/delete slice spec §4.1) -- same
+    /// defensive-parse-as-string idiom as every other optional Guid query property in this codebase
+    /// (e.g. <see cref="LinkedTransactionId"/> just below, <c>CreditCardDetailViewModel.CreditAccountIdText</c>).
+    /// Absent/unparseable means "add mode" (the normal case).
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
+    [NotifyPropertyChangedFor(nameof(PageTitle))]
+    [NotifyPropertyChangedFor(nameof(IsTypePickerEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsMedicalCheckboxVisible))]
+    private Guid? editingTransactionId;
+
+    [ObservableProperty]
+    private string? editingTransactionIdText;
+
+    partial void OnEditingTransactionIdTextChanged(string? value) =>
+        EditingTransactionId = Guid.TryParse(value, out var parsed) ? parsed : null;
+
+    public bool IsEditMode => EditingTransactionId is not null;
+
+    public string PageTitle => IsEditMode ? AppResources.AddTransaction_EditTitle : AppResources.AddTransaction_Title;
+
+    /// <summary>Locks the transaction-type selector to the original type once editing (edit/delete slice spec §4.1).</summary>
+    public bool IsTypePickerEnabled => !IsEditMode;
+
+    /// <summary>
+    /// Hides the medical-expense sub-flow entirely in edit mode -- kept simple and safe on purpose
+    /// (edit/delete slice spec §4.2/§4.3 scope Expense/Income/Transfer only, and a linked
+    /// <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/> is separately guarded against reaching
+    /// this screen at all, see <see cref="HasLinkedMedicalDetail"/>): editing never routes through
+    /// <c>RecordMedicalExpenseAsync</c>/<c>RecordMedicalCreditCardPurchaseAsync</c>, only the plain
+    /// <c>RecordExpenseAsync</c>/<c>RecordCreditCardPurchaseAsync</c> the spec calls "existing, unchanged".
+    /// </summary>
+    public bool IsMedicalCheckboxVisible => IsExpense && !IsEditMode;
+
+    /// <summary>
+    /// Defense-in-depth mirror of <c>TransactionDetailViewModel.HasLinkedMedicalDetail</c> -- that
+    /// screen already hides its Edit button for such a transaction, so this should be unreachable via
+    /// the UI, but a deep link could still land here directly. Blocks Save with an explanation rather
+    /// than silently orphaning the linked <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/> row
+    /// (edit/delete slice spec §4.1's reverse-then-repost has no cleanup for it, and adding one is
+    /// Application-layer work out of this slice's scope).
+    /// </summary>
+    [ObservableProperty]
+    private bool hasLinkedMedicalDetail;
 
     /// <summary>
     /// Raw <c>Loan</c> entities backing <see cref="LoanOptions"/>, kept alongside it (not folded into
@@ -43,6 +91,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsInvestmentContribution))]
     [NotifyPropertyChangedFor(nameof(IsInvestmentWithdrawal))]
     [NotifyPropertyChangedFor(nameof(IsReimbursement))]
+    [NotifyPropertyChangedFor(nameof(IsMedicalCheckboxVisible))]
     private TransactionType selectedType = TransactionType.Expense;
 
     [ObservableProperty]
@@ -369,6 +418,74 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                 SelectedPendingReimbursableExpense = preselected;
             }
         }
+
+        if (EditingTransactionId is { } editingId)
+            await LoadEditingTransactionAsync(editingId);
+    }
+
+    /// <summary>
+    /// Prefills every field from the transaction being edited (edit/delete slice spec §4.1) — fetched
+    /// read-only, never mutated here. <see cref="SelectedType"/> is set first in every branch so
+    /// <c>OnSelectedTypeChanged</c>'s <see cref="SelectedDestinationAccount"/> reset (see its own doc
+    /// comment) fires before, not after, this method sets the real destination selection.
+    /// </summary>
+    private async Task LoadEditingTransactionAsync(Guid editingId)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(editingId);
+
+        switch (transaction)
+        {
+            case Expense expense:
+                SelectedType = TransactionType.Expense;
+                SelectedDate = expense.Date.ToDateTime(TimeOnly.MinValue);
+                AmountText = expense.Amount.ToString("N2", CultureInfo.CurrentCulture);
+                SelectedAccount = PaymentAccounts.FirstOrDefault(o => o.Id == expense.AccountId);
+                SelectedCategory = Categories.FirstOrDefault(o => o.Id == expense.CategoryId);
+                SelectedPayer = expense.PayerPersonId is { } payerId
+                    ? People.FirstOrDefault(o => o.Id == payerId)
+                    : People.FirstOrDefault();
+                SelectedBeneficiary = expense.BeneficiaryPersonId is { } beneficiaryId
+                    ? People.FirstOrDefault(o => o.Id == beneficiaryId)
+                    : People.FirstOrDefault();
+                Description = expense.Description;
+                Notes = expense.Notes;
+
+                // Defense-in-depth -- see HasLinkedMedicalDetail's doc comment. TransactionDetailPage
+                // already hides Edit for this case, so reaching here means a deep link bypassed it.
+                HasLinkedMedicalDetail = await _medicalExpenseDetailRepository.GetForTransactionAsync(editingId) is not null;
+                if (HasLinkedMedicalDetail)
+                    ErrorMessage = AppResources.AddTransaction_MedicalLinkedMessage;
+                break;
+
+            case Income income:
+                SelectedType = TransactionType.Income;
+                SelectedDate = income.Date.ToDateTime(TimeOnly.MinValue);
+                AmountText = income.Amount.ToString("N2", CultureInfo.CurrentCulture);
+                SelectedDestinationAccount = Accounts.FirstOrDefault(o => o.Id == income.DestinationAccountId);
+                SelectedCategory = Categories.FirstOrDefault(o => o.Id == income.CategoryId);
+                SelectedPerson = income.PersonId is { } personId
+                    ? People.FirstOrDefault(o => o.Id == personId)
+                    : People.FirstOrDefault();
+                Description = income.Description;
+                Notes = income.Notes;
+                break;
+
+            case Transfer transfer:
+                SelectedType = TransactionType.Transfer;
+                SelectedDate = transfer.Date.ToDateTime(TimeOnly.MinValue);
+                AmountText = transfer.Amount.ToString("N2", CultureInfo.CurrentCulture);
+                SelectedSourceAccount = Accounts.FirstOrDefault(o => o.Id == transfer.SourceAccountId);
+                SelectedDestinationAccount = TransferDestinationAccounts.FirstOrDefault(o => o.Id == transfer.DestinationAccountId);
+                Description = transfer.Description;
+                Notes = transfer.Notes;
+                break;
+
+            default:
+                // Not found, or a type this slice doesn't support editing (§4.2/§4.3) -- TransactionDetailPage
+                // never navigates here for those, so this is only reachable via a malformed/stale deep link.
+                ErrorMessage = AppResources.AddTransaction_EditNotFound;
+                break;
+        }
     }
 
     private static string BuildPendingExpenseLabel(Transaction transaction, IReadOnlyDictionary<Guid, string> categoryNames)
@@ -409,6 +526,14 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private async Task SaveAsync()
     {
         ErrorMessage = null;
+
+        // Defense-in-depth -- see HasLinkedMedicalDetail's doc comment. Should be unreachable via the
+        // normal UI path (TransactionDetailPage already hides its Edit button for this case).
+        if (IsEditMode && HasLinkedMedicalDetail)
+        {
+            ErrorMessage = AppResources.AddTransaction_MedicalLinkedMessage;
+            return;
+        }
 
         if (!decimal.TryParse(AmountText, NumberStyles.Number, CultureInfo.CurrentCulture, out var amount) || amount <= 0)
         {
@@ -482,29 +607,40 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                                 medicalInfo);
                         }
                     }
-                    else if (SelectedAccount.IsCreditAccount)
-                    {
-                        await _transactionEntryService.RecordCreditCardPurchaseAsync(
-                            date,
-                            amount,
-                            SelectedAccount.Id,
-                            SelectedCategory.Id,
-                            AsNullableId(SelectedPayer),
-                            AsNullableId(SelectedBeneficiary),
-                            Description,
-                            Notes);
-                    }
                     else
                     {
-                        await _transactionEntryService.RecordExpenseAsync(
-                            date,
-                            amount,
-                            SelectedAccount.Id,
-                            SelectedCategory.Id,
-                            AsNullableId(SelectedPayer),
-                            AsNullableId(SelectedBeneficiary),
-                            Description,
-                            Notes);
+                        // Edit/delete slice spec §4.1: reverse the ORIGINAL side effect first (fetched
+                        // fresh inside the service), then repost with the edited values below via the
+                        // existing, unchanged RecordCreditCardPurchaseAsync/RecordExpenseAsync calls.
+                        // IsMedicalCheckboxVisible hides IsMedicalExpense's checkbox in edit mode, so this
+                        // branch (not the medical one above) is the only one ever reachable while editing.
+                        if (IsEditMode)
+                            await _transactionEntryService.ReverseExpenseAsync(EditingTransactionId!.Value);
+
+                        if (SelectedAccount.IsCreditAccount)
+                        {
+                            await _transactionEntryService.RecordCreditCardPurchaseAsync(
+                                date,
+                                amount,
+                                SelectedAccount.Id,
+                                SelectedCategory.Id,
+                                AsNullableId(SelectedPayer),
+                                AsNullableId(SelectedBeneficiary),
+                                Description,
+                                Notes);
+                        }
+                        else
+                        {
+                            await _transactionEntryService.RecordExpenseAsync(
+                                date,
+                                amount,
+                                SelectedAccount.Id,
+                                SelectedCategory.Id,
+                                AsNullableId(SelectedPayer),
+                                AsNullableId(SelectedBeneficiary),
+                                Description,
+                                Notes);
+                        }
                     }
                     break;
 
@@ -517,6 +653,11 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 
                     if (SelectedDestinationAccount.IsTermDeposit)
                     {
+                        // Edit/delete slice spec §4.1: reverse-then-repost, same ordering as the Expense
+                        // case above.
+                        if (IsEditMode)
+                            await _transactionEntryService.ReverseIncomeAsync(EditingTransactionId!.Value);
+
                         // A term deposit's Income destination is interest, not categorizable income —
                         // no Category/Person on InterestIncome (same precedent as Transfer/
                         // InvestmentContribution's typed, unambiguous meaning).
@@ -534,6 +675,9 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         ErrorMessage = AppResources.AddTransaction_ValidationCategoryRequired;
                         return;
                     }
+
+                    if (IsEditMode)
+                        await _transactionEntryService.ReverseIncomeAsync(EditingTransactionId!.Value);
 
                     await _transactionEntryService.RecordIncomeAsync(
                         date,
@@ -574,6 +718,11 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         ErrorMessage = AppResources.AddTransaction_ValidationCurrencyMismatch;
                         return;
                     }
+
+                    // Edit/delete slice spec §4.1: reverse-then-repost, same ordering as the Expense/
+                    // Income cases above.
+                    if (IsEditMode)
+                        await _transactionEntryService.ReverseTransferAsync(EditingTransactionId!.Value);
 
                     await _transactionEntryService.RecordTransferAsync(
                         date,
@@ -697,7 +846,14 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                     break;
             }
 
-            await Shell.Current.GoToAsync("..");
+            // Edit mode pops TWO levels (past the TransactionDetailPage that pushed us here), not one.
+            // Found live: editing reverse-then-reposts under a brand-new Transaction Id (ReverseXAsync
+            // deletes the original, RecordXAsync creates a fresh row) -- a single ".." pop lands back on
+            // TransactionDetailPage still holding the now-deleted original TransactionId, whose OnAppearing
+            // reload then shows "Transaction not found." The underlying money was already independently
+            // verified correct (exact expected balance, no double-counting) -- this is a navigation-only
+            // fix, confirmed by checking History afterward shows exactly one row with the edited amount.
+            await Shell.Current.GoToAsync(IsEditMode ? "../.." : "..");
         }
         catch (InvalidOperationException)
         {

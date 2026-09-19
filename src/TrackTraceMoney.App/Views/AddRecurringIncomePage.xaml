@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.AddRecurringIncomePage"
+             x:DataType="viewModels:AddRecurringIncomeViewModel"
+             Title="{x:Static resources:AppResources.AddRecurringIncome_Title}">
+
+    <Grid RowDefinitions="*,Auto" Padding="16">
+
+        <ScrollView Grid.Row="0">
+        <VerticalStackLayout Spacing="12">
+
+            <Label Text="{x:Static resources:AppResources.AddRecurringIncome_NameLabel}" />
+            <Entry Text="{Binding Name}"
+                   AutomationId="AddRecurringIncome_NameEntry"
+                   Placeholder="{x:Static resources:AppResources.AddRecurringIncome_NamePlaceholder}" />
+
+            <Label Text="{x:Static resources:AppResources.AddRecurringIncome_AmountLabel}" />
+            <Entry Text="{Binding AmountText}" Keyboard="Numeric" AutomationId="AddRecurringIncome_AmountEntry" />
+
+            <Label Text="{Binding BiweeklyEquivalentText}" FontSize="12" Opacity="0.8" />
+            <Label Text="{Binding MonthlyEquivalentText}" FontSize="12" Opacity="0.8" />
+
+            <Label Text="{x:Static resources:AppResources.AddRecurringIncome_CategoryLabel}" />
+            <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
+                    AutomationId="AddRecurringIncome_CategoryPicker" />
+
+            <Label Text="{x:Static resources:AppResources.AddRecurringIncome_AccountLabel}" />
+            <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}"
+                    AutomationId="AddRecurringIncome_AccountPicker" />
+
+            <Label Text="{x:Static resources:AppResources.AddRecurringIncome_FrequencyLabel}" />
+            <Picker ItemsSource="{Binding AvailableFrequencies}"
+                    SelectedItem="{Binding SelectedFrequency}">
+                <Picker.ItemDisplayBinding>
+                    <Binding Path="." Converter="{StaticResource RecurringIncomeFrequencyToLabelConverter}" />
+                </Picker.ItemDisplayBinding>
+            </Picker>
+
+            <Label Text="{x:Static resources:AppResources.AddRecurringIncome_StartDateLabel}" />
+            <DatePicker Date="{Binding StartDate}" />
+
+            <HorizontalStackLayout Spacing="8">
+                <Label Text="{x:Static resources:AppResources.AddRecurringIncome_HasEndDateLabel}"
+                       VerticalOptions="Center" />
+                <Switch IsToggled="{Binding HasEndDate}" />
+            </HorizontalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding HasEndDate}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddRecurringIncome_EndDateLabel}" />
+                <DatePicker Date="{Binding EndDate}" />
+            </VerticalStackLayout>
+
+            <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+        </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="12" Margin="0,12,0,0">
+            <Button Text="{x:Static resources:AppResources.AddRecurringIncome_SaveButton}"
+                    Command="{Binding SaveCommand}"
+                    AutomationId="AddRecurringIncome_SaveButton"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.AddRecurringIncome_CancelButton}"
+                    Command="{Binding CancelCommand}"
+                    HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

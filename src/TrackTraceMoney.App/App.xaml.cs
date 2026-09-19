@@ -40,7 +40,19 @@ public partial class App : Microsoft.Maui.Controls.Application
 		// Blocking here mirrors MauiProgram.CreateMauiApp's own established precedent
 		// (CategorySeeder.SeedDefaultCategoriesAsync(...).GetAwaiter().GetResult()) for bootstrap-time
 		// code that must stay synchronous -- CreateWindow has no async override in MAUI.
-		var isAppLockEnabled = _appLockService.IsEnabledAsync().GetAwaiter().GetResult();
+		// Guarded (found via checkpoint code review): this runs before any page exists, so an unhandled
+		// exception here (e.g. a corrupted Preferences store on some device/first-run edge case) would
+		// crash the app before the user ever sees a single screen -- strictly worse than occasionally
+		// skipping the lock screen, which still leaves the app fully usable. Fails open, never crashed.
+		bool isAppLockEnabled;
+		try
+		{
+			isAppLockEnabled = _appLockService.IsEnabledAsync().GetAwaiter().GetResult();
+		}
+		catch
+		{
+			isAppLockEnabled = false;
+		}
 
 		// README §43 app-lock Story 2: a prior gate layered in front of the existing
 		// CreateFirstProfilePage-vs-AppShell branch below, not a replacement for it -- if no PIN is

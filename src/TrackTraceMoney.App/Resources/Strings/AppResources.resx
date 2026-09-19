@@ -94,11 +94,8 @@
   <data name="AddAccount_OpeningBalanceLabel" xml:space="preserve">
     <value>Saldo inicial</value>
   </data>
-  <data name="AddAccount_BankNameLabel" xml:space="preserve">
-    <value>Banco</value>
-  </data>
-  <data name="AddAccount_BankNamePlaceholder" xml:space="preserve">
-    <value>p. ej. BAC</value>
+  <data name="AddAccount_InstitutionLabel" xml:space="preserve">
+    <value>Institución</value>
   </data>
   <data name="AddAccount_AccountNumberLast4Label" xml:space="preserve">
     <value>Últimos 4 dígitos</value>
@@ -141,6 +138,9 @@
   </data>
   <data name="AddCreditCard_IssuerLabel" xml:space="preserve">
     <value>Emisor</value>
+  </data>
+  <data name="AddCreditCard_NoInstitutionsHint" xml:space="preserve">
+    <value>Todavía no tienes entidades financieras registradas. Ve a Configuración → Administrar entidades financieras para agregar una, y luego regresa aquí.</value>
   </data>
   <data name="AddCreditCard_LastFourDigitsLabel" xml:space="preserve">
     <value>Últimos 4 dígitos (opcional)</value>
@@ -655,6 +655,126 @@
   <data name="AddRecurringExpense_ValidationEndDateInvalid" xml:space="preserve">
     <value>La fecha de fin no puede ser anterior a la fecha de inicio.</value>
   </data>
+  <data name="RecurringIncomes_Title" xml:space="preserve">
+    <value>Ingresos recurrentes</value>
+  </data>
+  <data name="RecurringIncomes_Empty" xml:space="preserve">
+    <value>Aún no tienes ingresos recurrentes. Agrega el primero para comenzar.</value>
+  </data>
+  <data name="RecurringIncomes_AddButton" xml:space="preserve">
+    <value>Agregar ingreso recurrente</value>
+  </data>
+  <data name="RecurringIncomes_DueSectionTitle" xml:space="preserve">
+    <value>Pendientes de confirmar</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmButton" xml:space="preserve">
+    <value>Confirmar</value>
+  </data>
+  <data name="RecurringIncomes_DeactivateButton" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="RecurringIncomes_EditAmountButton" xml:space="preserve">
+    <value>Editar monto</value>
+  </data>
+  <data name="RecurringIncomes_NextDueLabel" xml:space="preserve">
+    <value>Próximo:</value>
+  </data>
+  <data name="RecurringIncomes_BiweeklyEquivalentLabel" xml:space="preserve">
+    <value>Quincenal ≈</value>
+  </data>
+  <data name="RecurringIncomes_MonthlyEquivalentLabel" xml:space="preserve">
+    <value>Mensual ≈</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmError" xml:space="preserve">
+    <value>No se pudo confirmar el ingreso recurrente. Inténtalo de nuevo.</value>
+  </data>
+  <data name="RecurringIncomes_DeactivateError" xml:space="preserve">
+    <value>No se pudo desactivar el ingreso recurrente. Inténtalo de nuevo.</value>
+  </data>
+  <data name="RecurringIncomeFrequency_Weekly" xml:space="preserve">
+    <value>Semanal</value>
+  </data>
+  <data name="RecurringIncomeFrequency_Biweekly" xml:space="preserve">
+    <value>Quincenal</value>
+  </data>
+  <data name="RecurringIncomeFrequency_Monthly" xml:space="preserve">
+    <value>Mensual</value>
+  </data>
+  <data name="RecurringIncomeFrequency_Yearly" xml:space="preserve">
+    <value>Anual</value>
+  </data>
+  <data name="AddRecurringIncome_Title" xml:space="preserve">
+    <value>Nuevo ingreso recurrente</value>
+  </data>
+  <data name="AddRecurringIncome_NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="AddRecurringIncome_NamePlaceholder" xml:space="preserve">
+    <value>p. ej. Salario</value>
+  </data>
+  <data name="AddRecurringIncome_AmountLabel" xml:space="preserve">
+    <value>Monto</value>
+  </data>
+  <data name="AddRecurringIncome_CategoryLabel" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="AddRecurringIncome_AccountLabel" xml:space="preserve">
+    <value>Cuenta</value>
+  </data>
+  <data name="AddRecurringIncome_FrequencyLabel" xml:space="preserve">
+    <value>Frecuencia</value>
+  </data>
+  <data name="AddRecurringIncome_StartDateLabel" xml:space="preserve">
+    <value>Fecha de inicio</value>
+  </data>
+  <data name="AddRecurringIncome_HasEndDateLabel" xml:space="preserve">
+    <value>Tiene fecha de fin</value>
+  </data>
+  <data name="AddRecurringIncome_EndDateLabel" xml:space="preserve">
+    <value>Fecha de fin</value>
+  </data>
+  <data name="AddRecurringIncome_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="AddRecurringIncome_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddRecurringIncome_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="AddRecurringIncome_ValidationAmountInvalid" xml:space="preserve">
+    <value>El monto debe ser un número válido mayor que cero.</value>
+  </data>
+  <data name="AddRecurringIncome_ValidationCategoryRequired" xml:space="preserve">
+    <value>Debes seleccionar una categoría.</value>
+  </data>
+  <data name="AddRecurringIncome_ValidationAccountRequired" xml:space="preserve">
+    <value>Debes seleccionar una cuenta.</value>
+  </data>
+  <data name="AddRecurringIncome_ValidationEndDateInvalid" xml:space="preserve">
+    <value>La fecha de fin no puede ser anterior a la fecha de inicio.</value>
+  </data>
+  <data name="AddRecurringIncome_MonthlyEquivalentFormat" xml:space="preserve">
+    <value>≈ {0:N2} mensual</value>
+  </data>
+  <data name="AddRecurringIncome_BiweeklyEquivalentFormat" xml:space="preserve">
+    <value>≈ {0:N2} quincenal</value>
+  </data>
+  <data name="EditRecurringIncomeAmount_Title" xml:space="preserve">
+    <value>Editar monto</value>
+  </data>
+  <data name="EditRecurringIncomeAmount_SaveButton" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="EditRecurringIncomeAmount_CancelButton" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="EditRecurringIncomeAmount_ValidationAmountInvalid" xml:space="preserve">
+    <value>El monto debe ser un número válido mayor que cero.</value>
+  </data>
+  <data name="Settings_ManageRecurringIncomeButton" xml:space="preserve">
+    <value>Gestionar ingresos recurrentes</value>
+  </data>
   <data name="Dashboard_Title" xml:space="preserve">
     <value>Inicio</value>
   </data>
@@ -794,7 +914,7 @@
     <value>Exportar CSV</value>
   </data>
   <data name="History_ExportCsvSuccess" xml:space="preserve">
-    <value>CSV exportado correctamente.</value>
+    <value>CSV listo para compartir.</value>
   </data>
   <data name="History_ExportCsvError" xml:space="preserve">
     <value>No se pudo exportar el CSV. Inténtalo de nuevo.</value>
@@ -1827,5 +1947,230 @@
   </data>
   <data name="Settings_ManageReportsButton" xml:space="preserve">
     <value>Ver reportes</value>
+  </data>
+  <data name="AddAccount_EditTitle" xml:space="preserve">
+    <value>Editar cuenta</value>
+  </data>
+  <data name="AddAccount_EditNotFound" xml:space="preserve">
+    <value>No se encontró la cuenta.</value>
+  </data>
+  <data name="AddAccount_CurrencyLockedMessage" xml:space="preserve">
+    <value>La moneda no se puede cambiar porque esta cuenta ya tiene transacciones.</value>
+  </data>
+  <data name="AccountsList_ShowInactiveLabel" xml:space="preserve">
+    <value>Mostrar inactivas</value>
+  </data>
+  <data name="AccountsList_InactiveBadge" xml:space="preserve">
+    <value>Inactiva</value>
+  </data>
+  <data name="AccountsList_EditAction" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="AccountsList_DeactivateAction" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="AccountsList_DeleteAction" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="AccountsList_ReactivateAction" xml:space="preserve">
+    <value>Reactivar</value>
+  </data>
+  <data name="AccountsList_CannotDeleteMessage" xml:space="preserve">
+    <value>Esta cuenta no se puede eliminar porque tiene transacciones o gastos/ingresos recurrentes asociados. Puedes desactivarla en su lugar.</value>
+  </data>
+  <data name="AccountsList_DeleteConfirmTitle" xml:space="preserve">
+    <value>Eliminar cuenta</value>
+  </data>
+  <data name="AccountsList_DeleteConfirmMessage" xml:space="preserve">
+    <value>¿Eliminar esta cuenta de forma permanente? Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="AccountsList_DeleteConfirmAccept" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="AccountsList_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AccountsList_DeactivateConfirmTitle" xml:space="preserve">
+    <value>Desactivar cuenta</value>
+  </data>
+  <data name="AccountsList_DeactivateConfirmMessage" xml:space="preserve">
+    <value>¿Desactivar esta cuenta? Podrás reactivarla más adelante mostrando las cuentas inactivas.</value>
+  </data>
+  <data name="AccountsList_DeactivateConfirmAccept" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="AccountsList_DeactivateConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AccountsList_Error" xml:space="preserve">
+    <value>No se pudo completar la acción. Intenta de nuevo.</value>
+  </data>
+  <data name="AddCreditCard_EditTitle" xml:space="preserve">
+    <value>Editar tarjeta de crédito</value>
+  </data>
+  <data name="AddCreditCard_EditNotFound" xml:space="preserve">
+    <value>No se encontró la tarjeta de crédito.</value>
+  </data>
+  <data name="AddCreditCard_CurrencyLockedMessage" xml:space="preserve">
+    <value>La moneda no se puede editar.</value>
+  </data>
+  <data name="CreditCardDetail_EditButton" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="CreditCardDetail_DeactivateButton" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="CreditCardDetail_ReactivateButton" xml:space="preserve">
+    <value>Reactivar</value>
+  </data>
+  <data name="CreditCardDetail_DeleteButton" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="CreditCardDetail_DeactivateConfirmTitle" xml:space="preserve">
+    <value>Desactivar tarjeta</value>
+  </data>
+  <data name="CreditCardDetail_DeactivateConfirmMessage" xml:space="preserve">
+    <value>¿Desactivar esta tarjeta de crédito? Podrás reactivarla más adelante mostrando las tarjetas inactivas.</value>
+  </data>
+  <data name="CreditCardDetail_DeactivateConfirmAccept" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="CreditCardDetail_DeactivateConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="CreditCardDetail_DeleteConfirmTitle" xml:space="preserve">
+    <value>Eliminar tarjeta</value>
+  </data>
+  <data name="CreditCardDetail_DeleteConfirmMessage" xml:space="preserve">
+    <value>¿Eliminar esta tarjeta de crédito de forma permanente? Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="CreditCardDetail_DeleteConfirmAccept" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="CreditCardDetail_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="CreditCardDetail_CannotDeleteMessage" xml:space="preserve">
+    <value>Esta tarjeta no se puede eliminar porque tiene transacciones, gastos recurrentes o estados de cuenta asociados. Puedes desactivarla en su lugar.</value>
+  </data>
+  <data name="CreditCardDetail_ActionError" xml:space="preserve">
+    <value>No se pudo completar la acción. Intenta de nuevo.</value>
+  </data>
+  <data name="AddLoan_EditTitle" xml:space="preserve">
+    <value>Editar préstamo</value>
+  </data>
+  <data name="AddLoan_EditNotFound" xml:space="preserve">
+    <value>No se encontró el préstamo.</value>
+  </data>
+  <data name="AddLoan_CurrencyLockedMessage" xml:space="preserve">
+    <value>La moneda no se puede editar.</value>
+  </data>
+  <data name="LoansList_EditAction" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="LoansList_DeactivateAction" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="LoansList_DeleteAction" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="LoansList_ReactivateAction" xml:space="preserve">
+    <value>Reactivar</value>
+  </data>
+  <data name="LoansList_CannotDeleteMessage" xml:space="preserve">
+    <value>Este préstamo no se puede eliminar porque tiene transacciones asociadas. Puedes desactivarlo en su lugar.</value>
+  </data>
+  <data name="LoansList_DeleteConfirmTitle" xml:space="preserve">
+    <value>Eliminar préstamo</value>
+  </data>
+  <data name="LoansList_DeleteConfirmMessage" xml:space="preserve">
+    <value>¿Eliminar este préstamo de forma permanente? Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="LoansList_DeleteConfirmAccept" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="LoansList_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="LoansList_DeactivateConfirmTitle" xml:space="preserve">
+    <value>Desactivar préstamo</value>
+  </data>
+  <data name="LoansList_DeactivateConfirmMessage" xml:space="preserve">
+    <value>¿Desactivar este préstamo? Podrás reactivarlo más adelante mostrando los préstamos inactivos.</value>
+  </data>
+  <data name="LoansList_DeactivateConfirmAccept" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="LoansList_DeactivateConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="LoansList_Error" xml:space="preserve">
+    <value>No se pudo completar la acción. Intenta de nuevo.</value>
+  </data>
+  <data name="TransactionDetail_Title" xml:space="preserve">
+    <value>Detalle de la transacción</value>
+  </data>
+  <data name="TransactionDetail_NotFound" xml:space="preserve">
+    <value>No se encontró la transacción.</value>
+  </data>
+  <data name="TransactionDetail_DateLabel" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="TransactionDetail_AmountLabel" xml:space="preserve">
+    <value>Monto</value>
+  </data>
+  <data name="TransactionDetail_AccountLabel" xml:space="preserve">
+    <value>Cuenta</value>
+  </data>
+  <data name="TransactionDetail_CategoryLabel" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="TransactionDetail_PayerLabel" xml:space="preserve">
+    <value>Quién pagó</value>
+  </data>
+  <data name="TransactionDetail_BeneficiaryLabel" xml:space="preserve">
+    <value>Para quién fue</value>
+  </data>
+  <data name="TransactionDetail_PersonLabel" xml:space="preserve">
+    <value>Persona</value>
+  </data>
+  <data name="TransactionDetail_DescriptionLabel" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="TransactionDetail_NotesLabel" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="TransactionDetail_EditButton" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="TransactionDetail_DeleteButton" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="TransactionDetail_DeleteConfirmTitle" xml:space="preserve">
+    <value>Eliminar transacción</value>
+  </data>
+  <data name="TransactionDetail_DeleteConfirmMessage" xml:space="preserve">
+    <value>¿Eliminar esta transacción? Esta acción revertirá su efecto en la cuenta y no se puede deshacer.</value>
+  </data>
+  <data name="TransactionDetail_DeleteConfirmAccept" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="TransactionDetail_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="TransactionDetail_DeleteError" xml:space="preserve">
+    <value>No se pudo eliminar la transacción. Intenta de nuevo.</value>
+  </data>
+  <data name="TransactionDetail_MedicalLinkedMessage" xml:space="preserve">
+    <value>Esta transacción está vinculada a un gasto médico y no se puede editar ni eliminar desde aquí.</value>
+  </data>
+  <data name="AddTransaction_EditTitle" xml:space="preserve">
+    <value>Editar transacción</value>
+  </data>
+  <data name="AddTransaction_EditNotFound" xml:space="preserve">
+    <value>No se encontró la transacción a editar.</value>
+  </data>
+  <data name="AddTransaction_MedicalLinkedMessage" xml:space="preserve">
+    <value>Esta transacción está vinculada a un gasto médico y no se puede editar desde aquí.</value>
   </data>
 </root>

@@ -66,6 +66,11 @@
                     AutomationId="Settings_ManageRecurringExpensesButton"
                     HorizontalOptions="Fill" />
 
+            <Button Text="{x:Static resources:AppResources.Settings_ManageRecurringIncomeButton}"
+                    Command="{Binding GoToManageRecurringIncomeCommand}"
+                    AutomationId="Settings_ManageRecurringIncomeButton"
+                    HorizontalOptions="Fill" />
+
             <Label Text="{x:Static resources:AppResources.People_Title}"
                    FontSize="18"
                    FontAttributes="Bold" />

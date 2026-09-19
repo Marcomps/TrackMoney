@@ -16,11 +16,43 @@ namespace TrackTraceMoney.App.ViewModels;
 /// financial-institution-card-network-slice-spec's Decision 4. Required (mirrors the old free-text
 /// Institution field's required-ness). No inline-add — a user without their bank listed yet leaves this
 /// screen, adds it via Settings, and comes back, same as Category/Person elsewhere in this app.
+///
+/// Also doubles as the edit screen (edit/delete slice spec §3) when navigated to with a
+/// <c>loanId</c> query parameter — same shape as <c>AddAccountViewModel</c>/<c>AddCreditCardViewModel</c>'s
+/// edit mode. <see cref="Loan.OriginalAmount"/> and <see cref="CreditAccount.AmountOwed"/> are never
+/// editable (both hidden in edit mode): <c>OriginalAmount</c> is documented as fixed for the life of the
+/// loan, and <c>AmountOwed</c> has no direct setter anywhere except <c>RegisterPayment</c>.
+/// <see cref="NextPaymentDate"/>/<see cref="RequiredPaymentText"/> ARE editable in edit mode, via the
+/// existing <see cref="Loan.AdvanceSchedule"/> — no new mutator needed, per the spec's exact wording.
+///
+/// Currency editing is NOT offered in edit mode -- same "known gap" as <c>AddCreditCardViewModel</c>'s
+/// doc comment: no <c>UpdateCurrency</c> mutator exists on <see cref="CreditAccount"/>/<see cref="Loan"/>.
 /// </summary>
+[QueryProperty(nameof(LoanIdText), "loanId")]
 public sealed partial class AddLoanViewModel : ObservableObject
 {
     private readonly ICreditAccountRepository _creditAccountRepository;
     private readonly IFinancialInstitutionRepository _institutionRepository;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
+    [NotifyPropertyChangedFor(nameof(PageTitle))]
+    [NotifyPropertyChangedFor(nameof(IsOriginalAmountVisible))]
+    [NotifyPropertyChangedFor(nameof(IsCurrentBalanceVisible))]
+    [NotifyPropertyChangedFor(nameof(IsCurrencyPickerEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsCurrencyLockedMessageVisible))]
+    private Guid? editingLoanId;
+
+    /// <summary>Same defensive-parse idiom as <c>AddAccountViewModel.AccountIdText</c>.</summary>
+    [ObservableProperty]
+    private string? loanIdText;
+
+    partial void OnLoanIdTextChanged(string? value) =>
+        EditingLoanId = Guid.TryParse(value, out var parsed) ? parsed : null;
+
+    public bool IsEditMode => EditingLoanId is not null;
+
+    public string PageTitle => IsEditMode ? AppResources.AddLoan_EditTitle : AppResources.AddLoan_Title;
 
     [ObservableProperty]
     private string name = string.Empty;
@@ -67,6 +99,15 @@ public sealed partial class AddLoanViewModel : ObservableObject
     [ObservableProperty]
     private bool isBusy;
 
+    public bool IsOriginalAmountVisible => !IsEditMode;
+
+    public bool IsCurrentBalanceVisible => !IsEditMode;
+
+    /// <summary>Always disabled in edit mode -- see this class's doc comment's "known gap" note.</summary>
+    public bool IsCurrencyPickerEnabled => !IsEditMode;
+
+    public bool IsCurrencyLockedMessageVisible => IsEditMode;
+
     public IReadOnlyList<LoanKind> AvailableKinds { get; } = Enum.GetValues<LoanKind>();
 
     public IReadOnlyList<CurrencyCode> AvailableCurrencies { get; } = Enum.GetValues<CurrencyCode>();
@@ -89,6 +130,30 @@ public sealed partial class AddLoanViewModel : ObservableObject
         InstitutionOptions.Clear();
         foreach (var institution in institutions.OrderBy(i => i.Name))
             InstitutionOptions.Add(new NamedOption(institution.Id, institution.Name));
+
+        if (EditingLoanId is not { } loanId)
+            return;
+
+        var creditAccount = await _creditAccountRepository.GetByIdAsync(loanId);
+        if (creditAccount is not Loan loan)
+        {
+            ErrorMessage = AppResources.AddLoan_EditNotFound;
+            return;
+        }
+
+        Name = loan.Name;
+        SelectedCurrency = loan.Currency;
+        SelectedInstitution = loan.InstitutionId is { } institutionId
+            ? InstitutionOptions.FirstOrDefault(o => o.Id == institutionId)
+            : null;
+        SelectedKind = loan.Kind;
+        InterestRateText = loan.InterestRate.ToString("N2", CultureInfo.CurrentCulture);
+        SelectedRateType = loan.RateType;
+        MonthlyInstallmentText = loan.MonthlyInstallment.ToString("N2", CultureInfo.CurrentCulture);
+        NextPaymentDate = loan.NextPaymentDate.ToDateTime(TimeOnly.MinValue);
+        RequiredPaymentText = loan.RequiredPayment.ToString("N2", CultureInfo.CurrentCulture);
+        FeesText = loan.Fees?.ToString("N2", CultureInfo.CurrentCulture);
+        Notes = loan.Notes;
     }
 
     [RelayCommand]
@@ -105,18 +170,6 @@ public sealed partial class AddLoanViewModel : ObservableObject
         if (SelectedInstitution is null)
         {
             ErrorMessage = AppResources.AddLoan_ValidationInstitutionRequired;
-            return;
-        }
-
-        if (!decimal.TryParse(OriginalAmountText, NumberStyles.Number, CultureInfo.CurrentCulture, out var originalAmount) || originalAmount <= 0)
-        {
-            ErrorMessage = AppResources.AddLoan_ValidationOriginalAmountInvalid;
-            return;
-        }
-
-        if (!decimal.TryParse(CurrentBalanceText, NumberStyles.Number, CultureInfo.CurrentCulture, out var currentBalance) || currentBalance < 0)
-        {
-            ErrorMessage = AppResources.AddLoan_ValidationCurrentBalanceInvalid;
             return;
         }
 
@@ -150,6 +203,24 @@ public sealed partial class AddLoanViewModel : ObservableObject
             fees = parsedFees;
         }
 
+        if (IsEditMode)
+        {
+            await SaveEditAsync(interestRate, monthlyInstallment, requiredPayment, fees);
+            return;
+        }
+
+        if (!decimal.TryParse(OriginalAmountText, NumberStyles.Number, CultureInfo.CurrentCulture, out var originalAmount) || originalAmount <= 0)
+        {
+            ErrorMessage = AppResources.AddLoan_ValidationOriginalAmountInvalid;
+            return;
+        }
+
+        if (!decimal.TryParse(CurrentBalanceText, NumberStyles.Number, CultureInfo.CurrentCulture, out var currentBalance) || currentBalance < 0)
+        {
+            ErrorMessage = AppResources.AddLoan_ValidationCurrentBalanceInvalid;
+            return;
+        }
+
         var loan = new Loan(
             Name,
             SelectedCurrency,
@@ -169,6 +240,46 @@ public sealed partial class AddLoanViewModel : ObservableObject
         try
         {
             await _creditAccountRepository.AddAsync(loan);
+            await _creditAccountRepository.SaveChangesAsync();
+            await Shell.Current.GoToAsync("..");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Edit-mode half of <see cref="SaveAsync"/> (edit/delete slice spec §3.1) -- calls
+    /// <see cref="Loan.UpdateDetails"/> for the informational fields and the EXISTING, UNCHANGED
+    /// <see cref="Loan.AdvanceSchedule"/> for <see cref="NextPaymentDate"/>/<paramref name="requiredPayment"/>,
+    /// per the spec's exact instruction not to add a new mutator for those two fields.
+    /// </summary>
+    private async Task SaveEditAsync(decimal interestRate, decimal monthlyInstallment, decimal requiredPayment, decimal? fees)
+    {
+        IsBusy = true;
+        try
+        {
+            var creditAccount = await _creditAccountRepository.GetByIdAsync(EditingLoanId!.Value);
+            if (creditAccount is not Loan loan)
+            {
+                ErrorMessage = AppResources.AddLoan_EditNotFound;
+                return;
+            }
+
+            loan.Rename(Name);
+            loan.UpdateNotes(Notes);
+
+            loan.UpdateDetails(
+                SelectedInstitution!.Id,
+                SelectedKind,
+                interestRate,
+                SelectedRateType,
+                monthlyInstallment,
+                fees);
+
+            loan.AdvanceSchedule(DateOnly.FromDateTime(NextPaymentDate), requiredPayment);
+
             await _creditAccountRepository.SaveChangesAsync();
             await Shell.Current.GoToAsync("..");
         }

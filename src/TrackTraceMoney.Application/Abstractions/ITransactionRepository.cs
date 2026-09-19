@@ -64,4 +64,30 @@ public interface ITransactionRepository : IRepository<Transaction>
     /// <see cref="IRepository{TEntity}.GetAllAsync"/> fetch.
     /// </summary>
     Task<IReadOnlyList<Transaction>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
+
+    /// <summary>
+    /// Whether any transaction, of any subtype, still points at <paramref name="accountId"/> as a
+    /// <see cref="Domain.Accounts.FinancialAccount"/>-shaped foreign key (edit/delete slice spec §0) —
+    /// checked before allowing a hard delete or a currency edit on that account. Every FK-shaped column
+    /// across every subtype is covered, not just the in-scope-for-reversal <see cref="Expense"/>/
+    /// <see cref="Income"/>/<see cref="Transfer"/> types: <see cref="Expense.AccountId"/>,
+    /// <see cref="Income.DestinationAccountId"/>, <see cref="Transfer.SourceAccountId"/>/
+    /// <see cref="Transfer.DestinationAccountId"/>, <see cref="CreditCardPayment.SourceAccountId"/>,
+    /// <see cref="LoanPayment.SourceAccountId"/>, <see cref="InvestmentContribution.SourceAccountId"/>/
+    /// <see cref="InvestmentContribution.DestinationAccountId"/>,
+    /// <see cref="InvestmentWithdrawal.SourceAccountId"/>/<see cref="InvestmentWithdrawal.DestinationAccountId"/>,
+    /// <see cref="InterestIncome.DestinationAccountId"/>, and <see cref="Reimbursement.DestinationAccountId"/>
+    /// — deleting an account referenced by any of them, even a type this slice can't edit/reverse, would
+    /// orphan that transaction.
+    /// </summary>
+    Task<bool> HasAnyTransactionReferencingFinancialAccountAsync(Guid accountId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Whether any transaction still points at <paramref name="creditAccountId"/> as a
+    /// <see cref="Domain.CreditAccounts.CreditAccount"/>-shaped foreign key (edit/delete slice spec §0):
+    /// <see cref="CreditCardPurchase.CreditAccountId"/>, <see cref="CreditCardPayment.CreditAccountId"/>,
+    /// or <see cref="LoanPayment.CreditAccountId"/> — checked before allowing a hard delete or a
+    /// currency edit on that card/loan.
+    /// </summary>
+    Task<bool> HasAnyTransactionReferencingCreditAccountAsync(Guid creditAccountId, CancellationToken ct = default);
 }

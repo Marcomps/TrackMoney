@@ -27,6 +27,7 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICreditCardPurchasedVsPaidCalculator _purchasedVsPaidCalculator;
     private readonly ICreditCardHealthEvaluator _healthEvaluator;
+    private readonly ICreditAccountLifecycleService _creditAccountLifecycleService;
 
     private CurrencyCode cardCurrency;
 
@@ -103,6 +104,16 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
     [ObservableProperty]
     private string healthMessage = string.Empty;
 
+    /// <summary>Drives the Deactivate-vs-Reactivate button (edit/delete slice spec §2.3/§1.3).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInactive))]
+    private bool isActive = true;
+
+    public bool IsInactive => !IsActive;
+
+    [ObservableProperty]
+    private string? actionErrorMessage;
+
     public ObservableCollection<CreditCardStatementListItem> Statements { get; } = [];
 
     public ObservableCollection<PurchasedVsPaidWindowOption> PurchasedVsPaidWindowOptions { get; } = [];
@@ -125,13 +136,15 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
         ICreditCardStatementRepository statementRepository,
         ITransactionRepository transactionRepository,
         ICreditCardPurchasedVsPaidCalculator purchasedVsPaidCalculator,
-        ICreditCardHealthEvaluator healthEvaluator)
+        ICreditCardHealthEvaluator healthEvaluator,
+        ICreditAccountLifecycleService creditAccountLifecycleService)
     {
         _creditAccountRepository = creditAccountRepository;
         _statementRepository = statementRepository;
         _transactionRepository = transactionRepository;
         _purchasedVsPaidCalculator = purchasedVsPaidCalculator;
         _healthEvaluator = healthEvaluator;
+        _creditAccountLifecycleService = creditAccountLifecycleService;
 
         PurchasedVsPaidWindowOptions.Add(new PurchasedVsPaidWindowOption(PurchasedVsPaidWindow.Month, AppResources.CreditCardDetail_PurchasedVsPaidWindow_Month));
         PurchasedVsPaidWindowOptions.Add(new PurchasedVsPaidWindowOption(PurchasedVsPaidWindow.Cycle, AppResources.CreditCardDetail_PurchasedVsPaidWindow_Cycle));
@@ -157,6 +170,7 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
 
             CardName = card.Name;
             cardCurrency = card.Currency;
+            IsActive = card.IsActive;
 
             var today = DateOnly.FromDateTime(DateTime.Today);
 
@@ -256,4 +270,90 @@ public sealed partial class CreditCardDetailViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenStatementAsync(Guid statementId) =>
         await Shell.Current.GoToAsync($"{nameof(RecordCreditCardStatementPage)}?creditAccountId={CreditAccountId}&statementId={statementId}");
+
+    [RelayCommand]
+    private async Task EditAsync() =>
+        await Shell.Current.GoToAsync($"{nameof(AddCreditCardPage)}?creditAccountId={CreditAccountId}");
+
+    [RelayCommand]
+    private async Task DeactivateAsync()
+    {
+        ActionErrorMessage = null;
+
+        var confirmed = await Shell.Current.DisplayAlertAsync(
+            AppResources.CreditCardDetail_DeactivateConfirmTitle,
+            AppResources.CreditCardDetail_DeactivateConfirmMessage,
+            AppResources.CreditCardDetail_DeactivateConfirmAccept,
+            AppResources.CreditCardDetail_DeactivateConfirmCancel);
+
+        if (!confirmed)
+            return;
+
+        try
+        {
+            await _creditAccountLifecycleService.DeactivateAsync(CreditAccountId);
+        }
+        catch (Exception)
+        {
+            ActionErrorMessage = AppResources.CreditCardDetail_ActionError;
+            return;
+        }
+
+        await LoadAsync();
+    }
+
+    [RelayCommand]
+    private async Task ReactivateAsync()
+    {
+        ActionErrorMessage = null;
+
+        try
+        {
+            await _creditAccountLifecycleService.ReactivateAsync(CreditAccountId);
+        }
+        catch (Exception)
+        {
+            ActionErrorMessage = AppResources.CreditCardDetail_ActionError;
+            return;
+        }
+
+        await LoadAsync();
+    }
+
+    /// <summary>
+    /// Same "check the guard before offering the confirm dialog" pattern as
+    /// <c>AccountsListViewModel.DeleteAccountAsync</c> — see its doc comment.
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteAsync()
+    {
+        ActionErrorMessage = null;
+
+        if (!await _creditAccountLifecycleService.CanHardDeleteAsync(CreditAccountId))
+        {
+            ActionErrorMessage = AppResources.CreditCardDetail_CannotDeleteMessage;
+            return;
+        }
+
+        var confirmed = await Shell.Current.DisplayAlertAsync(
+            AppResources.CreditCardDetail_DeleteConfirmTitle,
+            AppResources.CreditCardDetail_DeleteConfirmMessage,
+            AppResources.CreditCardDetail_DeleteConfirmAccept,
+            AppResources.CreditCardDetail_DeleteConfirmCancel);
+
+        if (!confirmed)
+            return;
+
+        try
+        {
+            await _creditAccountLifecycleService.DeleteAsync(CreditAccountId);
+        }
+        catch (InvalidOperationException)
+        {
+            ActionErrorMessage = AppResources.CreditCardDetail_CannotDeleteMessage;
+            return;
+        }
+
+        await Shell.Current.GoToAsync("..");
+    }
 }

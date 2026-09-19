@@ -290,6 +290,11 @@ public sealed partial class HistoryViewModel : ObservableObject
                 File = new ShareFile(exportPath)
             });
 
+            // Worded as "ready to share," not "exported"/"shared successfully": Share.Default.RequestAsync
+            // returns normally whether the user actually picks a share target or backs out of the chooser
+            // -- the platform API gives no reliable cancellation signal (found via checkpoint code review;
+            // SettingsViewModel.ExportAsync's local-backup export shares this same limitation). What IS
+            // verifiably true by this point is that the file was written and the share sheet was shown.
             ExportStatusMessage = AppResources.History_ExportCsvSuccess;
         }
         catch (Exception)
@@ -316,5 +321,34 @@ public sealed partial class HistoryViewModel : ObservableObject
             return;
 
         await Shell.Current.GoToAsync($"{nameof(MedicalExpenseDetailPage)}?transactionId={entry.Id}");
+    }
+
+    /// <summary>
+    /// General-purpose row-tap routing (edit/delete slice spec §5) — supersedes
+    /// <see cref="OpenMedicalExpenseDetailAsync"/> as the tap gesture actually wired in
+    /// <c>HistoryPage.xaml</c> (that method is kept, unmodified, rather than removed, since its own
+    /// medical-priority branch is now folded in here verbatim). Medical detail still takes priority,
+    /// unchanged; Expense/Income/Transfer route to the new <see cref="TransactionDetailPage"/>; every
+    /// other type (CreditCardPurchase, CreditCardPayment, LoanPayment, InvestmentContribution/
+    /// Withdrawal, InterestIncome, Reimbursement) is intentionally still a no-op, now by documented
+    /// exclusion (§4.3) rather than accident — no toast/disabled-row treatment is added this slice.
+    /// </summary>
+    [RelayCommand]
+    private static async Task OpenTransactionDetailAsync(HistoryEntryItem? entry)
+    {
+        if (entry is null)
+            return;
+
+        if (entry.MedicalStatusBadge is not null)
+        {
+            await Shell.Current.GoToAsync($"{nameof(MedicalExpenseDetailPage)}?transactionId={entry.Id}");
+            return;
+        }
+
+        if (entry.Type is TransactionType.Expense or TransactionType.Income or TransactionType.Transfer)
+        {
+            await Shell.Current.GoToAsync($"{nameof(TransactionDetailPage)}?transactionId={entry.Id}");
+            return;
+        }
     }
 }

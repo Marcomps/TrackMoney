@@ -5,7 +5,7 @@
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.AddLoanPage"
              x:DataType="viewModels:AddLoanViewModel"
-             Title="{x:Static resources:AppResources.AddLoan_Title}">
+             Title="{Binding PageTitle}">
 
     <Grid RowDefinitions="*,Auto" Padding="16">
 
@@ -28,13 +28,21 @@
 
             <Label Text="{x:Static resources:AppResources.AddLoan_CurrencyLabel}" />
             <Picker ItemsSource="{Binding AvailableCurrencies}"
-                    SelectedItem="{Binding SelectedCurrency}" />
+                    SelectedItem="{Binding SelectedCurrency}"
+                    IsEnabled="{Binding IsCurrencyPickerEnabled}" />
+            <Label Text="{x:Static resources:AppResources.AddLoan_CurrencyLockedMessage}"
+                   IsVisible="{Binding IsCurrencyLockedMessageVisible}"
+                   FontSize="12" Opacity="0.8" />
 
-            <Label Text="{x:Static resources:AppResources.AddLoan_OriginalAmountLabel}" />
-            <Entry Text="{Binding OriginalAmountText}" Keyboard="Numeric" />
+            <VerticalStackLayout IsVisible="{Binding IsOriginalAmountVisible}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddLoan_OriginalAmountLabel}" />
+                <Entry Text="{Binding OriginalAmountText}" Keyboard="Numeric" />
+            </VerticalStackLayout>
 
-            <Label Text="{x:Static resources:AppResources.AddLoan_CurrentBalanceLabel}" />
-            <Entry Text="{Binding CurrentBalanceText}" Keyboard="Numeric" />
+            <VerticalStackLayout IsVisible="{Binding IsCurrentBalanceVisible}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddLoan_CurrentBalanceLabel}" />
+                <Entry Text="{Binding CurrentBalanceText}" Keyboard="Numeric" />
+            </VerticalStackLayout>
 
             <Label Text="{x:Static resources:AppResources.AddLoan_InterestRateLabel}" />
             <Entry Text="{Binding InterestRateText}" Keyboard="Numeric" />

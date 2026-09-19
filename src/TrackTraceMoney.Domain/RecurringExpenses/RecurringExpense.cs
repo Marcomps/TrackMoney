@@ -139,6 +139,30 @@ public sealed class RecurringExpense : Entity
         && NextOccurrenceDate <= asOf
         && (EndDate is null || NextOccurrenceDate <= EndDate.Value);
 
+    /// <summary>
+    /// How many occurrences fall on or before <paramref name="horizonEnd"/>, starting from
+    /// <see cref="NextOccurrenceDate"/> — not just whether one is due (<see cref="IsDue"/>). A
+    /// <see cref="RecurringExpenseFrequency.Weekly"/> expense can have several occurrences within a
+    /// single calendar-month horizon; counting only the next one (as a plain <see cref="IsDue"/> check
+    /// would) undercounts the real upcoming obligation. Inactive or already-past-<see cref="EndDate"/>
+    /// returns 0, matching <see cref="IsDue"/>'s own gating.
+    /// </summary>
+    public int CountOccurrencesThrough(DateOnly horizonEnd)
+    {
+        if (!IsActive)
+            return 0;
+
+        var count = 0;
+        var occurrence = NextOccurrenceDate;
+        while (occurrence <= horizonEnd && (EndDate is null || occurrence <= EndDate.Value))
+        {
+            count++;
+            occurrence = Advance(occurrence);
+        }
+
+        return count;
+    }
+
     public void MarkConfirmed(DateOnly occurrenceDate)
     {
         if (occurrenceDate != NextOccurrenceDate)

@@ -1,0 +1,86 @@
+Add Recurring Income, Edit/Delete for Accounts/CreditCards/Loans/Transactions, and a checkpoint-review fix round
+
+Three independent pieces of work, all build-clean (0 warnings/0 errors)
+and test-passing (Domain 243/243, Application 201/201, Infrastructure
+46/46), live-verified on a real Android emulator, not just unit-tested.
+
+RECURRING INCOME (new feature, closes a real gap: salary could only be
+entered as one-off Income transactions, with no way to track "how much
+do I expect biweekly/monthly"). New RecurringIncome domain entity +
+RecurringIncomeFrequency enum (Weekly/Biweekly/Monthly/Yearly, kept
+separate from RecurringExpenseFrequency), full Application/
+Infrastructure/App layers mirroring the existing Recurring Expense
+pattern, reached via Settings -> "Manage recurring income". Includes a
+live equivalent-amount calculator so entering a Biweekly salary shows
+its Monthly equivalent inline (and vice versa) before saving.
+UpdateAmount is prospective-only, mirroring Budget.UpdateAmount -- a
+raise/cut never retroactively touches past balances. Verified live:
+created "Salario" $960 Biweekly, confirmed equivalents both directions,
+confirmed a due occurrence posts a real Income and moves the account
+balance by the exact amount (2,140.00 -> 3,100.00), confirmed editing
+the amount afterward recalculates equivalents but leaves the existing
+balance untouched.
+
+EDIT/DELETE FOR ACCOUNTS, CREDIT CARDS, LOANS, AND TRANSACTIONS (closes
+a P0 usability gap: every "list + add" screen in the app only ever
+supported Add -- users had no way to fix a mistake without deleting
+and reinstalling the app). Shared mechanism across all four entity
+families: true in-place edit for fields with no side effect on another
+aggregate (new small mutators mirroring existing Rename/UpdateNotes
+precedent); Deactivate/Reactivate for entities with transaction/
+recurring-definition history pointing at them (already existed on
+FinancialAccount/CreditAccount, just never wired to a UI button --
+added a "show inactive" toggle so it isn't a one-way trap); hard delete
+only when zero history references it, via new existence-check guards
+(no EF FK constraints exist anywhere in this codebase, so these are
+enforced in the Application layer). Transactions specifically use
+reverse-then-recreate (Expense/Income/Transfer only this slice --
+CreditCardPurchase/CreditCardPayment/LoanPayment/Investment*/
+InterestIncome/Reimbursement deliberately deferred, each for a
+documented domain-specific reason: statement-cycle desync risk,
+irreversible schedule mutation, or consistency with other still-
+deferred account types).
+
+Found and fixed a real bug during live testing: editing a transaction
+showed "Transaction not found." on save, because edit = reverse
+(deletes the original row) + repost (creates a new row under a new
+Id), and a single Shell.Current.GoToAsync("..") popped back only one
+level, landing on the still-open TransactionDetailPage holding the now
+-deleted original Id. Underlying money was independently verified
+correct before this fix (exact expected balance, no double-counting),
+confirming it was a navigation-only defect. Fixed in
+AddTransactionViewModel.SaveAsync by popping two Shell levels in edit
+mode instead of one; re-verified live after the fix.
+
+Also discovered, while investigating two apparent rendering bugs
+(CreditCardDetailPage's new buttons not appearing; HistoryPage tap-to-
+navigate not firing), that both vanished entirely after a clean full-
+solution rebuild + fresh APK + emulator cold-boot + reinstall --
+attributed to a degraded, long-running emulator instance rather than
+an app defect. Also found that MAUI SwipeView's native reveal gesture
+does not respond to generic `adb shell input swipe` but does respond
+to the touchscreen-specific `adb shell input touchscreen swipe`
+variant -- a testing-tool finding, not an app bug.
+
+Verified live end-to-end: CreditCard (Edit/Deactivate/Reactivate/
+Delete), Accounts (Edit/Delete via SwipeView), Transaction (Edit via
+reverse-then-repost and Delete, both money-correct).
+
+CHECKPOINT-REVIEW FIXES (8 of 10 findings from a code-review + qa pass
+over the prior README-spec-gap-sweep commit; 2 deliberately deferred
+with documented reasoning -- an ambiguous credit-card cycle boundary
+condition, and a low-probability Android multi-window edge case with
+no low-risk fix identified). Notable fixes: App Lock's Switch-
+reentrancy guard could still be bypassed because the reentrant Toggled
+fire can land on a later main-thread dispatch rather than synchronously
+within the guarded method -- fixed by deferring the guard-flag clear
+itself via MainThread.BeginInvokeOnMainThread; Real Surplus undercounted
+Weekly/multi-occurrence recurring expenses because IsDue() only answers
+"is at least one occurrence due," not "how many" -- fixed with a new
+RecurringExpense.CountOccurrencesThrough(DateOnly) domain method; PBKDF2
+(210k iterations) was blocking the UI thread synchronously -- wrapped in
+Task.Run; FLAG_SECURE was unconditionally blocking the E2E suite's
+screenshot evidence -- gated behind #if !DEBUG.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_017rCGjWaQPXSJ7KMMy3dNWE

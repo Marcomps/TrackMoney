@@ -35,7 +35,7 @@ public sealed class MonthlySpendingTrendCalculatorTests
     public void Calculate_ExcludesTransfersAndOtherNonExpenseMovements()
     {
         var source = new CashAccount("Wallet", CurrencyCode.USD, openingBalance: 0m);
-        var destination = new BankAccount("Bank", CurrencyCode.USD, openingBalance: 0m, bankName: "Bank");
+        var destination = new BankAccount("Bank", CurrencyCode.USD, openingBalance: 0m);
         var transfer = new Transfer(new DateOnly(2026, 3, 10), 100m, source.Id, destination.Id);
 
         var currencyMap = AccountCurrencyMapBuilder.Build([source, destination], []);

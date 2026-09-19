@@ -57,6 +57,18 @@ public abstract class FinancialAccount : Entity
 
     public void UpdateNotes(string? notes) => Notes = notes;
 
+    /// <summary>
+    /// Changes this account's currency. Callers must first confirm this is safe (via
+    /// <c>IFinancialAccountLifecycleService.CanChangeCurrencyAsync</c> — true only when zero
+    /// transactions reference this account) before calling this mutator; the mutator itself performs
+    /// no such re-check, mirroring how other Application-layer-gated mutators in this codebase (e.g.
+    /// hard-delete) keep the guard in the Application layer rather than duplicating it in Domain. See
+    /// the edit/delete slice spec §1.1: every <see cref="Balance"/> figure accumulated so far is
+    /// implicitly denominated in the *current* currency, so changing currency after even one
+    /// transaction would silently relabel real money without converting it.
+    /// </summary>
+    public void UpdateCurrency(CurrencyCode currency) => Currency = currency;
+
     public void Credit(decimal amount)
     {
         if (amount < 0)

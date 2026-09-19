@@ -194,4 +194,65 @@ public sealed class LoanTests
 
         Assert.Equal(3250m, loan.AmountOwed);
     }
+
+    [Fact]
+    public void UpdateDetails_ValidValues_UpdatesEveryEditableField()
+    {
+        var loan = CreateLoan();
+        var newInstitutionId = Guid.NewGuid();
+
+        loan.UpdateDetails(newInstitutionId, LoanKind.Mortgage, 0.08m, LoanRateType.Variable, 200m, 50m);
+
+        Assert.Equal(newInstitutionId, loan.InstitutionId);
+        Assert.Equal(LoanKind.Mortgage, loan.Kind);
+        Assert.Equal(0.08m, loan.InterestRate);
+        Assert.Equal(LoanRateType.Variable, loan.RateType);
+        Assert.Equal(200m, loan.MonthlyInstallment);
+        Assert.Equal(50m, loan.Fees);
+    }
+
+    [Fact]
+    public void UpdateDetails_DoesNotMutateAmountOwedOrOriginalAmountOrSchedule()
+    {
+        var loan = CreateLoan(originalAmount: 5000m, currentBalance: 3250m, nextPaymentDate: new DateOnly(2026, 10, 1), requiredPayment: 150m);
+
+        loan.UpdateDetails(Guid.NewGuid(), LoanKind.PersonalLoan, 0.1m, LoanRateType.Fixed, 200m, null);
+
+        Assert.Equal(3250m, loan.AmountOwed);
+        Assert.Equal(5000m, loan.OriginalAmount);
+        Assert.Equal(new DateOnly(2026, 10, 1), loan.NextPaymentDate);
+        Assert.Equal(150m, loan.RequiredPayment);
+    }
+
+    [Fact]
+    public void UpdateDetails_WithEmptyInstitutionId_Throws()
+    {
+        var loan = CreateLoan();
+
+        Assert.Throws<ArgumentException>(() => loan.UpdateDetails(Guid.Empty, LoanKind.AutoLoan, 0.1m, LoanRateType.Fixed, 150m, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNegativeInterestRate_Throws()
+    {
+        var loan = CreateLoan();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => loan.UpdateDetails(Guid.NewGuid(), LoanKind.AutoLoan, -0.01m, LoanRateType.Fixed, 150m, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNonPositiveMonthlyInstallment_Throws()
+    {
+        var loan = CreateLoan();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => loan.UpdateDetails(Guid.NewGuid(), LoanKind.AutoLoan, 0.1m, LoanRateType.Fixed, 0m, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNegativeFees_Throws()
+    {
+        var loan = CreateLoan();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => loan.UpdateDetails(Guid.NewGuid(), LoanKind.AutoLoan, 0.1m, LoanRateType.Fixed, 150m, -1m));
+    }
 }

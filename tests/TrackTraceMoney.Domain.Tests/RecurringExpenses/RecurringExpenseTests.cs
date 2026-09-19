@@ -157,6 +157,54 @@ public sealed class RecurringExpenseTests
     }
 
     [Fact]
+    public void CountOccurrencesThrough_Weekly_CountsEveryOccurrenceInHorizonNotJustOne()
+    {
+        // Found via a checkpoint code review: a plain IsDue() check only asks "is at least one due",
+        // undercounting a Weekly expense's real upcoming total across a month-long horizon.
+        var expense = CreateExpense(RecurringExpenseFrequency.Weekly, startDate: new DateOnly(2026, 9, 3));
+
+        // Occurrences: 9/3, 9/10, 9/17, 9/24 -- all on/before 9/30 -- 5th (10/1) is past the horizon.
+        Assert.Equal(4, expense.CountOccurrencesThrough(new DateOnly(2026, 9, 30)));
+    }
+
+    [Fact]
+    public void CountOccurrencesThrough_Monthly_CountsOne()
+    {
+        var expense = CreateExpense(RecurringExpenseFrequency.Monthly, startDate: new DateOnly(2026, 9, 15));
+
+        Assert.Equal(1, expense.CountOccurrencesThrough(new DateOnly(2026, 9, 30)));
+    }
+
+    [Fact]
+    public void CountOccurrencesThrough_WhenNextOccurrenceInFuture_IsZero()
+    {
+        var expense = CreateExpense(startDate: new DateOnly(2026, 10, 1));
+
+        Assert.Equal(0, expense.CountOccurrencesThrough(new DateOnly(2026, 9, 30)));
+    }
+
+    [Fact]
+    public void CountOccurrencesThrough_WhenInactive_IsZeroEvenIfOtherwiseDue()
+    {
+        var expense = CreateExpense(RecurringExpenseFrequency.Weekly, startDate: new DateOnly(2026, 9, 1));
+        expense.Deactivate();
+
+        Assert.Equal(0, expense.CountOccurrencesThrough(new DateOnly(2026, 9, 30)));
+    }
+
+    [Fact]
+    public void CountOccurrencesThrough_StopsAtEndDateEvenIfHorizonIsLater()
+    {
+        var expense = CreateExpense(
+            RecurringExpenseFrequency.Weekly,
+            startDate: new DateOnly(2026, 9, 1),
+            endDate: new DateOnly(2026, 9, 15));
+
+        // Occurrences: 9/1, 9/8, 9/15 -- 9/22 would be past EndDate.
+        Assert.Equal(3, expense.CountOccurrencesThrough(new DateOnly(2026, 9, 30)));
+    }
+
+    [Fact]
     public void MarkConfirmed_WithCurrentlyDueOccurrenceDate_UpdatesLastConfirmedDate()
     {
         var startDate = new DateOnly(2026, 1, 1);

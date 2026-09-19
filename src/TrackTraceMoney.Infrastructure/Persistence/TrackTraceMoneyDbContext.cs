@@ -9,6 +9,7 @@ using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.NetWorth;
 using TrackTraceMoney.Domain.People;
 using TrackTraceMoney.Domain.RecurringExpenses;
+using TrackTraceMoney.Domain.RecurringIncomes;
 using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.Infrastructure.Persistence;
@@ -32,6 +33,8 @@ public sealed class TrackTraceMoneyDbContext : DbContext
     public DbSet<Budget> Budgets => Set<Budget>();
 
     public DbSet<RecurringExpense> RecurringExpenses => Set<RecurringExpense>();
+
+    public DbSet<RecurringIncome> RecurringIncomes => Set<RecurringIncome>();
 
     public DbSet<CreditCardStatement> CreditCardStatements => Set<CreditCardStatement>();
 

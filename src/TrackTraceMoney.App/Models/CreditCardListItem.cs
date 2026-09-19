@@ -14,11 +14,15 @@ public sealed record CreditCardListItem(
     decimal AmountOwed,
     decimal AvailableCredit,
     CreditCardHealthStatus HealthStatus,
-    string HealthEmoji)
+    string HealthEmoji,
+    bool IsActive)
 {
     public bool HasLastFourDigits => !string.IsNullOrEmpty(LastFourDigits);
 
     public string MaskedLastFourDigits => HasLastFourDigits ? $"•••• {LastFourDigits}" : string.Empty;
+
+    /// <summary>Same rationale as <c>AccountListItem.IsInactive</c> (edit/delete slice spec §2.2).</summary>
+    public bool IsInactive => !IsActive;
 
     public static CreditCardListItem FromDomain(CreditCard card, CreditCardHealthStatus healthStatus, string institutionName) => new(
         card.Id,
@@ -30,5 +34,6 @@ public sealed record CreditCardListItem(
         card.AmountOwed,
         card.AvailableCredit,
         healthStatus,
-        CreditCardHealthIndicator.GetEmoji(healthStatus));
+        CreditCardHealthIndicator.GetEmoji(healthStatus),
+        card.IsActive);
 }

@@ -15,6 +15,7 @@
             <converters:TransactionTypeToLabelConverter x:Key="TransactionTypeToLabelConverter" />
             <converters:SystemCategoryKeyToLabelConverter x:Key="SystemCategoryKeyToLabelConverter" />
             <converters:RecurringExpenseFrequencyToLabelConverter x:Key="RecurringExpenseFrequencyToLabelConverter" />
+            <converters:RecurringIncomeFrequencyToLabelConverter x:Key="RecurringIncomeFrequencyToLabelConverter" />
             <converters:LoanKindToLabelConverter x:Key="LoanKindToLabelConverter" />
             <converters:LoanRateTypeToLabelConverter x:Key="LoanRateTypeToLabelConverter" />
             <converters:TermDepositRateTypeToLabelConverter x:Key="TermDepositRateTypeToLabelConverter" />

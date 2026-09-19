@@ -10,10 +10,12 @@ using TrackTraceMoney.App.Services.Profiles;
 using TrackTraceMoney.App.ViewModels;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
+using TrackTraceMoney.Application.Accounts;
 using TrackTraceMoney.Application.Budgets;
 using TrackTraceMoney.Application.CreditAccounts;
 using TrackTraceMoney.Application.NetWorth;
 using TrackTraceMoney.Application.RecurringExpenses;
+using TrackTraceMoney.Application.RecurringIncomes;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Application.TermDeposits;
 using TrackTraceMoney.Application.Transactions;
@@ -85,6 +87,13 @@ public static class MauiProgram
 		builder.Services.AddTransient<NetWorthViewModel>();
 		builder.Services.AddTransient<NetWorthPage>();
 
+		// Edit/delete slice (spec §0/§1/§2/§3) -- Application-layer orchestrators tying together the
+		// existence-check guards for hard-delete/deactivate/reactivate/currency-edit. Scoped, matching
+		// every other Application-layer service registered against this same DbContext lifetime
+		// (ITransactionEntryService/IRecurringExpenseService/IRecurringIncomeService below).
+		builder.Services.AddScoped<IFinancialAccountLifecycleService, FinancialAccountLifecycleService>();
+		builder.Services.AddScoped<ICreditAccountLifecycleService, CreditAccountLifecycleService>();
+
 		builder.Services.AddTransient<AccountsListViewModel>();
 		builder.Services.AddTransient<AccountsListPage>();
 		builder.Services.AddTransient<AddAccountViewModel>();
@@ -130,6 +139,8 @@ public static class MauiProgram
 		builder.Services.AddTransient<HistoryPage>();
 		builder.Services.AddTransient<MedicalExpenseDetailViewModel>();
 		builder.Services.AddTransient<MedicalExpenseDetailPage>();
+		builder.Services.AddTransient<TransactionDetailViewModel>();
+		builder.Services.AddTransient<TransactionDetailPage>();
 
 		builder.Services.AddTransient<CategoriesListViewModel>();
 		builder.Services.AddTransient<CategoriesListPage>();
@@ -167,6 +178,14 @@ public static class MauiProgram
 		builder.Services.AddTransient<RecurringExpensesListPage>();
 		builder.Services.AddTransient<AddRecurringExpenseViewModel>();
 		builder.Services.AddTransient<AddRecurringExpensePage>();
+
+		builder.Services.AddScoped<IRecurringIncomeService, RecurringIncomeService>();
+		builder.Services.AddTransient<RecurringIncomesListViewModel>();
+		builder.Services.AddTransient<RecurringIncomesListPage>();
+		builder.Services.AddTransient<AddRecurringIncomeViewModel>();
+		builder.Services.AddTransient<AddRecurringIncomePage>();
+		builder.Services.AddTransient<EditRecurringIncomeAmountViewModel>();
+		builder.Services.AddTransient<EditRecurringIncomeAmountPage>();
 
 		builder.Services.AddTransient<FinancialInstitutionsListViewModel>();
 		builder.Services.AddTransient<FinancialInstitutionsListPage>();

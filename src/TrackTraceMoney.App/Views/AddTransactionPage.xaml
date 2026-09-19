@@ -5,7 +5,7 @@
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.AddTransactionPage"
              x:DataType="viewModels:AddTransactionViewModel"
-             Title="{x:Static resources:AppResources.AddTransaction_Title}">
+             Title="{Binding PageTitle}">
 
     <Grid RowDefinitions="*,Auto" Padding="16">
 
@@ -15,6 +15,7 @@
             <Label Text="{x:Static resources:AppResources.AddTransaction_TypeLabel}" />
             <Picker ItemsSource="{Binding AvailableTypes}"
                     SelectedItem="{Binding SelectedType}"
+                    IsEnabled="{Binding IsTypePickerEnabled}"
                     AutomationId="AddTransaction_TypePicker">
                 <Picker.ItemDisplayBinding>
                     <Binding Path="." Converter="{StaticResource TransactionTypeToLabelConverter}" />
@@ -44,26 +45,30 @@
                 <Picker ItemsSource="{Binding People}" SelectedItem="{Binding SelectedBeneficiary}"
                         AutomationId="AddTransaction_BeneficiaryPicker" />
 
-                <CheckBox IsChecked="{Binding IsMedicalExpense}" />
-                <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalExpenseCheckbox}" />
+                <!-- Hidden entirely in edit mode (edit/delete slice spec §4.1/§4.2), see
+                     AddTransactionViewModel.IsMedicalCheckboxVisible's doc comment. -->
+                <VerticalStackLayout IsVisible="{Binding IsMedicalCheckboxVisible}" Spacing="12">
+                    <CheckBox IsChecked="{Binding IsMedicalExpense}" />
+                    <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalExpenseCheckbox}" />
 
-                <VerticalStackLayout IsVisible="{Binding IsMedicalExpense}" Spacing="12">
-                    <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalInsuranceProviderLabel}" />
-                    <Entry Text="{Binding MedicalInsuranceProvider}" />
+                    <VerticalStackLayout IsVisible="{Binding IsMedicalExpense}" Spacing="12">
+                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalInsuranceProviderLabel}" />
+                        <Entry Text="{Binding MedicalInsuranceProvider}" />
 
-                    <CheckBox IsChecked="{Binding HasInsuranceCoverage}" />
-                    <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalHasInsuranceCheckbox}" />
+                        <CheckBox IsChecked="{Binding HasInsuranceCoverage}" />
+                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalHasInsuranceCheckbox}" />
 
-                    <VerticalStackLayout IsVisible="{Binding HasInsuranceCoverage}" Spacing="12">
-                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalInsuranceCoveredLabel}" />
-                        <Entry Text="{Binding MedicalInsuranceCoveredAmountText}" Keyboard="Numeric" />
+                        <VerticalStackLayout IsVisible="{Binding HasInsuranceCoverage}" Spacing="12">
+                            <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalInsuranceCoveredLabel}" />
+                            <Entry Text="{Binding MedicalInsuranceCoveredAmountText}" Keyboard="Numeric" />
 
-                        <!-- Unchecked (default) = AddTransaction_MedicalFlowPending, checked = AddTransaction_MedicalFlowPaidDirectly.
-                             Both labels are shown together (rather than switching one Label's text via a
-                             bool-to-string converter) so the meaning of each state is always visible. -->
-                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalFlowPending}" FontSize="12" Opacity="0.7" />
-                        <CheckBox IsChecked="{Binding InsurancePaidProviderDirectly}" />
-                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalFlowPaidDirectly}" />
+                            <!-- Unchecked (default) = AddTransaction_MedicalFlowPending, checked = AddTransaction_MedicalFlowPaidDirectly.
+                                 Both labels are shown together (rather than switching one Label's text via a
+                                 bool-to-string converter) so the meaning of each state is always visible. -->
+                            <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalFlowPending}" FontSize="12" Opacity="0.7" />
+                            <CheckBox IsChecked="{Binding InsurancePaidProviderDirectly}" />
+                            <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalFlowPaidDirectly}" />
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </VerticalStackLayout>

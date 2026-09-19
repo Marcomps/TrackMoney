@@ -16,10 +16,15 @@ public sealed record LoanListItem(
     decimal MonthlyInstallment,
     DateOnly NextPaymentDate,
     int RemainingPayments,
-    decimal RequiredPayment)
+    decimal RequiredPayment,
+    bool IsActive)
 {
+    /// <summary>Same rationale as <c>AccountListItem.IsInactive</c> (edit/delete slice spec §1.3/§3.3).</summary>
+    public bool IsInactive => !IsActive;
+
     public static LoanListItem FromDomain(Loan loan, string institutionName) => new(
         loan.Id, loan.Name, institutionName, loan.Kind, loan.Currency,
         loan.OriginalAmount, loan.AmountOwed, loan.InterestRate, loan.RateType,
-        loan.MonthlyInstallment, loan.NextPaymentDate, loan.RemainingPayments, loan.RequiredPayment);
+        loan.MonthlyInstallment, loan.NextPaymentDate, loan.RemainingPayments, loan.RequiredPayment,
+        loan.IsActive);
 }

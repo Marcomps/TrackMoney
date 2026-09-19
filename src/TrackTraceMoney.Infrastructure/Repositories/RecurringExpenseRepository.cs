@@ -13,4 +13,8 @@ internal sealed class RecurringExpenseRepository : RepositoryBase<RecurringExpen
 
     public Task<IReadOnlyList<RecurringExpense>> GetActiveAsync(CancellationToken ct = default) =>
         GuardedAsync<IReadOnlyList<RecurringExpense>>(async () => await Context.Set<RecurringExpense>().Where(r => r.IsActive).ToListAsync(ct), ct);
+
+    public Task<bool> HasAnyReferencingAccountAsync(Guid accountOrCreditAccountId, CancellationToken ct = default) =>
+        GuardedAsync(() => Context.Set<RecurringExpense>()
+            .AnyAsync(r => r.AccountId == accountOrCreditAccountId || r.CreditAccountId == accountOrCreditAccountId, ct), ct);
 }

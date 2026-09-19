@@ -198,6 +198,9 @@ public sealed class RecurringExpenseServiceTests
         public Task<IReadOnlyList<RecurringExpense>> GetActiveAsync(CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<RecurringExpense>>(_recurringExpenses.Values.Where(r => r.IsActive).ToList());
 
+        public Task<bool> HasAnyReferencingAccountAsync(Guid accountOrCreditAccountId, CancellationToken ct = default) =>
+            Task.FromResult(_recurringExpenses.Values.Any(r => r.AccountId == accountOrCreditAccountId || r.CreditAccountId == accountOrCreditAccountId));
+
         public Task AddAsync(RecurringExpense entity, CancellationToken ct = default)
         {
             _recurringExpenses[entity.Id] = entity;
@@ -302,6 +305,30 @@ public sealed class RecurringExpenseServiceTests
         public void Remove(Transaction entity) => _transactions.Remove(entity);
 
         public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+
+        public Task<bool> HasAnyTransactionReferencingFinancialAccountAsync(Guid accountId, CancellationToken ct = default) =>
+            Task.FromResult(_transactions.Any(t => t switch
+            {
+                Expense e => e.AccountId == accountId,
+                Income i => i.DestinationAccountId == accountId,
+                Transfer tr => tr.SourceAccountId == accountId || tr.DestinationAccountId == accountId,
+                CreditCardPayment p => p.SourceAccountId == accountId,
+                LoanPayment lp => lp.SourceAccountId == accountId,
+                InvestmentContribution ic => ic.SourceAccountId == accountId || ic.DestinationAccountId == accountId,
+                InvestmentWithdrawal iw => iw.SourceAccountId == accountId || iw.DestinationAccountId == accountId,
+                InterestIncome ii => ii.DestinationAccountId == accountId,
+                Reimbursement r => r.DestinationAccountId == accountId,
+                _ => false,
+            }));
+
+        public Task<bool> HasAnyTransactionReferencingCreditAccountAsync(Guid creditAccountId, CancellationToken ct = default) =>
+            Task.FromResult(_transactions.Any(t => t switch
+            {
+                CreditCardPurchase p => p.CreditAccountId == creditAccountId,
+                CreditCardPayment p => p.CreditAccountId == creditAccountId,
+                LoanPayment lp => lp.CreditAccountId == creditAccountId,
+                _ => false,
+            }));
     }
 
     private sealed class InMemoryCreditAccountRepository : ICreditAccountRepository

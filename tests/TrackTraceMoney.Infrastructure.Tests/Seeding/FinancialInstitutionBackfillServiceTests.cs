@@ -107,6 +107,62 @@ public sealed class FinancialInstitutionBackfillServiceTests : IDisposable
         return fund.Id;
     }
 
+    private async Task<Guid> SeedLegacyBankAccountAsync(string bankName)
+    {
+        using var scope = _provider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<TrackTraceMoneyDbContext>();
+
+        var account = new BankAccount("Test Checking", CurrencyCode.USD, openingBalance: 0m);
+        context.Set<BankAccount>().Add(account);
+        await context.SaveChangesAsync();
+
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE Accounts SET BankName = {bankName}, InstitutionId = NULL WHERE Id = {account.Id}");
+
+        return account.Id;
+    }
+
+    /// <summary>
+    /// BankAccount was added to the backfill pool in a follow-up pass (it was missed in the original
+    /// slice) -- this test specifically proves it pools/dedups against another entity type's legacy
+    /// value, the same way the original four types already did against each other (see the test above).
+    /// </summary>
+    [Fact]
+    public async Task BackfillInstitutionsAsync_PoolsBankAccountWithOtherEntityTypesSharingTheSameName()
+    {
+        var creditCardId = await SeedLegacyCreditCardAsync("Banco Agrícola");
+        var bankAccountId = await SeedLegacyBankAccountAsync("Banco Agrícola");
+        var otherBankAccountId = await SeedLegacyBankAccountAsync("Banco Industrial");
+
+        using (var scope = _provider.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<TrackTraceMoneyDbContext>();
+            await FinancialInstitutionBackfillService.BackfillInstitutionsAsync(context);
+        }
+
+        using (var scope = _provider.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<TrackTraceMoneyDbContext>();
+
+            var institutions = await context.FinancialInstitutions.ToListAsync();
+            // 2 distinct names: "Banco Agrícola" (shared by the card and one bank account) and
+            // "Banco Industrial" (the other bank account) -- not 3, proving the shared name collapsed
+            // onto one row across the two different entity types.
+            Assert.Equal(2, institutions.Count);
+
+            var bancoAgricola = Assert.Single(institutions, i => i.Name == "Banco Agrícola");
+            var bancoIndustrial = Assert.Single(institutions, i => i.Name == "Banco Industrial");
+
+            var card = await context.Set<CreditCard>().SingleAsync(c => c.Id == creditCardId);
+            var bankAccount = await context.Set<BankAccount>().SingleAsync(b => b.Id == bankAccountId);
+            var otherBankAccount = await context.Set<BankAccount>().SingleAsync(b => b.Id == otherBankAccountId);
+
+            Assert.Equal(bancoAgricola.Id, card.InstitutionId);
+            Assert.Equal(bancoAgricola.Id, bankAccount.InstitutionId);
+            Assert.Equal(bancoIndustrial.Id, otherBankAccount.InstitutionId);
+        }
+    }
+
     [Fact]
     public async Task BackfillInstitutionsAsync_CreatesOneInstitutionPerDistinctExactNameAcrossAllFourEntityTypes()
     {

@@ -6,13 +6,22 @@
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.LoansListPage"
              x:DataType="viewModels:LoansListViewModel"
+             x:Name="Root"
              Title="{x:Static resources:AppResources.Loans_Title}">
 
-    <Grid RowDefinitions="*,Auto" Padding="16">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="16">
 
-        <RefreshView Grid.Row="0"
+        <HorizontalStackLayout Grid.Row="0" Spacing="8">
+            <Switch IsToggled="{Binding ShowInactive}" AutomationId="LoansList_ShowInactiveSwitch" />
+            <Label Text="{x:Static resources:AppResources.AccountsList_ShowInactiveLabel}" VerticalOptions="Center" />
+        </HorizontalStackLayout>
+
+        <Label Grid.Row="1" Text="{Binding ErrorMessage}" TextColor="Red" Margin="0,4,0,0" />
+
+        <RefreshView Grid.Row="2"
                      IsRefreshing="{Binding IsBusy}"
-                     Command="{Binding LoadLoansCommand}">
+                     Command="{Binding LoadLoansCommand}"
+                     Margin="0,8,0,0">
             <CollectionView ItemsSource="{Binding Loans}"
                              SelectionMode="None">
                 <CollectionView.EmptyView>
@@ -23,30 +32,57 @@
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:LoanListItem">
-                        <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
-                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="16" />
-                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding InstitutionName}" FontSize="12" Opacity="0.7" />
-                            <Label Grid.Row="2" Grid.Column="0"
-                                   Text="{Binding Kind, Converter={StaticResource LoanKindToLabelConverter}}"
-                                   FontSize="12" Opacity="0.7" />
-                            <Label Grid.Row="0" Grid.Column="1"
-                                   VerticalOptions="Center"
-                                   Text="{Binding AmountOwed, StringFormat='{0:N2}'}" />
-                            <Label Grid.Row="1" Grid.Column="1"
-                                   VerticalOptions="Center"
-                                   Text="{Binding RequiredPayment, StringFormat='{0:N2}'}"
-                                   FontSize="12" Opacity="0.7" />
-                            <Label Grid.Row="2" Grid.Column="1"
-                                   VerticalOptions="Center"
-                                   Text="{Binding NextPaymentDate}"
-                                   FontSize="12" Opacity="0.7" />
-                        </Grid>
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="{x:Static resources:AppResources.LoansList_EditAction}"
+                                               IsVisible="{Binding IsActive}"
+                                               Command="{Binding Source={x:Reference Root}, Path=BindingContext.EditLoanCommand}"
+                                               CommandParameter="{Binding Id}" />
+                                    <SwipeItem Text="{x:Static resources:AppResources.LoansList_DeactivateAction}"
+                                               IsVisible="{Binding IsActive}"
+                                               Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeactivateLoanCommand}"
+                                               CommandParameter="{Binding Id}" />
+                                    <SwipeItem Text="{x:Static resources:AppResources.LoansList_DeleteAction}"
+                                               IsVisible="{Binding IsActive}"
+                                               BackgroundColor="DarkRed"
+                                               Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeleteLoanCommand}"
+                                               CommandParameter="{Binding Id}" />
+                                    <SwipeItem Text="{x:Static resources:AppResources.LoansList_ReactivateAction}"
+                                               IsVisible="{Binding IsInactive}"
+                                               Command="{Binding Source={x:Reference Root}, Path=BindingContext.ReactivateLoanCommand}"
+                                               CommandParameter="{Binding Id}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="16" />
+                                <Label Grid.Row="1" Grid.Column="0" Text="{Binding InstitutionName}" FontSize="12" Opacity="0.7" />
+                                <Label Grid.Row="2" Grid.Column="0"
+                                       Text="{Binding Kind, Converter={StaticResource LoanKindToLabelConverter}}"
+                                       FontSize="12" Opacity="0.7" />
+                                <Label Grid.Row="3" Grid.Column="0"
+                                       Text="{x:Static resources:AppResources.AccountsList_InactiveBadge}"
+                                       IsVisible="{Binding IsInactive}"
+                                       FontSize="12" Opacity="0.6" />
+                                <Label Grid.Row="0" Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       Text="{Binding AmountOwed, StringFormat='{0:N2}'}" />
+                                <Label Grid.Row="1" Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       Text="{Binding RequiredPayment, StringFormat='{0:N2}'}"
+                                       FontSize="12" Opacity="0.7" />
+                                <Label Grid.Row="2" Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       Text="{Binding NextPaymentDate}"
+                                       FontSize="12" Opacity="0.7" />
+                            </Grid>
+                        </SwipeView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </RefreshView>
 
-        <Button Grid.Row="1"
+        <Button Grid.Row="3"
                 Text="{x:Static resources:AppResources.Loans_AddButton}"
                 Command="{Binding AddLoanCommand}"
                 HorizontalOptions="Fill"

@@ -193,4 +193,31 @@ public interface ITransactionEntryService
     /// <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/>'s status changes.
     /// </summary>
     Task RejectMedicalReimbursementAsync(Guid linkedTransactionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Reverses a previously-recorded <see cref="Domain.Transactions.Expense"/> (edit/delete slice spec
+    /// §4.1) — the exact inverse of <see cref="RecordExpenseAsync"/>'s <c>account.Debit(amount)</c>.
+    /// Fetches the transaction and its account fresh from their repositories (never trusts caller/UI
+    /// state), then removes the transaction. Used standalone for Delete, and as the first half of Edit
+    /// (immediately followed by a fresh <see cref="RecordExpenseAsync"/> call with the edited values).
+    /// No overdraft guard — <see cref="Domain.Accounts.FinancialAccount.Debit"/>/<c>Credit</c> have none
+    /// today either, so reversal can't newly fail where the original posting couldn't.
+    /// </summary>
+    Task ReverseExpenseAsync(Guid transactionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Reverses a previously-recorded <see cref="Domain.Transactions.Income"/> — the exact inverse of
+    /// <see cref="RecordIncomeAsync"/>'s <c>destinationAccount.Credit(amount)</c>. Same fetch-fresh,
+    /// remove, save shape as <see cref="ReverseExpenseAsync"/>.
+    /// </summary>
+    Task ReverseIncomeAsync(Guid transactionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Reverses a previously-recorded <see cref="Domain.Transactions.Transfer"/> — the exact inverse of
+    /// <see cref="RecordTransferAsync"/>'s <c>sourceAccount.Debit(amount)</c>/
+    /// <c>destinationAccount.Credit(amount)</c> pair. Re-fetches BOTH accounts fresh, mirroring
+    /// <see cref="RecordTransferAsync"/>'s own fetch-both-fresh pattern — never trusts a caller-supplied
+    /// account object for either side.
+    /// </summary>
+    Task ReverseTransferAsync(Guid transactionId, CancellationToken ct = default);
 }

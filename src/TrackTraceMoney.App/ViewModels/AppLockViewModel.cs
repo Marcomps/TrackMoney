@@ -119,8 +119,16 @@ public sealed partial class AppLockViewModel : ObservableObject
         if (CooldownSecondsRemaining > 0)
             return;
 
-        _cooldownTimer?.Stop();
-        _cooldownTimer = null;
+        if (_cooldownTimer is not null)
+        {
+            _cooldownTimer.Stop();
+            // Explicit unsubscribe, not just Stop(): this VM is AddTransient, and Tick was still
+            // attached, so leaving it attached risks the timer (and its captured "this") outliving this
+            // VM instance for up to the remaining cooldown duration if a new lock screen supersedes it
+            // first (found via checkpoint code review).
+            _cooldownTimer.Tick -= OnCooldownTick;
+            _cooldownTimer = null;
+        }
         IsCooldownActive = false;
         _failedAttempts = 0;
     }

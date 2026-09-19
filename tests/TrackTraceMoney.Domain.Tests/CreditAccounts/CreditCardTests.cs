@@ -278,4 +278,89 @@ public sealed class CreditCardTests
 
         Assert.Equal(new DateOnly(2026, 9, 20), dueDate);
     }
+
+    [Fact]
+    public void UpdateDetails_ValidValues_UpdatesEveryEditableField()
+    {
+        var card = CreateCard();
+        var newInstitutionId = Guid.NewGuid();
+        var newNetworkId = Guid.NewGuid();
+
+        card.UpdateDetails(newInstitutionId, newNetworkId, "9876", 2000m, 20, 10, 0.24m, 0.02m);
+
+        Assert.Equal(newInstitutionId, card.InstitutionId);
+        Assert.Equal(newNetworkId, card.NetworkId);
+        Assert.Equal("9876", card.LastFourDigits);
+        Assert.Equal(2000m, card.CreditLimit);
+        Assert.Equal(20, card.StatementCutOffDay);
+        Assert.Equal(10, card.PaymentDueDay);
+        Assert.Equal(0.24m, card.AnnualInterestRate);
+        Assert.Equal(0.02m, card.MonthlyInterestRate);
+    }
+
+    [Fact]
+    public void UpdateDetails_DoesNotMutateAmountOwed()
+    {
+        var card = CreateCard(openingAmountOwed: 300m);
+
+        card.UpdateDetails(Guid.NewGuid(), null, null, 2000m, 20, 10, null, null);
+
+        Assert.Equal(300m, card.AmountOwed);
+    }
+
+    [Fact]
+    public void UpdateDetails_WithEmptyInstitutionId_Throws()
+    {
+        var card = CreateCard();
+
+        Assert.Throws<ArgumentException>(() => card.UpdateDetails(Guid.Empty, null, null, 1000m, 15, 5, null, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNonPositiveCreditLimit_Throws()
+    {
+        var card = CreateCard();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => card.UpdateDetails(Guid.NewGuid(), null, null, 0m, 15, 5, null, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithLastFourDigitsInvalid_Throws()
+    {
+        var card = CreateCard();
+
+        Assert.Throws<ArgumentException>(() => card.UpdateDetails(Guid.NewGuid(), null, "12a4", 1000m, 15, 5, null, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithCutOffDayOutOfRange_Throws()
+    {
+        var card = CreateCard();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => card.UpdateDetails(Guid.NewGuid(), null, null, 1000m, 32, 5, null, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithPaymentDueDayOutOfRange_Throws()
+    {
+        var card = CreateCard();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => card.UpdateDetails(Guid.NewGuid(), null, null, 1000m, 15, 0, null, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNegativeAnnualInterestRate_Throws()
+    {
+        var card = CreateCard();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => card.UpdateDetails(Guid.NewGuid(), null, null, 1000m, 15, 5, -0.01m, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNegativeMonthlyInterestRate_Throws()
+    {
+        var card = CreateCard();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => card.UpdateDetails(Guid.NewGuid(), null, null, 1000m, 15, 5, null, -0.01m));
+    }
 }

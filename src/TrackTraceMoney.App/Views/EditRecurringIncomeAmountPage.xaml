@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.EditRecurringIncomeAmountPage"
+             x:DataType="viewModels:EditRecurringIncomeAmountViewModel"
+             Title="{x:Static resources:AppResources.EditRecurringIncomeAmount_Title}">
+
+    <Grid RowDefinitions="*,Auto" Padding="16">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="12">
+
+            <Label Text="{Binding Name}" FontSize="18" FontAttributes="Bold" />
+
+            <Label Text="{x:Static resources:AppResources.AddRecurringIncome_AmountLabel}" />
+            <Entry Text="{Binding AmountText}" Keyboard="Numeric" AutomationId="EditRecurringIncomeAmount_AmountEntry" />
+
+            <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="12" Margin="0,12,0,0">
+            <Button Text="{x:Static resources:AppResources.EditRecurringIncomeAmount_SaveButton}"
+                    Command="{Binding SaveCommand}"
+                    AutomationId="EditRecurringIncomeAmount_SaveButton"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.EditRecurringIncomeAmount_CancelButton}"
+                    Command="{Binding CancelCommand}"
+                    HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

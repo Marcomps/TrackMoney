@@ -213,8 +213,16 @@ public sealed partial class DashboardViewModel : ObservableObject
             // never bucket under a wrong/default currency" idiom rather than a plain GroupBy, since an
             // unresolvable account must never silently misattribute an amount to the wrong currency.
             var upcomingExpensesByCurrency = new Dictionary<CurrencyCode, decimal>();
-            foreach (var recurringExpense in recurringExpenses.Where(r => r.IsDue(realSurplusHorizonEnd)))
+            foreach (var recurringExpense in recurringExpenses)
             {
+                // Not a plain IsDue() filter counting each expense once: a Weekly recurring expense can
+                // have several occurrences between now and month-end, and each one is a real upcoming
+                // obligation against the same account. Found via a checkpoint code review -- IsDue()-only
+                // silently undercounted Weekly (and, in a short month, some Monthly-near-boundary) expenses.
+                var occurrenceCount = recurringExpense.CountOccurrencesThrough(realSurplusHorizonEnd);
+                if (occurrenceCount == 0)
+                    continue;
+
                 var sourceAccountId = recurringExpense.IsCreditCardBacked
                     ? recurringExpense.CreditAccountId!.Value
                     : recurringExpense.AccountId!.Value;
@@ -222,7 +230,7 @@ public sealed partial class DashboardViewModel : ObservableObject
                 if (!accountCurrencies.TryGetValue(sourceAccountId, out var currency))
                     continue; // Defensive: shouldn't happen (accountCurrencies is the complete map).
 
-                upcomingExpensesByCurrency[currency] = upcomingExpensesByCurrency.GetValueOrDefault(currency) + recurringExpense.Amount;
+                upcomingExpensesByCurrency[currency] = upcomingExpensesByCurrency.GetValueOrDefault(currency) + recurringExpense.Amount * occurrenceCount;
             }
 
             // Debt payments: every active Loan due by the horizon contributes its full RequiredPayment

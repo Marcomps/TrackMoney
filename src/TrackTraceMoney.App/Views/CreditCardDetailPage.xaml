@@ -13,6 +13,30 @@
         <ScrollView>
             <VerticalStackLayout Padding="16" Spacing="12">
 
+                <Label Text="{Binding ActionErrorMessage}" TextColor="Red" />
+
+                <Button Text="{x:Static resources:AppResources.CreditCardDetail_EditButton}"
+                        Command="{Binding EditCommand}"
+                        AutomationId="CreditCardDetail_EditButton"
+                        HorizontalOptions="Fill" />
+
+                <Button Text="{x:Static resources:AppResources.CreditCardDetail_DeactivateButton}"
+                        Command="{Binding DeactivateCommand}"
+                        IsVisible="{Binding IsActive}"
+                        AutomationId="CreditCardDetail_DeactivateButton"
+                        HorizontalOptions="Fill" />
+
+                <Button Text="{x:Static resources:AppResources.CreditCardDetail_ReactivateButton}"
+                        Command="{Binding ReactivateCommand}"
+                        IsVisible="{Binding IsInactive}"
+                        AutomationId="CreditCardDetail_ReactivateButton"
+                        HorizontalOptions="Fill" />
+
+                <Button Text="{x:Static resources:AppResources.CreditCardDetail_DeleteButton}"
+                        Command="{Binding DeleteCommand}"
+                        AutomationId="CreditCardDetail_DeleteButton"
+                        HorizontalOptions="Fill" />
+
                 <Label Text="{x:Static resources:AppResources.CreditCardHealth_Title}" FontAttributes="Bold" />
                 <Label>
                     <Label.FormattedText>

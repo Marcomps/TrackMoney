@@ -562,4 +562,62 @@ public sealed class TransactionEntryService : ITransactionEntryService
 
         await _medicalExpenseDetailRepository.SaveChangesAsync(ct);
     }
+
+    public async Task ReverseExpenseAsync(Guid transactionId, CancellationToken ct = default)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(transactionId, ct)
+            ?? throw new InvalidOperationException($"Transaction '{transactionId}' was not found.");
+
+        if (transaction is not Expense expense)
+            throw new InvalidOperationException($"Transaction '{transactionId}' is not an expense.");
+
+        var account = await _accountRepository.GetByIdAsync(expense.AccountId, ct)
+            ?? throw new InvalidOperationException($"Account '{expense.AccountId}' was not found.");
+
+        account.Credit(expense.Amount); // exact inverse of RecordExpenseAsync's account.Debit(amount)
+
+        _transactionRepository.Remove(expense);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    public async Task ReverseIncomeAsync(Guid transactionId, CancellationToken ct = default)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(transactionId, ct)
+            ?? throw new InvalidOperationException($"Transaction '{transactionId}' was not found.");
+
+        if (transaction is not Income income)
+            throw new InvalidOperationException($"Transaction '{transactionId}' is not an income.");
+
+        var destinationAccount = await _accountRepository.GetByIdAsync(income.DestinationAccountId, ct)
+            ?? throw new InvalidOperationException($"Account '{income.DestinationAccountId}' was not found.");
+
+        destinationAccount.Debit(income.Amount); // exact inverse of RecordIncomeAsync's destinationAccount.Credit(amount)
+
+        _transactionRepository.Remove(income);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    public async Task ReverseTransferAsync(Guid transactionId, CancellationToken ct = default)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(transactionId, ct)
+            ?? throw new InvalidOperationException($"Transaction '{transactionId}' was not found.");
+
+        if (transaction is not Transfer transfer)
+            throw new InvalidOperationException($"Transaction '{transactionId}' is not a transfer.");
+
+        // Re-fetch BOTH accounts fresh -- mirrors RecordTransferAsync's own fetch-both-fresh pattern,
+        // never trusting a caller-supplied account object for either side.
+        var sourceAccount = await _accountRepository.GetByIdAsync(transfer.SourceAccountId, ct)
+            ?? throw new InvalidOperationException($"Account '{transfer.SourceAccountId}' was not found.");
+
+        var destinationAccount = await _accountRepository.GetByIdAsync(transfer.DestinationAccountId, ct)
+            ?? throw new InvalidOperationException($"Account '{transfer.DestinationAccountId}' was not found.");
+
+        // Exact inverse of RecordTransferAsync's sourceAccount.Debit(amount)/destinationAccount.Credit(amount).
+        sourceAccount.Credit(transfer.Amount);
+        destinationAccount.Debit(transfer.Amount);
+
+        _transactionRepository.Remove(transfer);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
 }

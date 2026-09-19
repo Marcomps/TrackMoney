@@ -93,7 +93,7 @@
                         <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer
-                                    Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenMedicalExpenseDetailCommand}"
+                                    Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenTransactionDetailCommand}"
                                     CommandParameter="{Binding .}" />
                             </Grid.GestureRecognizers>
                             <Label Grid.Row="0" Grid.Column="0" Text="{Binding AccountLabel}" FontSize="16" />

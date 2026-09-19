@@ -45,7 +45,11 @@ public sealed class AppLockService : IAppLockService
 
     public async Task EnablePinAsync(string pin, CancellationToken ct = default)
     {
-        var (hash, salt) = PinHasher.Hash(pin);
+        // Offloaded via Task.Run: PinHasher.Hash runs 210,000 PBKDF2 iterations synchronously, and a
+        // button-triggered async command's continuation resumes on the UI thread's SynchronizationContext
+        // by default -- without this, every PIN setup blocks UI rendering for the full computation
+        // (found via checkpoint code review, not live testing; jank/ANR risk on low-end hardware).
+        var (hash, salt) = await Task.Run(() => PinHasher.Hash(pin), ct);
         // Order matters: write the hash/salt before flipping the enabled flag, so a failure partway
         // through can never leave "enabled" true with no (or a stale) hash behind it.
         await _secureStorage.SetAsync(PinHashKey, Convert.ToBase64String(hash));
@@ -72,6 +76,10 @@ public sealed class AppLockService : IAppLockService
         if (string.IsNullOrEmpty(hashBase64) || string.IsNullOrEmpty(saltBase64))
             return false;
 
-        return PinHasher.Verify(pin, Convert.FromBase64String(hashBase64), Convert.FromBase64String(saltBase64));
+        // Same UI-thread-jank reasoning as EnablePinAsync's Task.Run above -- every unlock attempt
+        // would otherwise block the UI thread for the full PBKDF2 computation too.
+        var hash = Convert.FromBase64String(hashBase64);
+        var salt = Convert.FromBase64String(saltBase64);
+        return await Task.Run(() => PinHasher.Verify(pin, hash, salt), ct);
     }
 }

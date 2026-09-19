@@ -89,4 +89,33 @@ internal sealed class TransactionRepository : RepositoryBase<Transaction>, ITran
             .Where(t => idList.Contains(t.Id))
             .ToListAsync(ct), ct);
     }
+
+    /// <summary>
+    /// Checks every <see cref="Domain.Accounts.FinancialAccount"/>-shaped FK column across every
+    /// transaction subtype, one small `Any` query per column rather than materializing any rows (see
+    /// the interface doc comment for the exact column list this must stay in sync with).
+    /// </summary>
+    public Task<bool> HasAnyTransactionReferencingFinancialAccountAsync(Guid accountId, CancellationToken ct = default) =>
+        GuardedAsync(async () =>
+            await Context.Set<Transaction>().OfType<Expense>().AnyAsync(e => e.AccountId == accountId, ct)
+            || await Context.Set<Transaction>().OfType<Income>().AnyAsync(i => i.DestinationAccountId == accountId, ct)
+            || await Context.Set<Transaction>().OfType<Transfer>().AnyAsync(t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId, ct)
+            || await Context.Set<Transaction>().OfType<CreditCardPayment>().AnyAsync(p => p.SourceAccountId == accountId, ct)
+            || await Context.Set<Transaction>().OfType<LoanPayment>().AnyAsync(p => p.SourceAccountId == accountId, ct)
+            || await Context.Set<Transaction>().OfType<InvestmentContribution>().AnyAsync(c => c.SourceAccountId == accountId || c.DestinationAccountId == accountId, ct)
+            || await Context.Set<Transaction>().OfType<InvestmentWithdrawal>().AnyAsync(w => w.SourceAccountId == accountId || w.DestinationAccountId == accountId, ct)
+            || await Context.Set<Transaction>().OfType<InterestIncome>().AnyAsync(i => i.DestinationAccountId == accountId, ct)
+            || await Context.Set<Transaction>().OfType<Reimbursement>().AnyAsync(r => r.DestinationAccountId == accountId, ct),
+            ct);
+
+    /// <summary>
+    /// Checks every <see cref="Domain.CreditAccounts.CreditAccount"/>-shaped FK column across every
+    /// transaction subtype (see the interface doc comment for the exact column list).
+    /// </summary>
+    public Task<bool> HasAnyTransactionReferencingCreditAccountAsync(Guid creditAccountId, CancellationToken ct = default) =>
+        GuardedAsync(async () =>
+            await Context.Set<Transaction>().OfType<CreditCardPurchase>().AnyAsync(p => p.CreditAccountId == creditAccountId, ct)
+            || await Context.Set<Transaction>().OfType<CreditCardPayment>().AnyAsync(p => p.CreditAccountId == creditAccountId, ct)
+            || await Context.Set<Transaction>().OfType<LoanPayment>().AnyAsync(p => p.CreditAccountId == creditAccountId, ct),
+            ct);
 }

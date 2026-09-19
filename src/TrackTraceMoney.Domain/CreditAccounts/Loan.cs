@@ -147,6 +147,44 @@ public sealed class Loan : CreditAccount
     }
 
     /// <summary>
+    /// Edits every in-place-editable field on this loan except its schedule (edit/delete slice spec
+    /// §3.1) — validation mirrors the constructor's exactly. <see cref="CreditAccount.AmountOwed"/> and
+    /// <see cref="OriginalAmount"/> are deliberately not parameters here: <c>AmountOwed</c> has no
+    /// direct setter anywhere except <see cref="CreditAccount.RegisterPayment"/>, and
+    /// <see cref="OriginalAmount"/> is fixed for the life of the loan per this class's own doc comment
+    /// — this mutator must not become a backdoor around either invariant.
+    /// <see cref="NextPaymentDate"/>/<see cref="RequiredPayment"/> are edited via the existing
+    /// <see cref="AdvanceSchedule"/>, not here.
+    /// </summary>
+    public void UpdateDetails(
+        Guid institutionId,
+        LoanKind kind,
+        decimal interestRate,
+        LoanRateType rateType,
+        decimal monthlyInstallment,
+        decimal? fees)
+    {
+        if (institutionId == Guid.Empty)
+            throw new ArgumentException("Institution id is required.", nameof(institutionId));
+
+        if (interestRate < 0)
+            throw new ArgumentOutOfRangeException(nameof(interestRate), "Interest rate cannot be negative.");
+
+        if (monthlyInstallment <= 0)
+            throw new ArgumentOutOfRangeException(nameof(monthlyInstallment), "Monthly installment must be positive.");
+
+        if (fees < 0)
+            throw new ArgumentOutOfRangeException(nameof(fees), "Fees cannot be negative.");
+
+        InstitutionId = institutionId;
+        Kind = kind;
+        InterestRate = interestRate;
+        RateType = rateType;
+        MonthlyInstallment = monthlyInstallment;
+        Fees = fees;
+    }
+
+    /// <summary>
     /// Advances this loan's forward-looking schedule after a payment is recorded (README §19). Called by
     /// LoanPayment's recording flow, never invoked standalone — both values are supplied by the caller
     /// (ultimately user-entered on the Add Transaction screen), mirroring RequiredPayment's existing
