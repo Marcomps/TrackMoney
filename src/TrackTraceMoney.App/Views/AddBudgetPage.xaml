@@ -5,7 +5,7 @@
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.AddBudgetPage"
              x:DataType="viewModels:AddBudgetViewModel"
-             Title="{x:Static resources:AppResources.AddBudget_Title}">
+             Title="{Binding PageTitle}">
 
     <Grid RowDefinitions="*,Auto" Padding="16">
 
@@ -13,14 +13,16 @@
         <VerticalStackLayout Spacing="12">
 
             <Label Text="{x:Static resources:AppResources.AddBudget_CategoryLabel}" />
-            <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" />
+            <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
+                    IsEnabled="{Binding IsCategoryPickerEnabled}" />
 
             <Label Text="{x:Static resources:AppResources.AddBudget_AmountLabel}" />
             <Entry Text="{Binding AmountText}" Keyboard="Numeric" />
 
             <Label Text="{x:Static resources:AppResources.AddBudget_CurrencyLabel}" />
             <Picker ItemsSource="{Binding AvailableCurrencies}"
-                    SelectedItem="{Binding SelectedCurrency}" />
+                    SelectedItem="{Binding SelectedCurrency}"
+                    IsEnabled="{Binding IsCurrencyPickerEnabled}" />
 
             <Label Text="{Binding ErrorMessage}" TextColor="Red" />
 
@@ -34,6 +36,12 @@
 
             <Button Text="{x:Static resources:AppResources.AddBudget_CancelButton}"
                     Command="{Binding CancelCommand}"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.AddBudget_DeleteButton}"
+                    Command="{Binding DeleteCommand}"
+                    IsVisible="{Binding IsEditMode}"
+                    BackgroundColor="DarkRed"
                     HorizontalOptions="Fill" />
         </VerticalStackLayout>
 

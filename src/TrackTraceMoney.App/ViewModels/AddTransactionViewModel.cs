@@ -8,6 +8,7 @@ using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Transactions;
 using TrackTraceMoney.Domain.Accounts;
+using TrackTraceMoney.Domain.Categories;
 using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.Transactions;
@@ -82,6 +83,18 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     /// </summary>
     private IReadOnlyList<Loan> _loans = [];
 
+    /// <summary>
+    /// The system "Health"/"Salud" category's Id, resolved once in <c>LoadOptionsAsync</c> -- used only
+    /// to auto-suggest <see cref="IsMedicalExpense"/> in <c>OnSelectedCategoryChanged</c> below. Found via
+    /// user feedback ("creeria que gastos medicos pudiera ser otra categoria"): the medical-expense
+    /// checkbox and the Category picker previously had zero relationship, so picking the existing "Salud"
+    /// category did nothing to hint that the checkbox below it exists. Never auto-UNCHECKS on category
+    /// change -- a user who already opened the insurance sub-fields for a different category kept them
+    /// deliberately, and this is a convenience nudge, not a hard rule (MedicalExpenseDetail is optional
+    /// metadata on any Expense, not exclusive to the Health category).
+    /// </summary>
+    private Guid? _healthCategoryId;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsExpense))]
     [NotifyPropertyChangedFor(nameof(IsIncome))]
@@ -112,6 +125,12 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 
     [ObservableProperty]
     private NamedOption? selectedCategory;
+
+    partial void OnSelectedCategoryChanged(NamedOption? value)
+    {
+        if (IsExpense && value is not null && value.Id == _healthCategoryId)
+            IsMedicalExpense = true;
+    }
 
     [ObservableProperty]
     private NamedOption? selectedPayer;
@@ -381,6 +400,8 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         Categories.Clear();
         foreach (var category in categories)
             Categories.Add(new NamedOption(category.Id, SystemCategoryKeyToLabelConverter.GetDisplayName(category)));
+
+        _healthCategoryId = categories.FirstOrDefault(c => c.SystemKey == SystemCategoryKey.Health)?.Id;
 
         People.Clear();
         People.Add(new NamedOption(Guid.Empty, AppResources.AddTransaction_NoneOption));

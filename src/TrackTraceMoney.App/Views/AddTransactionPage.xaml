@@ -37,26 +37,28 @@
                 <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
                         AutomationId="AddTransaction_ExpenseCategoryPicker" />
 
-                <Label Text="{x:Static resources:AppResources.AddTransaction_PayerLabel}" />
-                <Picker ItemsSource="{Binding People}" SelectedItem="{Binding SelectedPayer}"
-                        AutomationId="AddTransaction_PayerPicker" />
-
-                <Label Text="{x:Static resources:AppResources.AddTransaction_BeneficiaryLabel}" />
-                <Picker ItemsSource="{Binding People}" SelectedItem="{Binding SelectedBeneficiary}"
-                        AutomationId="AddTransaction_BeneficiaryPicker" />
-
-                <!-- Hidden entirely in edit mode (edit/delete slice spec §4.1/§4.2), see
+                <!-- Placed immediately under Category, not near Payer/Beneficiary: this is optional extra
+                     insurance/reimbursement tracking for the expense just categorized above, not a second,
+                     competing way to categorize it (found via user feedback: the checkbox used to sit far
+                     below Category and read like an alternative category choice). Hidden entirely in edit
+                     mode (edit/delete slice spec §4.1/§4.2), see
                      AddTransactionViewModel.IsMedicalCheckboxVisible's doc comment. -->
                 <VerticalStackLayout IsVisible="{Binding IsMedicalCheckboxVisible}" Spacing="12">
-                    <CheckBox IsChecked="{Binding IsMedicalExpense}" />
-                    <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalExpenseCheckbox}" />
+                    <HorizontalStackLayout Spacing="8">
+                        <CheckBox IsChecked="{Binding IsMedicalExpense}" />
+                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalExpenseCheckbox}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
 
                     <VerticalStackLayout IsVisible="{Binding IsMedicalExpense}" Spacing="12">
                         <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalInsuranceProviderLabel}" />
                         <Entry Text="{Binding MedicalInsuranceProvider}" />
 
-                        <CheckBox IsChecked="{Binding HasInsuranceCoverage}" />
-                        <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalHasInsuranceCheckbox}" />
+                        <HorizontalStackLayout Spacing="8">
+                            <CheckBox IsChecked="{Binding HasInsuranceCoverage}" />
+                            <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalHasInsuranceCheckbox}"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
 
                         <VerticalStackLayout IsVisible="{Binding HasInsuranceCoverage}" Spacing="12">
                             <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalInsuranceCoveredLabel}" />
@@ -66,11 +68,22 @@
                                  Both labels are shown together (rather than switching one Label's text via a
                                  bool-to-string converter) so the meaning of each state is always visible. -->
                             <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalFlowPending}" FontSize="12" Opacity="0.7" />
-                            <CheckBox IsChecked="{Binding InsurancePaidProviderDirectly}" />
-                            <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalFlowPaidDirectly}" />
+                            <HorizontalStackLayout Spacing="8">
+                                <CheckBox IsChecked="{Binding InsurancePaidProviderDirectly}" />
+                                <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalFlowPaidDirectly}"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
+
+                <Label Text="{x:Static resources:AppResources.AddTransaction_PayerLabel}" />
+                <Picker ItemsSource="{Binding People}" SelectedItem="{Binding SelectedPayer}"
+                        AutomationId="AddTransaction_PayerPicker" />
+
+                <Label Text="{x:Static resources:AppResources.AddTransaction_BeneficiaryLabel}" />
+                <Picker ItemsSource="{Binding People}" SelectedItem="{Binding SelectedBeneficiary}"
+                        AutomationId="AddTransaction_BeneficiaryPicker" />
             </VerticalStackLayout>
 
             <VerticalStackLayout IsVisible="{Binding IsIncome}" Spacing="12">

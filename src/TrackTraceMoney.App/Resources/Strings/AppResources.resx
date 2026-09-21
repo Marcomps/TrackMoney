@@ -398,7 +398,7 @@
     <value>Para quién fue (opcional)</value>
   </data>
   <data name="AddTransaction_MedicalExpenseCheckbox" xml:space="preserve">
-    <value>🩺 Gasto médico</value>
+    <value>🩺 Registrar seguro/reembolso para este gasto</value>
   </data>
   <data name="AddTransaction_MedicalInsuranceProviderLabel" xml:space="preserve">
     <value>Aseguradora</value>
@@ -2172,5 +2172,41 @@
   </data>
   <data name="AddTransaction_MedicalLinkedMessage" xml:space="preserve">
     <value>Esta transacción está vinculada a un gasto médico y no se puede editar desde aquí.</value>
+  </data>
+  <data name="AddBudget_EditTitle" xml:space="preserve">
+    <value>Editar presupuesto</value>
+  </data>
+  <data name="AddBudget_EditNotFound" xml:space="preserve">
+    <value>No se encontró el presupuesto.</value>
+  </data>
+  <data name="AddBudget_DeleteButton" xml:space="preserve">
+    <value>Eliminar presupuesto</value>
+  </data>
+  <data name="AddBudget_DeleteConfirmTitle" xml:space="preserve">
+    <value>Eliminar presupuesto</value>
+  </data>
+  <data name="AddBudget_DeleteConfirmMessage" xml:space="preserve">
+    <value>¿Eliminar este presupuesto de forma permanente? Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="AddBudget_DeleteConfirmAccept" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="AddBudget_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Budgets_EditAction" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Budgets_DeleteAction" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Budgets_SpentLabel" xml:space="preserve">
+    <value>Gastado</value>
+  </data>
+  <data name="Budgets_OfLabel" xml:space="preserve">
+    <value>de</value>
+  </data>
+  <data name="Budgets_RemainingLabel" xml:space="preserve">
+    <value>Restante</value>
   </data>
 </root>

@@ -6,6 +6,7 @@
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.BudgetsListPage"
              x:DataType="viewModels:BudgetsListViewModel"
+             x:Name="Root"
              Title="{x:Static resources:AppResources.Budgets_Title}">
 
     <Grid RowDefinitions="*,Auto" Padding="16">
@@ -23,22 +24,51 @@
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:BudgetListItem">
-                        <Grid Padding="0,12" ColumnDefinitions="Auto,*,Auto">
-                            <Label Grid.Column="0" Text="{Binding SemaforoEmoji}" FontSize="16" VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="{Binding CategoryName}" FontSize="16"
-                                   Margin="8,0,0,0" VerticalOptions="Center" />
-                            <Label Grid.Column="2" VerticalOptions="Center">
-                                <Label.FormattedText>
-                                    <FormattedString>
-                                        <Span Text="{Binding Spent, StringFormat='{0:N2}'}" />
-                                        <Span Text=" / " />
-                                        <Span Text="{Binding BudgetAmount, StringFormat='{0:N2}'}" />
-                                        <Span Text=" " />
-                                        <Span Text="{Binding Currency}" />
-                                    </FormattedString>
-                                </Label.FormattedText>
-                            </Label>
-                        </Grid>
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="{x:Static resources:AppResources.Budgets_EditAction}"
+                                               Command="{Binding Source={x:Reference Root}, Path=BindingContext.EditBudgetCommand}"
+                                               CommandParameter="{Binding Id}" />
+                                    <SwipeItem Text="{x:Static resources:AppResources.Budgets_DeleteAction}"
+                                               BackgroundColor="DarkRed"
+                                               Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeleteBudgetCommand}"
+                                               CommandParameter="{Binding Id}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            <Grid Padding="0,12" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding SemaforoEmoji}" FontSize="16" VerticalOptions="Center" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding CategoryName}" FontSize="16"
+                                       Margin="8,0,0,0" VerticalOptions="Center" />
+                                <Label Grid.Row="0" Grid.Column="2" VerticalOptions="Center">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{x:Static resources:AppResources.Budgets_SpentLabel}" />
+                                            <Span Text=": " />
+                                            <Span Text="{Binding Spent, StringFormat='{0:N2}'}" />
+                                            <Span Text=" " />
+                                            <Span Text="{x:Static resources:AppResources.Budgets_OfLabel}" />
+                                            <Span Text=" " />
+                                            <Span Text="{Binding BudgetAmount, StringFormat='{0:N2}'}" />
+                                            <Span Text=" " />
+                                            <Span Text="{Binding Currency}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
+                                       Margin="8,2,0,0" FontSize="13" Opacity="0.85">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{x:Static resources:AppResources.Budgets_RemainingLabel}" />
+                                            <Span Text=": " />
+                                            <Span Text="{Binding Remaining, StringFormat='{0:N2}'}" />
+                                            <Span Text=" " />
+                                            <Span Text="{Binding Currency}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                            </Grid>
+                        </SwipeView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>

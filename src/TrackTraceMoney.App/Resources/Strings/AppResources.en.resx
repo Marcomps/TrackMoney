@@ -398,7 +398,7 @@
     <value>Who it was for (optional)</value>
   </data>
   <data name="AddTransaction_MedicalExpenseCheckbox" xml:space="preserve">
-    <value>🩺 Medical expense</value>
+    <value>🩺 Track insurance/reimbursement for this expense</value>
   </data>
   <data name="AddTransaction_MedicalInsuranceProviderLabel" xml:space="preserve">
     <value>Insurance provider</value>
@@ -2172,5 +2172,41 @@
   </data>
   <data name="AddTransaction_MedicalLinkedMessage" xml:space="preserve">
     <value>This transaction is linked to a medical expense and can't be edited from here.</value>
+  </data>
+  <data name="AddBudget_EditTitle" xml:space="preserve">
+    <value>Edit budget</value>
+  </data>
+  <data name="AddBudget_EditNotFound" xml:space="preserve">
+    <value>The budget was not found.</value>
+  </data>
+  <data name="AddBudget_DeleteButton" xml:space="preserve">
+    <value>Delete budget</value>
+  </data>
+  <data name="AddBudget_DeleteConfirmTitle" xml:space="preserve">
+    <value>Delete budget</value>
+  </data>
+  <data name="AddBudget_DeleteConfirmMessage" xml:space="preserve">
+    <value>Permanently delete this budget? This action cannot be undone.</value>
+  </data>
+  <data name="AddBudget_DeleteConfirmAccept" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="AddBudget_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Budgets_EditAction" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Budgets_DeleteAction" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Budgets_SpentLabel" xml:space="preserve">
+    <value>Spent</value>
+  </data>
+  <data name="Budgets_OfLabel" xml:space="preserve">
+    <value>of</value>
+  </data>
+  <data name="Budgets_RemainingLabel" xml:space="preserve">
+    <value>Remaining</value>
   </data>
 </root>

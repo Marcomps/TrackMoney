@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Models;
+using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Budgets;
@@ -96,5 +97,48 @@ public sealed partial class BudgetsListViewModel : ObservableObject
     private static async Task AddBudgetAsync()
     {
         await Shell.Current.GoToAsync(nameof(AddBudgetPage));
+    }
+
+    [RelayCommand]
+    private static async Task EditBudgetAsync(Guid budgetId) =>
+        await Shell.Current.GoToAsync($"{nameof(AddBudgetPage)}?budgetId={budgetId}");
+
+    /// <summary>
+    /// Same confirm-then-delete convention as <c>AccountsListViewModel.DeleteAccountAsync</c> --
+    /// unlike that Account precedent, no dependent-entity guard is checked first: Budget has no
+    /// <c>IsActive</c>/lifecycle concept and no other entity references a Budget, so a confirmed
+    /// delete is always safe.
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteBudgetAsync(Guid budgetId)
+    {
+        if (IsBusy)
+            return;
+
+        var confirmed = await Shell.Current.DisplayAlertAsync(
+            AppResources.AddBudget_DeleteConfirmTitle,
+            AppResources.AddBudget_DeleteConfirmMessage,
+            AppResources.AddBudget_DeleteConfirmAccept,
+            AppResources.AddBudget_DeleteConfirmCancel);
+
+        if (!confirmed)
+            return;
+
+        IsBusy = true;
+        try
+        {
+            var budget = await _budgetRepository.GetByIdAsync(budgetId);
+            if (budget is null)
+                return;
+
+            _budgetRepository.Remove(budget);
+            await _budgetRepository.SaveChangesAsync();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        await LoadBudgetsAsync();
     }
 }

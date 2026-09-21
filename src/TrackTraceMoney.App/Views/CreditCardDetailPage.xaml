@@ -15,27 +15,42 @@
 
                 <Label Text="{Binding ActionErrorMessage}" TextColor="Red" />
 
-                <Button Text="{x:Static resources:AppResources.CreditCardDetail_EditButton}"
-                        Command="{Binding EditCommand}"
-                        AutomationId="CreditCardDetail_EditButton"
-                        HorizontalOptions="Fill" />
+                <!-- Compact single-row action bar (budget-edit-delete-and-ui-polish spec §3): was 4
+                     stacked full-width Buttons (only 3 visible at once, since Deactivate/Reactivate
+                     are mutually exclusive), claiming 3 full rows of vertical space before any real
+                     card content was visible ("en credito me muestran los 3 botones... ocupan mucho
+                     espacio"). Every Command/IsVisible/AutomationId binding is unchanged. -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6">
+                    <Button Grid.Column="0"
+                            Text="{x:Static resources:AppResources.CreditCardDetail_EditButton}"
+                            Command="{Binding EditCommand}"
+                            AutomationId="CreditCardDetail_EditButton"
+                            Padding="4,8" FontSize="13"
+                            HorizontalOptions="Fill" />
 
-                <Button Text="{x:Static resources:AppResources.CreditCardDetail_DeactivateButton}"
-                        Command="{Binding DeactivateCommand}"
-                        IsVisible="{Binding IsActive}"
-                        AutomationId="CreditCardDetail_DeactivateButton"
-                        HorizontalOptions="Fill" />
+                    <Button Grid.Column="1"
+                            Text="{x:Static resources:AppResources.CreditCardDetail_DeactivateButton}"
+                            Command="{Binding DeactivateCommand}"
+                            IsVisible="{Binding IsActive}"
+                            AutomationId="CreditCardDetail_DeactivateButton"
+                            Padding="4,8" FontSize="13"
+                            HorizontalOptions="Fill" />
 
-                <Button Text="{x:Static resources:AppResources.CreditCardDetail_ReactivateButton}"
-                        Command="{Binding ReactivateCommand}"
-                        IsVisible="{Binding IsInactive}"
-                        AutomationId="CreditCardDetail_ReactivateButton"
-                        HorizontalOptions="Fill" />
+                    <Button Grid.Column="1"
+                            Text="{x:Static resources:AppResources.CreditCardDetail_ReactivateButton}"
+                            Command="{Binding ReactivateCommand}"
+                            IsVisible="{Binding IsInactive}"
+                            AutomationId="CreditCardDetail_ReactivateButton"
+                            Padding="4,8" FontSize="13"
+                            HorizontalOptions="Fill" />
 
-                <Button Text="{x:Static resources:AppResources.CreditCardDetail_DeleteButton}"
-                        Command="{Binding DeleteCommand}"
-                        AutomationId="CreditCardDetail_DeleteButton"
-                        HorizontalOptions="Fill" />
+                    <Button Grid.Column="2"
+                            Text="{x:Static resources:AppResources.CreditCardDetail_DeleteButton}"
+                            Command="{Binding DeleteCommand}"
+                            AutomationId="CreditCardDetail_DeleteButton"
+                            Padding="4,8" FontSize="13"
+                            HorizontalOptions="Fill" />
+                </Grid>
 
                 <Label Text="{x:Static resources:AppResources.CreditCardHealth_Title}" FontAttributes="Bold" />
                 <Label>
