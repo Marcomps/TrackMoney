@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.EditTransactionPresetPage"
+             x:DataType="viewModels:EditTransactionPresetViewModel"
+             Title="{x:Static resources:AppResources.EditTransactionPreset_Title}">
+
+    <Grid RowDefinitions="*,Auto" Padding="16">
+
+        <ScrollView Grid.Row="0">
+        <VerticalStackLayout Spacing="12">
+
+            <Label Text="{x:Static resources:AppResources.AddTransactionPreset_NameLabel}" />
+            <Entry Text="{Binding Name}" AutomationId="EditTransactionPreset_NameEntry" />
+
+            <Label Text="{x:Static resources:AppResources.AddCategory_IconLabel}" />
+            <Picker ItemsSource="{Binding AvailableIcons}"
+                    SelectedItem="{Binding SelectedIcon}"
+                    AutomationId="EditTransactionPreset_IconPicker">
+                <Picker.ItemDisplayBinding>
+                    <Binding Path="." Converter="{StaticResource CategoryIconToDisplayConverter}" />
+                </Picker.ItemDisplayBinding>
+            </Picker>
+
+            <Label Text="{x:Static resources:AppResources.AddTransactionPreset_BaseTypeLabel}" />
+            <Label Text="{Binding BaseType, Converter={StaticResource TransactionPresetBaseTypeToLabelConverter}}"
+                   FontAttributes="Bold" />
+            <Label Text="{x:Static resources:AppResources.EditTransactionPreset_BaseTypeLockedMessage}"
+                   FontSize="12" Opacity="0.8" />
+
+            <VerticalStackLayout IsVisible="{Binding IsCategoryVisible}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddTransactionPreset_CategoryLabel}" />
+                <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
+                        AutomationId="EditTransactionPreset_CategoryPicker" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding IsExpenseBaseType}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddTransactionPreset_AccountLabel}" />
+                <Picker ItemsSource="{Binding ExpenseAccounts}" SelectedItem="{Binding SelectedAccount}"
+                        AutomationId="EditTransactionPreset_ExpenseAccountPicker" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding IsPlainAccountBaseType}" Spacing="12">
+                <Label Text="{x:Static resources:AppResources.AddTransactionPreset_AccountLabel}" />
+                <Picker ItemsSource="{Binding PlainAccounts}" SelectedItem="{Binding SelectedPlainAccount}"
+                        AutomationId="EditTransactionPreset_PlainAccountPicker" />
+            </VerticalStackLayout>
+
+            <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+        </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="12" Margin="0,12,0,0">
+            <Button Text="{x:Static resources:AppResources.AddCategory_SaveButton}"
+                    Command="{Binding SaveCommand}"
+                    AutomationId="EditTransactionPreset_SaveButton"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.AddCategory_CancelButton}"
+                    Command="{Binding CancelCommand}"
+                    HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

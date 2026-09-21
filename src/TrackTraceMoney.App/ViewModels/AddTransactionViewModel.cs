@@ -12,6 +12,7 @@ using TrackTraceMoney.Domain.Categories;
 using TrackTraceMoney.Domain.CreditAccounts;
 using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.Transactions;
+using TrackTraceMoney.Domain.TransactionPresets;
 
 namespace TrackTraceMoney.App.ViewModels;
 
@@ -26,6 +27,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     private readonly IPersonRepository _personRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly IMedicalExpenseDetailRepository _medicalExpenseDetailRepository;
+    private readonly ITransactionPresetRepository _transactionPresetRepository;
 
     /// <summary>
     /// The actual <c>[QueryProperty]</c> target for edit mode (edit/delete slice spec §4.1) -- same
@@ -38,6 +40,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(PageTitle))]
     [NotifyPropertyChangedFor(nameof(IsTypePickerEnabled))]
     [NotifyPropertyChangedFor(nameof(IsMedicalCheckboxVisible))]
+    [NotifyPropertyChangedFor(nameof(IsQuickPresetsVisible))]
     private Guid? editingTransactionId;
 
     [ObservableProperty]
@@ -302,6 +305,17 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 
     public ObservableCollection<NamedOption> People { get; } = [];
 
+    /// <summary>
+    /// Backs the "Quick presets" chip row (Transaction Type Customization slice spec §B.4/§B.7.3) --
+    /// every active <see cref="TransactionPreset"/>. Hidden entirely in edit mode, same reasoning as
+    /// <see cref="IsMedicalCheckboxVisible"/>: a preset only ever makes sense while composing a brand-new
+    /// entry, not while editing an already-saved one whose <see cref="SelectedType"/> is locked anyway
+    /// (see <see cref="IsTypePickerEnabled"/>).
+    /// </summary>
+    public ObservableCollection<TransactionPresetOption> QuickPresets { get; } = [];
+
+    public bool IsQuickPresetsVisible => !IsEditMode && QuickPresets.Count > 0;
+
     public bool IsExpense => SelectedType == TransactionType.Expense;
 
     public bool IsIncome => SelectedType == TransactionType.Income;
@@ -333,7 +347,8 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         ICategoryRepository categoryRepository,
         IPersonRepository personRepository,
         ITransactionRepository transactionRepository,
-        IMedicalExpenseDetailRepository medicalExpenseDetailRepository)
+        IMedicalExpenseDetailRepository medicalExpenseDetailRepository,
+        ITransactionPresetRepository transactionPresetRepository)
     {
         _transactionEntryService = transactionEntryService;
         _accountRepository = accountRepository;
@@ -342,6 +357,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         _personRepository = personRepository;
         _transactionRepository = transactionRepository;
         _medicalExpenseDetailRepository = medicalExpenseDetailRepository;
+        _transactionPresetRepository = transactionPresetRepository;
     }
 
     [RelayCommand]
@@ -439,6 +455,14 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                 SelectedPendingReimbursableExpense = preselected;
             }
         }
+
+        // Quick presets (Transaction Type Customization slice spec §B.4) -- loaded after every picker
+        // collection above so ApplyPreset (which resolves against them) never races an empty collection.
+        var presets = await _transactionPresetRepository.GetActiveAsync();
+        QuickPresets.Clear();
+        foreach (var preset in presets)
+            QuickPresets.Add(TransactionPresetOption.FromDomain(preset));
+        OnPropertyChanged(nameof(IsQuickPresetsVisible));
 
         if (EditingTransactionId is { } editingId)
             await LoadEditingTransactionAsync(editingId);
@@ -542,6 +566,60 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     /// equivalent cross-contamination risk, so it is left untouched.
     /// </summary>
     partial void OnSelectedTypeChanged(TransactionType value) => SelectedDestinationAccount = null;
+
+    /// <summary>
+    /// Pre-fills fields from a tapped "Quick presets" chip (Transaction Type Customization slice spec
+    /// §B.4/§B.7.3) -- never touches <c>TransactionEntryService</c>, never routes to
+    /// <c>TransactionType.CreditCardPurchase</c> (not a top-level, user-selectable value in this
+    /// ViewModel at all, see <see cref="AvailableTypes"/>'s own doc comment). Every field this sets
+    /// remains overridable afterward -- this is a pre-fill, not a lock.
+    /// <see cref="SelectedType"/> is set FIRST in every branch, mirroring
+    /// <see cref="LoadEditingTransactionAsync"/>'s own ordering: the generated <c>OnSelectedTypeChanged</c>
+    /// partial method resets <see cref="SelectedDestinationAccount"/> as a side effect of that assignment,
+    /// so the real destination selection below must happen after, not before, that reset fires.
+    /// </summary>
+    [RelayCommand]
+    private void ApplyPreset(TransactionPresetOption preset)
+    {
+        SelectedType = preset.BaseType switch
+        {
+            TransactionPresetBaseType.Expense => TransactionType.Expense,
+            TransactionPresetBaseType.Income => TransactionType.Income,
+            TransactionPresetBaseType.Transfer => TransactionType.Transfer,
+            _ => SelectedType
+        };
+
+        if (preset.DefaultCategoryId is { } categoryId)
+            SelectedCategory = Categories.FirstOrDefault(o => o.Id == categoryId);
+
+        switch (preset.BaseType)
+        {
+            case TransactionPresetBaseType.Expense:
+                // One lookup, one collection, no if/else on card-ness at all -- PaymentAccounts already
+                // carries IsCreditAccount per entry (decided when the collection was built in
+                // LoadOptionsAsync, not decided here). SaveAsync's existing
+                // "if (SelectedAccount.IsCreditAccount)" branch then does the rest, completely
+                // unmodified (§B.7.3).
+                var targetId = preset.DefaultAccountId ?? preset.DefaultCreditAccountId;
+                SelectedAccount = targetId is null ? null : PaymentAccounts.FirstOrDefault(o => o.Id == targetId.Value);
+                break;
+
+            case TransactionPresetBaseType.Income:
+                if (preset.DefaultAccountId is { } incomeAccountId)
+                    SelectedDestinationAccount = Accounts.FirstOrDefault(o => o.Id == incomeAccountId);
+                break;
+
+            case TransactionPresetBaseType.Transfer:
+                // Both Income and Transfer share the same SelectedDestinationAccount property in this
+                // ViewModel (see OnSelectedTypeChanged's own doc comment) -- resolved against
+                // TransferDestinationAccounts here instead of Accounts, matching Transfer's own
+                // destination picker collection. DefaultCreditAccountId is structurally guaranteed null
+                // for a Transfer-based preset (Domain-enforced, §B.7.2), so it's never consulted here.
+                if (preset.DefaultAccountId is { } transferAccountId)
+                    SelectedDestinationAccount = TransferDestinationAccounts.FirstOrDefault(o => o.Id == transferAccountId);
+                break;
+        }
+    }
 
     [RelayCommand]
     private async Task SaveAsync()

@@ -256,6 +256,14 @@ public sealed partial class SettingsViewModel : ObservableObject
         await Shell.Current.GoToAsync(nameof(BudgetsListPage));
     }
 
+    // Transaction Type Customization slice, Half B (§B.4) -- same "used at setup time" Settings
+    // placement as Categories/Budgets/FinancialInstitutions/CardNetworks above.
+    [RelayCommand]
+    private static async Task GoToManageTransactionPresetsAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(TransactionPresetsListPage));
+    }
+
     [RelayCommand]
     private static async Task GoToManageRecurringExpensesAsync()
     {

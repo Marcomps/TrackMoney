@@ -20,6 +20,7 @@ using TrackTraceMoney.Application.RecurringIncomes;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Application.TermDeposits;
 using TrackTraceMoney.Application.Transactions;
+using TrackTraceMoney.Application.TransactionPresets;
 using TrackTraceMoney.Infrastructure;
 using TrackTraceMoney.Infrastructure.Profiles;
 
@@ -153,6 +154,17 @@ public static class MauiProgram
 		builder.Services.AddTransient<AddCategoryPage>();
 		builder.Services.AddTransient<EditCategoryViewModel>();
 		builder.Services.AddTransient<EditCategoryPage>();
+
+		// Transaction Type Customization slice, Half B (§B.5/§B.7.6) -- mirrors the Category lifecycle
+		// service registration above.
+		builder.Services.AddScoped<ITransactionPresetLifecycleService, TransactionPresetLifecycleService>();
+
+		builder.Services.AddTransient<TransactionPresetsListViewModel>();
+		builder.Services.AddTransient<TransactionPresetsListPage>();
+		builder.Services.AddTransient<AddTransactionPresetViewModel>();
+		builder.Services.AddTransient<AddTransactionPresetPage>();
+		builder.Services.AddTransient<EditTransactionPresetViewModel>();
+		builder.Services.AddTransient<EditTransactionPresetPage>();
 
 		builder.Services.AddTransient<PeopleListViewModel>();
 		builder.Services.AddTransient<PeopleListPage>();

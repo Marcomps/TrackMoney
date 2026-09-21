@@ -2,15 +2,39 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.AddTransactionPage"
              x:DataType="viewModels:AddTransactionViewModel"
+             x:Name="Root"
              Title="{Binding PageTitle}">
 
     <Grid RowDefinitions="*,Auto" Padding="16">
 
         <ScrollView Grid.Row="0">
         <VerticalStackLayout Spacing="12">
+
+            <!-- Quick presets (Transaction Type Customization slice spec, Half B): a horizontal chip
+                 row shown above the Type Picker. Tapping a chip pre-fills fields but never locks
+                 them; hidden entirely in edit mode / when no active preset exists
+                 (IsQuickPresetsVisible). -->
+            <VerticalStackLayout IsVisible="{Binding IsQuickPresetsVisible}" Spacing="4">
+                <Label Text="{x:Static resources:AppResources.AddTransaction_QuickPresetsLabel}" />
+                <ScrollView Orientation="Horizontal">
+                    <HorizontalStackLayout Spacing="8"
+                                            BindableLayout.ItemsSource="{Binding QuickPresets}"
+                                            AutomationId="AddTransaction_QuickPresetsRow">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:TransactionPresetOption">
+                                <Button Text="{Binding DisplayLabel}"
+                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.ApplyPresetCommand}"
+                                        CommandParameter="{Binding .}"
+                                        AutomationId="{Binding Name, StringFormat='AddTransaction_QuickPreset_{0}'}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+                </ScrollView>
+            </VerticalStackLayout>
 
             <Label Text="{x:Static resources:AppResources.AddTransaction_TypeLabel}" />
             <Picker ItemsSource="{Binding AvailableTypes}"

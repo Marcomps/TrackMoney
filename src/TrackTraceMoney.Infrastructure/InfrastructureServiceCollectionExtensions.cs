@@ -38,6 +38,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IInvestmentValuationRepository, InvestmentValuationRepository>();
         services.AddScoped<INetWorthSnapshotRepository, NetWorthSnapshotRepository>();
         services.AddScoped<IMedicalExpenseDetailRepository, MedicalExpenseDetailRepository>();
+        services.AddScoped<ITransactionPresetRepository, TransactionPresetRepository>();
         services.AddScoped<ILocalBackupService, LocalBackupService>();
         services.AddScoped<IFinanceDatabaseInitializer, FinanceDatabaseInitializer>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();

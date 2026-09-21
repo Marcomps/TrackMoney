@@ -463,6 +463,9 @@
   <data name="AddTransaction_NoneOption" xml:space="preserve">
     <value>Ninguna</value>
   </data>
+  <data name="AddTransaction_QuickPresetsLabel" xml:space="preserve">
+    <value>Accesos rápidos</value>
+  </data>
   <data name="Categories_Title" xml:space="preserve">
     <value>Categorías</value>
   </data>
@@ -597,6 +600,99 @@
   </data>
   <data name="CategoriesList_Error" xml:space="preserve">
     <value>No se pudo completar la acción. Intenta de nuevo.</value>
+  </data>
+  <data name="TransactionPresetBaseType_Expense" xml:space="preserve">
+    <value>Gasto</value>
+  </data>
+  <data name="TransactionPresetBaseType_Income" xml:space="preserve">
+    <value>Ingreso</value>
+  </data>
+  <data name="TransactionPresetBaseType_Transfer" xml:space="preserve">
+    <value>Transferencia</value>
+  </data>
+  <data name="TransactionPresets_Title" xml:space="preserve">
+    <value>Accesos rápidos de transacción</value>
+  </data>
+  <data name="TransactionPresets_Empty" xml:space="preserve">
+    <value>Aún no tienes accesos rápidos. Agrega el primero para comenzar.</value>
+  </data>
+  <data name="TransactionPresets_AddButton" xml:space="preserve">
+    <value>Agregar acceso rápido</value>
+  </data>
+  <data name="TransactionPresetsList_ShowInactiveLabel" xml:space="preserve">
+    <value>Mostrar inactivos</value>
+  </data>
+  <data name="TransactionPresetsList_InactiveBadge" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="TransactionPresetsList_EditAction" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="TransactionPresetsList_DeactivateAction" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="TransactionPresetsList_DeleteAction" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="TransactionPresetsList_ReactivateAction" xml:space="preserve">
+    <value>Reactivar</value>
+  </data>
+  <data name="TransactionPresetsList_DeleteConfirmTitle" xml:space="preserve">
+    <value>Eliminar acceso rápido</value>
+  </data>
+  <data name="TransactionPresetsList_DeleteConfirmMessage" xml:space="preserve">
+    <value>¿Eliminar este acceso rápido de forma permanente? Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="TransactionPresetsList_DeleteConfirmAccept" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="TransactionPresetsList_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="TransactionPresetsList_DeactivateConfirmTitle" xml:space="preserve">
+    <value>Desactivar acceso rápido</value>
+  </data>
+  <data name="TransactionPresetsList_DeactivateConfirmMessage" xml:space="preserve">
+    <value>¿Desactivar este acceso rápido? Podrás reactivarlo más adelante mostrando los inactivos.</value>
+  </data>
+  <data name="TransactionPresetsList_DeactivateConfirmAccept" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="TransactionPresetsList_DeactivateConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="TransactionPresetsList_Error" xml:space="preserve">
+    <value>No se pudo completar la acción. Intenta de nuevo.</value>
+  </data>
+  <data name="AddTransactionPreset_Title" xml:space="preserve">
+    <value>Nuevo acceso rápido</value>
+  </data>
+  <data name="AddTransactionPreset_NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="AddTransactionPreset_NamePlaceholder" xml:space="preserve">
+    <value>p. ej. Gasolina</value>
+  </data>
+  <data name="AddTransactionPreset_BaseTypeLabel" xml:space="preserve">
+    <value>Tipo base</value>
+  </data>
+  <data name="AddTransactionPreset_CategoryLabel" xml:space="preserve">
+    <value>Categoría predeterminada</value>
+  </data>
+  <data name="AddTransactionPreset_AccountLabel" xml:space="preserve">
+    <value>Cuenta predeterminada</value>
+  </data>
+  <data name="AddTransactionPreset_ValidationNameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="EditTransactionPreset_Title" xml:space="preserve">
+    <value>Editar acceso rápido</value>
+  </data>
+  <data name="EditTransactionPreset_NotFound" xml:space="preserve">
+    <value>No se encontró el acceso rápido.</value>
+  </data>
+  <data name="EditTransactionPreset_BaseTypeLockedMessage" xml:space="preserve">
+    <value>El tipo base no se puede cambiar después de crear el acceso rápido.</value>
   </data>
   <data name="Budgets_Title" xml:space="preserve">
     <value>Presupuestos</value>
@@ -1866,6 +1962,9 @@
   </data>
   <data name="Settings_ManageCategoriesButton" xml:space="preserve">
     <value>Gestionar categorías</value>
+  </data>
+  <data name="Settings_ManageTransactionPresetsButton" xml:space="preserve">
+    <value>Gestionar accesos rápidos de transacción</value>
   </data>
   <data name="Settings_ManageBudgetsButton" xml:space="preserve">
     <value>Gestionar presupuestos</value>

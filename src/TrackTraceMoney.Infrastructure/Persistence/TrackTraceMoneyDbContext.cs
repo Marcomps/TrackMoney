@@ -11,6 +11,7 @@ using TrackTraceMoney.Domain.People;
 using TrackTraceMoney.Domain.RecurringExpenses;
 using TrackTraceMoney.Domain.RecurringIncomes;
 using TrackTraceMoney.Domain.Transactions;
+using TrackTraceMoney.Domain.TransactionPresets;
 
 namespace TrackTraceMoney.Infrastructure.Persistence;
 
@@ -43,6 +44,8 @@ public sealed class TrackTraceMoneyDbContext : DbContext
     public DbSet<NetWorthSnapshot> NetWorthSnapshots => Set<NetWorthSnapshot>();
 
     public DbSet<MedicalExpenseDetail> MedicalExpenseDetails => Set<MedicalExpenseDetail>();
+
+    public DbSet<TransactionPreset> TransactionPresets => Set<TransactionPreset>();
 
     public TrackTraceMoneyDbContext(DbContextOptions<TrackTraceMoneyDbContext> options)
         : base(options)

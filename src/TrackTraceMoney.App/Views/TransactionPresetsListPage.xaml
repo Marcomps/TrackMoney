@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.TransactionPresetsListPage"
+             x:DataType="viewModels:TransactionPresetsListViewModel"
+             x:Name="Root"
+             Title="{x:Static resources:AppResources.TransactionPresets_Title}">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadPresetsCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="8">
+
+                <HorizontalStackLayout Spacing="8">
+                    <Switch IsToggled="{Binding ShowInactive}" AutomationId="TransactionPresetsList_ShowInactiveSwitch" />
+                    <Label Text="{x:Static resources:AppResources.TransactionPresetsList_ShowInactiveLabel}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+
+                <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+                <CollectionView ItemsSource="{Binding Presets}" SelectionMode="None">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
+                            <Label Text="{x:Static resources:AppResources.TransactionPresets_Empty}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:TransactionPresetListItem">
+                            <SwipeView>
+                                <SwipeView.RightItems>
+                                    <SwipeItems>
+                                        <SwipeItem Text="{x:Static resources:AppResources.TransactionPresetsList_EditAction}"
+                                                   IsVisible="{Binding IsActive}"
+                                                   Command="{Binding Source={x:Reference Root}, Path=BindingContext.EditPresetCommand}"
+                                                   CommandParameter="{Binding Id}" />
+                                        <SwipeItem Text="{x:Static resources:AppResources.TransactionPresetsList_DeactivateAction}"
+                                                   IsVisible="{Binding IsActive}"
+                                                   Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeactivatePresetCommand}"
+                                                   CommandParameter="{Binding Id}" />
+                                        <SwipeItem Text="{x:Static resources:AppResources.TransactionPresetsList_DeleteAction}"
+                                                   BackgroundColor="DarkRed"
+                                                   Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeletePresetCommand}"
+                                                   CommandParameter="{Binding Id}" />
+                                        <SwipeItem Text="{x:Static resources:AppResources.TransactionPresetsList_ReactivateAction}"
+                                                   IsVisible="{Binding IsInactive}"
+                                                   Command="{Binding Source={x:Reference Root}, Path=BindingContext.ReactivatePresetCommand}"
+                                                   CommandParameter="{Binding Id}" />
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
+                                <Grid Padding="0,12" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto"
+                                      AutomationId="{Binding Name, StringFormat='TransactionPresetsList_Item_{0}'}">
+                                    <Label Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                           Text="{Binding Icon}"
+                                           IsVisible="{Binding HasIcon}"
+                                           FontSize="22" VerticalOptions="Center" Margin="0,0,8,0" />
+                                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding Name}" FontSize="16" />
+                                    <Label Grid.Row="1" Grid.Column="1"
+                                           Text="{x:Static resources:AppResources.TransactionPresetsList_InactiveBadge}"
+                                           IsVisible="{Binding IsInactive}"
+                                           FontSize="12" Opacity="0.6" />
+                                </Grid>
+                            </SwipeView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Button Text="{x:Static resources:AppResources.TransactionPresets_AddButton}"
+                        Command="{Binding AddPresetCommand}"
+                        HorizontalOptions="Fill"
+                        Margin="0,12,0,0" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

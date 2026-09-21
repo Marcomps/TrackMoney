@@ -57,6 +57,11 @@
                     Command="{Binding GoToManageCategoriesCommand}"
                     HorizontalOptions="Fill" />
 
+            <Button Text="{x:Static resources:AppResources.Settings_ManageTransactionPresetsButton}"
+                    Command="{Binding GoToManageTransactionPresetsCommand}"
+                    AutomationId="Settings_ManageTransactionPresetsButton"
+                    HorizontalOptions="Fill" />
+
             <Button Text="{x:Static resources:AppResources.Settings_ManageBudgetsButton}"
                     Command="{Binding GoToManageBudgetsCommand}"
                     HorizontalOptions="Fill" />

@@ -22,6 +22,11 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(CategoriesListPage), typeof(CategoriesListPage));
 		Routing.RegisterRoute(nameof(AddCategoryPage), typeof(AddCategoryPage));
 		Routing.RegisterRoute(nameof(EditCategoryPage), typeof(EditCategoryPage));
+		// Transaction Type Customization slice, Half B (§B.4/§B.7.4) -- same pushed-page registration
+		// pattern as Categories above.
+		Routing.RegisterRoute(nameof(TransactionPresetsListPage), typeof(TransactionPresetsListPage));
+		Routing.RegisterRoute(nameof(AddTransactionPresetPage), typeof(AddTransactionPresetPage));
+		Routing.RegisterRoute(nameof(EditTransactionPresetPage), typeof(EditTransactionPresetPage));
 		Routing.RegisterRoute(nameof(PeopleListPage), typeof(PeopleListPage));
 		Routing.RegisterRoute(nameof(AddPersonPage), typeof(AddPersonPage));
 		Routing.RegisterRoute(nameof(BudgetsListPage), typeof(BudgetsListPage));
