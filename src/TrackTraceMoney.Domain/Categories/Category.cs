@@ -17,6 +17,8 @@ public sealed class Category : Entity
 
     public bool IsSystemDefined => SystemKey != SystemCategoryKey.None;
 
+    public bool IsActive { get; private set; } = true;
+
     private Category()
     {
     }
@@ -48,4 +50,8 @@ public sealed class Category : Entity
     }
 
     public void SetIcon(string? icon) => Icon = icon;
+
+    public void Deactivate() => IsActive = false;
+
+    public void Reactivate() => IsActive = true;
 }

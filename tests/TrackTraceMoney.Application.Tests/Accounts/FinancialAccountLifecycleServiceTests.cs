@@ -231,6 +231,9 @@ public sealed class FinancialAccountLifecycleServiceTests
 
         public Task<bool> HasAnyTransactionReferencingCreditAccountAsync(Guid creditAccountId, CancellationToken ct = default) =>
             Task.FromResult(ReferencedCreditAccountIds.Contains(creditAccountId));
+
+        public Task<bool> HasAnyTransactionReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+            Task.FromResult(false);
     }
 
     private sealed class StubRecurringExpenseRepository : IRecurringExpenseRepository
@@ -247,6 +250,9 @@ public sealed class FinancialAccountLifecycleServiceTests
 
         public Task<bool> HasAnyReferencingAccountAsync(Guid accountOrCreditAccountId, CancellationToken ct = default) =>
             Task.FromResult(ReferencedAccountIds.Contains(accountOrCreditAccountId));
+
+        public Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+            Task.FromResult(false);
 
         public Task AddAsync(RecurringExpense entity, CancellationToken ct = default) => Task.CompletedTask;
 
@@ -271,6 +277,9 @@ public sealed class FinancialAccountLifecycleServiceTests
 
         public Task<bool> HasAnyReferencingAccountAsync(Guid accountId, CancellationToken ct = default) =>
             Task.FromResult(ReferencedAccountIds.Contains(accountId));
+
+        public Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+            Task.FromResult(false);
 
         public Task AddAsync(RecurringIncome entity, CancellationToken ct = default) => Task.CompletedTask;
 

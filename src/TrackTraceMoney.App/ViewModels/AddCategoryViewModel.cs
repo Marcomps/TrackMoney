@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Domain.Categories;
@@ -14,10 +15,15 @@ public sealed partial class AddCategoryViewModel : ObservableObject
     private string name = string.Empty;
 
     [ObservableProperty]
+    private string selectedIcon = CategoryIconPalette.NoIconValue;
+
+    [ObservableProperty]
     private string? errorMessage;
 
     [ObservableProperty]
     private bool isBusy;
+
+    public IReadOnlyList<string> AvailableIcons { get; } = CategoryIconPalette.Icons;
 
     public AddCategoryViewModel(ICategoryRepository categoryRepository)
     {
@@ -35,7 +41,7 @@ public sealed partial class AddCategoryViewModel : ObservableObject
             return;
         }
 
-        var category = Category.CreateUserDefined(Name);
+        var category = Category.CreateUserDefined(Name, AsNullableIcon(SelectedIcon));
 
         IsBusy = true;
         try
@@ -55,4 +61,8 @@ public sealed partial class AddCategoryViewModel : ObservableObject
     {
         await Shell.Current.GoToAsync("..");
     }
+
+    /// <summary>Same "None" sentinel convention as <c>AddAccountViewModel.AsNullableId</c>.</summary>
+    private static string? AsNullableIcon(string icon) =>
+        icon == CategoryIconPalette.NoIconValue ? null : icon;
 }

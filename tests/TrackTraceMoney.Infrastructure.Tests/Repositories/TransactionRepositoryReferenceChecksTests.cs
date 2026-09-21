@@ -123,6 +123,43 @@ public sealed class TransactionRepositoryReferenceChecksTests : IDisposable
         Assert.False(await repository.HasAnyTransactionReferencingCreditAccountAsync(Guid.NewGuid()));
     }
 
+    [Fact]
+    public async Task HasAnyTransactionReferencingCategoryAsync_NoTransactions_ReturnsFalse()
+    {
+        using var scope = _provider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<ITransactionRepository>();
+
+        Assert.False(await repository.HasAnyTransactionReferencingCategoryAsync(Guid.NewGuid()));
+    }
+
+    [Theory]
+    [InlineData("Expense")]
+    [InlineData("Income")]
+    [InlineData("CreditCardPurchase")]
+    public async Task HasAnyTransactionReferencingCategoryAsync_MatchesEveryCategoryShapedColumn(string kind)
+    {
+        using var scope = _provider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<TrackTraceMoneyDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<ITransactionRepository>();
+
+        var categoryId = Guid.NewGuid();
+        var today = new DateOnly(2026, 9, 21);
+
+        Transaction transaction = kind switch
+        {
+            "Expense" => new Expense(today, 10m, Guid.NewGuid(), categoryId),
+            "Income" => new Income(today, 10m, Guid.NewGuid(), categoryId),
+            "CreditCardPurchase" => new CreditCardPurchase(today, 10m, Guid.NewGuid(), categoryId),
+            _ => throw new InvalidOperationException($"Unknown kind '{kind}'."),
+        };
+
+        context.Set<Transaction>().Add(transaction);
+        await context.SaveChangesAsync();
+
+        Assert.True(await repository.HasAnyTransactionReferencingCategoryAsync(categoryId));
+        Assert.False(await repository.HasAnyTransactionReferencingCategoryAsync(Guid.NewGuid()));
+    }
+
     public void Dispose()
     {
         _provider.Dispose();

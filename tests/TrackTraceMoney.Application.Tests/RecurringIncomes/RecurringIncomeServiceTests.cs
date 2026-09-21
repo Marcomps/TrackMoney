@@ -181,6 +181,9 @@ public sealed class RecurringIncomeServiceTests
         public Task<bool> HasAnyReferencingAccountAsync(Guid accountId, CancellationToken ct = default) =>
             Task.FromResult(_recurringIncomes.Values.Any(r => r.DestinationAccountId == accountId));
 
+        public Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+            Task.FromResult(_recurringIncomes.Values.Any(r => r.CategoryId == categoryId));
+
         public Task AddAsync(RecurringIncome entity, CancellationToken ct = default)
         {
             _recurringIncomes[entity.Id] = entity;
@@ -309,6 +312,15 @@ public sealed class RecurringIncomeServiceTests
                 LoanPayment lp => lp.CreditAccountId == creditAccountId,
                 _ => false,
             }));
+
+        public Task<bool> HasAnyTransactionReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+            Task.FromResult(_transactions.Any(t => t switch
+            {
+                Expense e => e.CategoryId == categoryId,
+                Income i => i.CategoryId == categoryId,
+                CreditCardPurchase p => p.CategoryId == categoryId,
+                _ => false,
+            }));
     }
 
     private sealed class InMemoryCreditAccountRepository : ICreditAccountRepository
@@ -351,6 +363,9 @@ public sealed class RecurringIncomeServiceTests
         public Task<IReadOnlyList<Budget>> GetForMonthAsync(int year, int month, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Budget>>(_budgets.Values.Where(b => b.Year == year && b.Month == month).ToList());
 
+        public Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+            Task.FromResult(_budgets.Values.Any(b => b.CategoryId == categoryId));
+
         public Task AddAsync(Budget entity, CancellationToken ct = default)
         {
             _budgets[entity.Id] = entity;
@@ -371,6 +386,9 @@ public sealed class RecurringIncomeServiceTests
 
         public Task<IReadOnlyList<Category>> GetAllAsync(CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Category>>(_categories.Values.ToList());
+
+        public Task<IReadOnlyList<Category>> GetActiveAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Category>>(_categories.Values.Where(c => c.IsActive).ToList());
 
         public Task AddAsync(Category entity, CancellationToken ct = default)
         {

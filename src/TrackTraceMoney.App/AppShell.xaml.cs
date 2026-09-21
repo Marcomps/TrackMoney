@@ -21,6 +21,7 @@ public partial class AppShell : Shell
 		// (non-Tab) List page below, since a Tab's ShellContent used to register its route implicitly.
 		Routing.RegisterRoute(nameof(CategoriesListPage), typeof(CategoriesListPage));
 		Routing.RegisterRoute(nameof(AddCategoryPage), typeof(AddCategoryPage));
+		Routing.RegisterRoute(nameof(EditCategoryPage), typeof(EditCategoryPage));
 		Routing.RegisterRoute(nameof(PeopleListPage), typeof(PeopleListPage));
 		Routing.RegisterRoute(nameof(AddPersonPage), typeof(AddPersonPage));
 		Routing.RegisterRoute(nameof(BudgetsListPage), typeof(BudgetsListPage));

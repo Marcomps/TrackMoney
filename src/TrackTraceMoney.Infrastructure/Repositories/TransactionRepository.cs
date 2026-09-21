@@ -118,4 +118,15 @@ internal sealed class TransactionRepository : RepositoryBase<Transaction>, ITran
             || await Context.Set<Transaction>().OfType<CreditCardPayment>().AnyAsync(p => p.CreditAccountId == creditAccountId, ct)
             || await Context.Set<Transaction>().OfType<LoanPayment>().AnyAsync(p => p.CreditAccountId == creditAccountId, ct),
             ct);
+
+    /// <summary>
+    /// Checks every <c>CategoryId</c>-shaped FK column across the three transaction subtypes that carry
+    /// one (see the interface doc comment for why the other seven don't).
+    /// </summary>
+    public Task<bool> HasAnyTransactionReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+        GuardedAsync(async () =>
+            await Context.Set<Transaction>().OfType<Expense>().AnyAsync(e => e.CategoryId == categoryId, ct)
+            || await Context.Set<Transaction>().OfType<Income>().AnyAsync(i => i.CategoryId == categoryId, ct)
+            || await Context.Set<Transaction>().OfType<CreditCardPurchase>().AnyAsync(p => p.CategoryId == categoryId, ct),
+            ct);
 }

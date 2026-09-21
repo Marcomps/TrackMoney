@@ -64,6 +64,26 @@ public sealed class RecurringExpenseRepositoryTests : IDisposable
         Assert.False(await repository.HasAnyReferencingAccountAsync(Guid.NewGuid()));
     }
 
+    [Fact]
+    public async Task HasAnyReferencingCategoryAsync_MatchesCategoryId_IncludingDeactivatedRows()
+    {
+        // Category lifecycle slice §A.3: deliberately includes inactive rows -- a deactivated recurring
+        // expense's category reference would still dangle if the category were hard-deleted.
+        using var scope = _provider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRecurringExpenseRepository>();
+
+        var categoryId = Guid.NewGuid();
+        var recurringExpense = new RecurringExpense(
+            "Rent", 500m, categoryId, Guid.NewGuid(), RecurringExpenseFrequency.Monthly, new DateOnly(2026, 1, 1), null);
+        recurringExpense.Deactivate();
+
+        await repository.AddAsync(recurringExpense);
+        await repository.SaveChangesAsync();
+
+        Assert.True(await repository.HasAnyReferencingCategoryAsync(categoryId));
+        Assert.False(await repository.HasAnyReferencingCategoryAsync(Guid.NewGuid()));
+    }
+
     public void Dispose()
     {
         _provider.Dispose();

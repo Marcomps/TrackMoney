@@ -90,4 +90,14 @@ public interface ITransactionRepository : IRepository<Transaction>
     /// currency edit on that card/loan.
     /// </summary>
     Task<bool> HasAnyTransactionReferencingCreditAccountAsync(Guid creditAccountId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Whether any transaction still points at <paramref name="categoryId"/> (Category lifecycle slice
+    /// §A.3) -- checked before allowing a hard delete or deactivate of that category. Only
+    /// <see cref="Expense"/>, <see cref="Income"/>, and <see cref="CreditCardPurchase"/> currently carry
+    /// a <c>CategoryId</c>-shaped foreign key (confirmed by grepping every <see cref="Transaction"/>
+    /// subtype); every other subtype (Transfer, CreditCardPayment, LoanPayment, Investment*,
+    /// InterestIncome, Reimbursement) has no category concept at all.
+    /// </summary>
+    Task<bool> HasAnyTransactionReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default);
 }

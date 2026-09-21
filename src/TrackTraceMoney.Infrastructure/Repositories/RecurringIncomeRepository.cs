@@ -16,4 +16,7 @@ internal sealed class RecurringIncomeRepository : RepositoryBase<RecurringIncome
 
     public Task<bool> HasAnyReferencingAccountAsync(Guid accountId, CancellationToken ct = default) =>
         GuardedAsync(() => Context.Set<RecurringIncome>().AnyAsync(r => r.DestinationAccountId == accountId, ct), ct);
+
+    public Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+        GuardedAsync(() => Context.Set<RecurringIncome>().AnyAsync(r => r.CategoryId == categoryId, ct), ct);
 }

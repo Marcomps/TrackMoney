@@ -1592,6 +1592,15 @@ public sealed class TransactionEntryServiceTests
                 LoanPayment lp => lp.CreditAccountId == creditAccountId,
                 _ => false,
             }));
+
+        public Task<bool> HasAnyTransactionReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+            Task.FromResult(_transactions.Any(t => t switch
+            {
+                Expense e => e.CategoryId == categoryId,
+                Income i => i.CategoryId == categoryId,
+                CreditCardPurchase p => p.CategoryId == categoryId,
+                _ => false,
+            }));
     }
 
     private sealed class InMemoryBudgetRepository : IBudgetRepository
@@ -1615,6 +1624,9 @@ public sealed class TransactionEntryServiceTests
 
         public Task<IReadOnlyList<Budget>> GetForMonthAsync(int year, int month, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Budget>>(_budgets.Values.Where(b => b.Year == year && b.Month == month).ToList());
+
+        public Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+            Task.FromResult(_budgets.Values.Any(b => b.CategoryId == categoryId));
 
         public Task AddAsync(Budget entity, CancellationToken ct = default)
         {
@@ -1642,6 +1654,9 @@ public sealed class TransactionEntryServiceTests
 
         public Task<IReadOnlyList<Category>> GetAllAsync(CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Category>>(_categories.Values.ToList());
+
+        public Task<IReadOnlyList<Category>> GetActiveAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Category>>(_categories.Values.Where(c => c.IsActive).ToList());
 
         public Task AddAsync(Category entity, CancellationToken ct = default)
         {

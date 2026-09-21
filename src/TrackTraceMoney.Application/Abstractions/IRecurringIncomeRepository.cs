@@ -13,4 +13,12 @@ public interface IRecurringIncomeRepository : IRepository<RecurringIncome>
     /// <see cref="IRecurringExpenseRepository.HasAnyReferencingAccountAsync"/>'s same rationale.
     /// </summary>
     Task<bool> HasAnyReferencingAccountAsync(Guid accountId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Whether any <see cref="RecurringIncome"/> row -- active or not -- references
+    /// <paramref name="categoryId"/> via <see cref="RecurringIncome.CategoryId"/> (Category lifecycle
+    /// slice §A.3). Deliberately includes inactive rows, mirroring
+    /// <see cref="HasAnyReferencingAccountAsync"/>'s own rationale.
+    /// </summary>
+    Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default);
 }

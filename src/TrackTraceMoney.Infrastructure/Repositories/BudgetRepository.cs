@@ -20,4 +20,7 @@ internal sealed class BudgetRepository : RepositoryBase<Budget>, IBudgetReposito
         GuardedAsync<IReadOnlyList<Budget>>(async () => await Context.Set<Budget>()
             .Where(b => b.Year == year && b.Month == month)
             .ToListAsync(ct), ct);
+
+    public Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+        GuardedAsync(() => Context.Set<Budget>().AnyAsync(b => b.CategoryId == categoryId, ct), ct);
 }

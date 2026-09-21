@@ -98,6 +98,26 @@ public sealed class RecurringIncomeRepositoryTests : IDisposable
         Assert.False(await repository.HasAnyReferencingAccountAsync(Guid.NewGuid()));
     }
 
+    [Fact]
+    public async Task HasAnyReferencingCategoryAsync_MatchesCategoryId_IncludingDeactivatedRows()
+    {
+        // Category lifecycle slice §A.3: deliberately includes inactive rows -- a deactivated recurring
+        // income's category reference would still dangle if the category were hard-deleted.
+        using var scope = _provider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRecurringIncomeRepository>();
+
+        var categoryId = Guid.NewGuid();
+        var recurringIncome = new RecurringIncome(
+            "Salary", 2000m, categoryId, Guid.NewGuid(), RecurringIncomeFrequency.Monthly, new DateOnly(2026, 1, 1), null);
+        recurringIncome.Deactivate();
+
+        await repository.AddAsync(recurringIncome);
+        await repository.SaveChangesAsync();
+
+        Assert.True(await repository.HasAnyReferencingCategoryAsync(categoryId));
+        Assert.False(await repository.HasAnyReferencingCategoryAsync(Guid.NewGuid()));
+    }
+
     public void Dispose()
     {
         _provider.Dispose();

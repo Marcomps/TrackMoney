@@ -14,7 +14,9 @@ public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.Property(c => c.Name).IsRequired().HasMaxLength(200);
         builder.Property(c => c.SystemKey).HasConversion<string>().IsRequired();
         builder.Property(c => c.Icon).HasMaxLength(50);
+        builder.Property(c => c.IsActive).IsRequired();
 
         builder.HasIndex(c => c.SystemKey);
+        builder.HasIndex(c => c.IsActive);
     }
 }

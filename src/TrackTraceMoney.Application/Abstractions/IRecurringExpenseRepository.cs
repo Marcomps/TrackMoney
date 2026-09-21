@@ -15,4 +15,12 @@ public interface IRecurringExpenseRepository : IRepository<RecurringExpense>
     /// recurring expense's account reference would still dangle if the account were hard-deleted.
     /// </summary>
     Task<bool> HasAnyReferencingAccountAsync(Guid accountOrCreditAccountId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Whether any <see cref="RecurringExpense"/> row -- active or not -- references
+    /// <paramref name="categoryId"/> via <see cref="RecurringExpense.CategoryId"/> (Category lifecycle
+    /// slice §A.3). Deliberately includes inactive rows, mirroring
+    /// <see cref="HasAnyReferencingAccountAsync"/>'s own rationale.
+    /// </summary>
+    Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default);
 }

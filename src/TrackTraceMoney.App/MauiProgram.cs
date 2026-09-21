@@ -12,6 +12,7 @@ using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Accounts;
 using TrackTraceMoney.Application.Budgets;
+using TrackTraceMoney.Application.Categories;
 using TrackTraceMoney.Application.CreditAccounts;
 using TrackTraceMoney.Application.NetWorth;
 using TrackTraceMoney.Application.RecurringExpenses;
@@ -142,10 +143,16 @@ public static class MauiProgram
 		builder.Services.AddTransient<TransactionDetailViewModel>();
 		builder.Services.AddTransient<TransactionDetailPage>();
 
+		// Category lifecycle slice §A.3 -- mirrors the Account edit/delete slice's Application-layer
+		// orchestrator registration above.
+		builder.Services.AddScoped<ICategoryLifecycleService, CategoryLifecycleService>();
+
 		builder.Services.AddTransient<CategoriesListViewModel>();
 		builder.Services.AddTransient<CategoriesListPage>();
 		builder.Services.AddTransient<AddCategoryViewModel>();
 		builder.Services.AddTransient<AddCategoryPage>();
+		builder.Services.AddTransient<EditCategoryViewModel>();
+		builder.Services.AddTransient<EditCategoryPage>();
 
 		builder.Services.AddTransient<PeopleListViewModel>();
 		builder.Services.AddTransient<PeopleListPage>();

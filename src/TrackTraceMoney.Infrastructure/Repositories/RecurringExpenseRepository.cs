@@ -17,4 +17,7 @@ internal sealed class RecurringExpenseRepository : RepositoryBase<RecurringExpen
     public Task<bool> HasAnyReferencingAccountAsync(Guid accountOrCreditAccountId, CancellationToken ct = default) =>
         GuardedAsync(() => Context.Set<RecurringExpense>()
             .AnyAsync(r => r.AccountId == accountOrCreditAccountId || r.CreditAccountId == accountOrCreditAccountId, ct), ct);
+
+    public Task<bool> HasAnyReferencingCategoryAsync(Guid categoryId, CancellationToken ct = default) =>
+        GuardedAsync(() => Context.Set<RecurringExpense>().AnyAsync(r => r.CategoryId == categoryId, ct), ct);
 }

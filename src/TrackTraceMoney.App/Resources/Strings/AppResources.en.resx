@@ -535,6 +535,69 @@
   <data name="AddCategory_ValidationNameRequired" xml:space="preserve">
     <value>Name is required.</value>
   </data>
+  <data name="AddCategory_IconLabel" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="AddCategory_NoIconOption" xml:space="preserve">
+    <value>No icon</value>
+  </data>
+  <data name="EditCategory_Title" xml:space="preserve">
+    <value>Edit category</value>
+  </data>
+  <data name="EditCategory_NotFound" xml:space="preserve">
+    <value>Category not found.</value>
+  </data>
+  <data name="EditCategory_SystemNameLockedMessage" xml:space="preserve">
+    <value>System categories' names can't be changed. You can only edit the icon.</value>
+  </data>
+  <data name="CategoriesList_ShowInactiveLabel" xml:space="preserve">
+    <value>Show inactive</value>
+  </data>
+  <data name="CategoriesList_InactiveBadge" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="CategoriesList_EditAction" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="CategoriesList_DeactivateAction" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="CategoriesList_DeleteAction" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="CategoriesList_ReactivateAction" xml:space="preserve">
+    <value>Reactivate</value>
+  </data>
+  <data name="CategoriesList_CannotDeleteMessage" xml:space="preserve">
+    <value>This category can't be deleted because it has transactions, recurring expenses/income, or budgets linked to it. You can deactivate it instead.</value>
+  </data>
+  <data name="CategoriesList_DeleteConfirmTitle" xml:space="preserve">
+    <value>Delete category</value>
+  </data>
+  <data name="CategoriesList_DeleteConfirmMessage" xml:space="preserve">
+    <value>Permanently delete this category? This action cannot be undone.</value>
+  </data>
+  <data name="CategoriesList_DeleteConfirmAccept" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="CategoriesList_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="CategoriesList_DeactivateConfirmTitle" xml:space="preserve">
+    <value>Deactivate category</value>
+  </data>
+  <data name="CategoriesList_DeactivateConfirmMessage" xml:space="preserve">
+    <value>Deactivate this category? You can reactivate it later by showing inactive categories.</value>
+  </data>
+  <data name="CategoriesList_DeactivateConfirmAccept" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="CategoriesList_DeactivateConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="CategoriesList_Error" xml:space="preserve">
+    <value>Couldn't complete the action. Please try again.</value>
+  </data>
   <data name="Budgets_Title" xml:space="preserve">
     <value>Budgets</value>
   </data>

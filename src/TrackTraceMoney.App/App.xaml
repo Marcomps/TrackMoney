@@ -21,6 +21,7 @@
             <converters:TermDepositRateTypeToLabelConverter x:Key="TermDepositRateTypeToLabelConverter" />
             <converters:TermDepositInterestFrequencyToLabelConverter x:Key="TermDepositInterestFrequencyToLabelConverter" />
             <converters:PersonRelationshipTypeToLabelConverter x:Key="PersonRelationshipTypeToLabelConverter" />
+            <converters:CategoryIconToDisplayConverter x:Key="CategoryIconToDisplayConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
