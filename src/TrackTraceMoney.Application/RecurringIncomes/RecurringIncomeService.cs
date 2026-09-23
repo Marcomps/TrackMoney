@@ -19,14 +19,21 @@ public sealed class RecurringIncomeService : IRecurringIncomeService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task ConfirmOccurrenceAsync(Guid recurringIncomeId, CancellationToken ct = default)
+    public async Task ConfirmOccurrenceAsync(Guid recurringIncomeId, DateOnly today, CancellationToken ct = default)
     {
         var recurringIncome = await _recurringIncomeRepository.GetByIdAsync(recurringIncomeId, ct)
             ?? throw new InvalidOperationException($"Recurring income '{recurringIncomeId}' was not found.");
 
+        if (!recurringIncome.CanConfirm(today))
+            throw new InvalidOperationException("The next occurrence is not due yet and is outside the early-confirmation window.");
+
         // Capture before RecordIncomeAsync/MarkConfirmed run: NextOccurrenceDate is computed from
         // LastConfirmedDate, so it would change out from under a second read after MarkConfirmed.
         var occurrenceDate = recurringIncome.NextOccurrenceDate;
+
+        // Confirmed early (e.g. payroll landed on Friday for a Sunday payday): the money arrived today,
+        // so the Income is dated today, while the schedule still advances from the scheduled date.
+        var receivedOn = occurrenceDate > today ? today : occurrenceDate;
 
         // Posting the Income (which credits the account, inside RecordIncomeAsync's own
         // SaveChangesAsync) and marking this recurring income confirmed (a second, separate
@@ -43,7 +50,7 @@ public sealed class RecurringIncomeService : IRecurringIncomeService
         try
         {
             await _transactionEntryService.RecordIncomeAsync(
-                date: occurrenceDate,
+                date: receivedOn,
                 amount: recurringIncome.Amount, // always the CURRENT amount -- see RecurringIncome.UpdateAmount
                 destinationAccountId: recurringIncome.DestinationAccountId,
                 categoryId: recurringIncome.CategoryId,

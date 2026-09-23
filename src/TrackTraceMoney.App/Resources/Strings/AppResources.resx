@@ -824,7 +824,7 @@
     <value>Agregar ingreso recurrente</value>
   </data>
   <data name="RecurringIncomes_DueSectionTitle" xml:space="preserve">
-    <value>Pendientes de confirmar</value>
+    <value>Por confirmar</value>
   </data>
   <data name="RecurringIncomes_ConfirmButton" xml:space="preserve">
     <value>Confirmar</value>
@@ -838,7 +838,7 @@
   <data name="RecurringIncomes_NextDueLabel" xml:space="preserve">
     <value>Próximo:</value>
   </data>
-  <data name="RecurringIncomes_BiweeklyEquivalentLabel" xml:space="preserve">
+  <data name="RecurringIncomes_SemiMonthlyEquivalentLabel" xml:space="preserve">
     <value>Quincenal ≈</value>
   </data>
   <data name="RecurringIncomes_MonthlyEquivalentLabel" xml:space="preserve">
@@ -854,7 +854,7 @@
     <value>Semanal</value>
   </data>
   <data name="RecurringIncomeFrequency_Biweekly" xml:space="preserve">
-    <value>Quincenal</value>
+    <value>Cada 14 días</value>
   </data>
   <data name="RecurringIncomeFrequency_Monthly" xml:space="preserve">
     <value>Mensual</value>
@@ -916,7 +916,7 @@
   <data name="AddRecurringIncome_MonthlyEquivalentFormat" xml:space="preserve">
     <value>≈ {0:N2} mensual</value>
   </data>
-  <data name="AddRecurringIncome_BiweeklyEquivalentFormat" xml:space="preserve">
+  <data name="AddRecurringIncome_SemiMonthlyEquivalentFormat" xml:space="preserve">
     <value>≈ {0:N2} quincenal</value>
   </data>
   <data name="EditRecurringIncomeAmount_Title" xml:space="preserve">
@@ -2370,5 +2370,23 @@
   </data>
   <data name="Budgets_RemainingLabel" xml:space="preserve">
     <value>Restante</value>
+  </data>
+  <data name="RecurringIncomeFrequency_SemiMonthly" xml:space="preserve">
+    <value>Quincenal (15 y fin de mes)</value>
+  </data>
+  <data name="RecurringIncomes_ScheduledForFormat" xml:space="preserve">
+    <value>Programado: {0:d}</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmEarlyTitle" xml:space="preserve">
+    <value>¿Ya lo recibiste?</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmEarlyMessage" xml:space="preserve">
+    <value>{0} está programado para el {1:d}. Si ya te pagaron, se registrarán {2:N2} con fecha de hoy.</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmEarlyAccept" xml:space="preserve">
+    <value>Sí, ya lo recibí</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmEarlyCancel" xml:space="preserve">
+    <value>Todavía no</value>
   </data>
 </root>

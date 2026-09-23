@@ -6,7 +6,7 @@ namespace TrackTraceMoney.E2E.Tests.Tests;
 /// End-to-end coverage for Recurring Income (Settings -&gt; "Manage recurring income"), the flow
 /// manually live-verified on 2026-09-19/2026-09-21 but never previously exercised by an automated
 /// test. Drives the full lifecycle through the real installed app: add a recurring income, confirm
-/// the biweekly/monthly equivalent calculator reads correctly before saving, confirm a due
+/// the half-month/monthly equivalent calculator reads correctly before saving, confirm a due
 /// occurrence posts a real <c>Income</c> transaction that moves the destination account's balance
 /// by the exact amount, confirm editing the amount afterward is prospective-only (the
 /// already-posted occurrence's effect on the account balance is untouched --
@@ -42,7 +42,7 @@ public sealed class RecurringIncomeFlowTests : E2ETestBase
 
             Assert.Equal("0.00", WaitForId($"AccountsList_Balance_{AccountName}").Text);
 
-            // --- Add a recurring income: "Salario" $960 Biweekly, due immediately (StartDate
+            // --- Add a recurring income: "Salario" $960 twice a month, due immediately (StartDate
             // defaults to today, and a never-yet-confirmed recurring income's NextOccurrenceDate ==
             // StartDate -- see RecurringIncome.NextOccurrenceDate/IsDue) ---
             TapTab("Settings");
@@ -53,13 +53,13 @@ public sealed class RecurringIncomeFlowTests : E2ETestBase
             EnterText("AddRecurringIncome_AmountEntry", "960");
             SelectFirstPickerOption("AddRecurringIncome_CategoryPicker");
             SelectPickerOption("AddRecurringIncome_AccountPicker", AccountName);
-            SelectPickerOption("AddRecurringIncome_FrequencyPicker", "Biweekly");
+            SelectPickerOption("AddRecurringIncome_FrequencyPicker", "Twice a month (15th and last day)");
 
             // --- Assert: the equivalent-amount calculator reads correctly before saving --
-            // $960 Biweekly => 960.00 biweekly (itself) and 960 * 26/12 = 2,080.00 monthly (see
-            // RecurringIncomeEquivalentCalculator). ---
-            Assert.Equal("≈ 960.00 biweekly", WaitForId("AddRecurringIncome_BiweeklyEquivalentLabel").Text);
-            Assert.Equal("≈ 2,080.00 monthly", WaitForId("AddRecurringIncome_MonthlyEquivalentLabel").Text);
+            // $960 twice a month => 960.00 per half-month (itself) and 960 * 2 = 1,920.00 monthly
+            // (see RecurringIncomeEquivalentCalculator) -- not 960 * 26/12, the every-14-days figure. ---
+            Assert.Equal("≈ 960.00 per half-month", WaitForId("AddRecurringIncome_SemiMonthlyEquivalentLabel").Text);
+            Assert.Equal("≈ 1,920.00 monthly", WaitForId("AddRecurringIncome_MonthlyEquivalentLabel").Text);
             Screenshot(Scenario, "02-equivalents-shown-before-save");
 
             Tap("AddRecurringIncome_SaveButton");
@@ -83,13 +83,10 @@ public sealed class RecurringIncomeFlowTests : E2ETestBase
             Assert.Equal("960.00", WaitForId($"AccountsList_Balance_{AccountName}").Text);
             Screenshot(Scenario, "06-balance-after-first-occurrence");
 
-            // --- Act: raise the amount afterward (e.g. a salary raise). Re-selecting the Settings
-            // tab returns to wherever that tab's own navigation stack was left (RecurringIncomesListPage,
-            // since we drilled into it and popped back via "..", not the SettingsPage root) -- so this
-            // does NOT re-tap Settings_ManageRecurringIncomeButton, matching this app's actual Shell
-            // per-tab stack persistence (confirmed empirically: re-tapping that button here times out
-            // because it doesn't exist on the page already on screen). ---
+            // --- Act: raise the amount afterward (e.g. a salary raise). Switching tabs resets the
+            // Settings tab to its root (AppShell.OnNavigated), so drill back into the list. ---
             TapTab("Settings");
+            Tap("Settings_ManageRecurringIncomeButton");
             WaitForId($"RecurringIncomes_EditAmountButton_{FirstIncomeName}");
             Tap($"RecurringIncomes_EditAmountButton_{FirstIncomeName}");
 
@@ -107,9 +104,9 @@ public sealed class RecurringIncomeFlowTests : E2ETestBase
             Screenshot(Scenario, "08-balance-unchanged-after-edit");
 
             // --- Act: add a second, independent recurring income (not a singleton "salary" field).
-            // Same Shell per-tab-stack behavior as above: Settings tab reselect lands directly back on
-            // RecurringIncomesListPage. ---
+            // Same tab-reset behavior as above: drill back in from the Settings root. ---
             TapTab("Settings");
+            Tap("Settings_ManageRecurringIncomeButton");
             WaitForId("RecurringIncomes_AddButton");
             Tap("RecurringIncomes_AddButton");
 

@@ -131,7 +131,10 @@ public sealed partial class AddTransactionViewModel : ObservableObject
 
     partial void OnSelectedCategoryChanged(NamedOption? value)
     {
-        if (IsExpense && value is not null && value.Id == _healthCategoryId)
+        // Never in edit mode: loading an existing "Salud" expense for editing used to tick this hidden
+        // flag, which sent SaveAsync down the medical branch -- that branch only records, never
+        // reverses, so the edit posted a second copy and debited the account twice.
+        if (!IsEditMode && IsExpense && value is not null && value.Id == _healthCategoryId)
             IsMedicalExpense = true;
     }
 
@@ -660,7 +663,10 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         return;
                     }
 
-                    if (IsMedicalExpense)
+                    // The medical branch creates a new expense and never reverses the original, so it
+                    // must stay unreachable while editing (the checkbox is hidden then, see
+                    // IsMedicalCheckboxVisible) -- otherwise an edit duplicates the transaction.
+                    if (IsMedicalExpense && !IsEditMode)
                     {
                         decimal? medicalInsuranceCoveredAmount = null;
                         if (HasInsuranceCoverage)

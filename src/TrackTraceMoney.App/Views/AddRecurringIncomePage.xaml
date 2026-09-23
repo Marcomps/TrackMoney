@@ -20,8 +20,8 @@
             <Label Text="{x:Static resources:AppResources.AddRecurringIncome_AmountLabel}" />
             <Entry Text="{Binding AmountText}" Keyboard="Numeric" AutomationId="AddRecurringIncome_AmountEntry" />
 
-            <Label Text="{Binding BiweeklyEquivalentText}" FontSize="12" Opacity="0.8"
-                   AutomationId="AddRecurringIncome_BiweeklyEquivalentLabel" />
+            <Label Text="{Binding SemiMonthlyEquivalentText}" FontSize="12" Opacity="0.8"
+                   AutomationId="AddRecurringIncome_SemiMonthlyEquivalentLabel" />
             <Label Text="{Binding MonthlyEquivalentText}" FontSize="12" Opacity="0.8"
                    AutomationId="AddRecurringIncome_MonthlyEquivalentLabel" />
 

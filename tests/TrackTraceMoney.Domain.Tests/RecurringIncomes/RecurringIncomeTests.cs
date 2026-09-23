@@ -274,4 +274,111 @@ public sealed class RecurringIncomeTests
         Assert.Equal(startDate, income.LastConfirmedDate);
         Assert.Equal(nextOccurrenceBefore, income.NextOccurrenceDate);
     }
+
+    private static List<DateOnly> ConfirmSuccessive(RecurringIncome income, int count)
+    {
+        var dates = new List<DateOnly>();
+        for (var i = 0; i < count; i++)
+        {
+            var next = income.NextOccurrenceDate;
+            dates.Add(next);
+            income.MarkConfirmed(next);
+        }
+
+        return dates;
+    }
+
+    [Fact]
+    public void SemiMonthly_PaysOnThe15thAndLastDayOfEachMonth()
+    {
+        var income = CreateIncome(RecurringIncomeFrequency.SemiMonthly, new DateOnly(2026, 9, 30));
+
+        var dates = ConfirmSuccessive(income, 11);
+
+        Assert.Equal(
+            new[]
+            {
+                new DateOnly(2026, 9, 30), new DateOnly(2026, 10, 15), new DateOnly(2026, 10, 31),
+                new DateOnly(2026, 11, 15), new DateOnly(2026, 11, 30), new DateOnly(2026, 12, 15),
+                new DateOnly(2026, 12, 31), new DateOnly(2027, 1, 15), new DateOnly(2027, 1, 31),
+                new DateOnly(2027, 2, 15), new DateOnly(2027, 2, 28),
+            },
+            dates);
+    }
+
+    [Fact]
+    public void SemiMonthly_CountsTwoOccurrencesPerMonth()
+    {
+        var income = CreateIncome(RecurringIncomeFrequency.SemiMonthly, new DateOnly(2026, 10, 15));
+
+        Assert.Equal(24, income.CountOccurrencesThrough(new DateOnly(2027, 10, 14)));
+    }
+
+    [Fact]
+    public void Monthly_OnDay30_ReturnsTo30AfterFebruary_InsteadOfDriftingTo28()
+    {
+        var income = CreateIncome(RecurringIncomeFrequency.Monthly, new DateOnly(2027, 1, 30));
+
+        var dates = ConfirmSuccessive(income, 4);
+
+        Assert.Equal(
+            new[] { new DateOnly(2027, 1, 30), new DateOnly(2027, 2, 28), new DateOnly(2027, 3, 30), new DateOnly(2027, 4, 30) },
+            dates);
+    }
+
+    [Fact]
+    public void Monthly_OnDay31_LandsOnEachMonthsLastDay()
+    {
+        var income = CreateIncome(RecurringIncomeFrequency.Monthly, new DateOnly(2026, 8, 31));
+
+        var dates = ConfirmSuccessive(income, 3);
+
+        Assert.Equal(new[] { new DateOnly(2026, 8, 31), new DateOnly(2026, 9, 30), new DateOnly(2026, 10, 31) }, dates);
+    }
+
+    [Theory]
+    [InlineData(2026, 9, 30, true)]  // due today
+    [InlineData(2026, 9, 23, true)]  // 7 days early -- inside the window
+    [InlineData(2026, 9, 22, false)] // 8 days early -- outside
+    public void CanConfirm_AllowsUpTo7DaysEarly(int year, int month, int day, bool expected)
+    {
+        var income = CreateIncome(RecurringIncomeFrequency.SemiMonthly, new DateOnly(2026, 9, 30));
+
+        Assert.Equal(expected, income.CanConfirm(new DateOnly(year, month, day)));
+    }
+
+    [Fact]
+    public void CanConfirm_AfterEarlyConfirmation_NextPaydayIsOutOfReach()
+    {
+        // Confirming the 30th on the 28th must not let a second tap confirm the 15th the same day.
+        var income = CreateIncome(RecurringIncomeFrequency.SemiMonthly, new DateOnly(2026, 9, 30));
+        var today = new DateOnly(2026, 9, 28);
+
+        income.MarkConfirmed(income.NextOccurrenceDate);
+
+        Assert.False(income.CanConfirm(today));
+    }
+
+    [Fact]
+    public void CanConfirm_OffCycleStart_ConfirmingOnTime_DoesNotExposeNextPaydaySameDay()
+    {
+        // Started on the 23rd (not a payday): next payday is the 30th, exactly 7 days later.
+        var today = new DateOnly(2026, 9, 23);
+        var income = CreateIncome(RecurringIncomeFrequency.SemiMonthly, today);
+
+        income.MarkConfirmed(income.NextOccurrenceDate);
+
+        Assert.Equal(new DateOnly(2026, 9, 30), income.NextOccurrenceDate);
+        Assert.False(income.CanConfirm(today));
+        Assert.True(income.CanConfirm(today.AddDays(1)));
+    }
+
+    [Fact]
+    public void CanConfirm_WhenInactive_IsFalse()
+    {
+        var income = CreateIncome(RecurringIncomeFrequency.SemiMonthly, new DateOnly(2026, 9, 30));
+        income.Deactivate();
+
+        Assert.False(income.CanConfirm(new DateOnly(2026, 9, 30)));
+    }
 }

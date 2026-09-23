@@ -9,6 +9,7 @@ public sealed class RecurringIncomeFrequencyToLabelConverter : EnumToLabelConver
     {
         RecurringIncomeFrequency.Weekly => AppResources.RecurringIncomeFrequency_Weekly,
         RecurringIncomeFrequency.Biweekly => AppResources.RecurringIncomeFrequency_Biweekly,
+        RecurringIncomeFrequency.SemiMonthly => AppResources.RecurringIncomeFrequency_SemiMonthly,
         RecurringIncomeFrequency.Monthly => AppResources.RecurringIncomeFrequency_Monthly,
         RecurringIncomeFrequency.Yearly => AppResources.RecurringIncomeFrequency_Yearly,
         _ => string.Empty

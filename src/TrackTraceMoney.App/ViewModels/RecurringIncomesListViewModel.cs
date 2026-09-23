@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TrackTraceMoney.App.Converters;
@@ -79,8 +80,8 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
                 var listItem = RecurringIncomeListItem.FromDomain(recurringIncome, categoryName, accountName);
                 RecurringIncomes.Add(listItem);
 
-                if (recurringIncome.IsDue(today))
-                    DueRecurringIncomes.Add(DueRecurringIncomeListItem.FromListItem(listItem));
+                if (recurringIncome.CanConfirm(today))
+                    DueRecurringIncomes.Add(DueRecurringIncomeListItem.FromListItem(listItem, today));
             }
 
             HasLoaded = true;
@@ -99,11 +100,28 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
         if (IsBusy)
             return;
 
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        // Confirming ahead of the scheduled date posts real money dated today -- ask first, so a stray
+        // tap can't record a paycheck that hasn't arrived.
+        var item = DueRecurringIncomes.FirstOrDefault(d => d.Id == recurringIncomeId);
+        if (item is { IsEarly: true })
+        {
+            var confirmed = await Shell.Current.DisplayAlertAsync(
+                AppResources.RecurringIncomes_ConfirmEarlyTitle,
+                string.Format(CultureInfo.CurrentCulture, AppResources.RecurringIncomes_ConfirmEarlyMessage, item.Name, item.OccurrenceDate, item.Amount),
+                AppResources.RecurringIncomes_ConfirmEarlyAccept,
+                AppResources.RecurringIncomes_ConfirmEarlyCancel);
+
+            if (!confirmed)
+                return;
+        }
+
         ErrorMessage = null;
         IsBusy = true;
         try
         {
-            await _recurringIncomeService.ConfirmOccurrenceAsync(recurringIncomeId);
+            await _recurringIncomeService.ConfirmOccurrenceAsync(recurringIncomeId, today);
         }
         catch (Exception)
         {

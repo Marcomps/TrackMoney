@@ -66,4 +66,24 @@ public partial class AppShell : Shell
 		// CreateFirstProfilePage/AppLockPage deliberately have no route here -- neither is ever
 		// navigated to via Shell, only ever constructed directly as the app's root page (see App.xaml.cs).
 	}
+
+	/// <summary>
+	/// Switching tabs resets every other tab back to its root page, so returning to a tab (e.g.
+	/// Settings after drilling into Manage people) shows its main view rather than whatever pushed
+	/// page was left open there. Popped without animation since those tabs aren't visible.
+	/// </summary>
+	protected override void OnNavigated(ShellNavigatedEventArgs args)
+	{
+		base.OnNavigated(args);
+
+		if (args.Source != ShellNavigationSource.ShellSectionChanged)
+			return;
+
+		var currentSection = CurrentItem?.CurrentItem;
+		foreach (var section in Items.SelectMany(item => item.Items))
+		{
+			if (section != currentSection && section.Navigation.NavigationStack.Count > 1)
+				_ = section.Navigation.PopToRootAsync(animated: false);
+		}
+	}
 }

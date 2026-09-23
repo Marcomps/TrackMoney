@@ -58,7 +58,7 @@ public sealed class RecurringIncomeServiceTests
         var recurringIncome = recurringIncomes.Add(new RecurringIncome(
             "Salary", 2000m, categoryId, account.Id, RecurringIncomeFrequency.Monthly, startDate, endDate: null));
 
-        await service.ConfirmOccurrenceAsync(recurringIncome.Id);
+        await service.ConfirmOccurrenceAsync(recurringIncome.Id, startDate);
 
         var recorded = Assert.Single(transactions.All);
         var income = Assert.IsType<Income>(recorded);
@@ -87,7 +87,7 @@ public sealed class RecurringIncomeServiceTests
         var recurringIncome = recurringIncomes.Add(new RecurringIncome(
             "Salary", 2000m, categoryId, account.Id, RecurringIncomeFrequency.Monthly, startDate, endDate: null));
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ConfirmOccurrenceAsync(recurringIncome.Id));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ConfirmOccurrenceAsync(recurringIncome.Id, startDate));
 
         Assert.False(unitOfWork.LastTransaction!.Committed);
         Assert.True(unitOfWork.LastTransaction!.RolledBack);
@@ -107,11 +107,62 @@ public sealed class RecurringIncomeServiceTests
 
         recurringIncome.UpdateAmount(2500m);
 
-        await service.ConfirmOccurrenceAsync(recurringIncome.Id);
+        await service.ConfirmOccurrenceAsync(recurringIncome.Id, startDate);
 
         var recorded = Assert.Single(transactions.All);
         Assert.Equal(2500m, recorded.Amount);
         Assert.Equal(2500m, account.Balance);
+    }
+
+    [Fact]
+    public async Task ConfirmOccurrenceAsync_EarlyWithinWindow_PostsIncomeDatedToday_AndAdvancesFromScheduledDate()
+    {
+        // Payday is Sunday the 30th; payroll landed Friday the 28th.
+        var (service, recurringIncomes, accounts, transactions, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Agricola", CurrencyCode.USD, openingBalance: 181.01m));
+        var scheduled = new DateOnly(2026, 9, 30);
+        var today = new DateOnly(2026, 9, 28);
+        var recurringIncome = recurringIncomes.Add(new RecurringIncome(
+            "Salario", 654.52m, Guid.NewGuid(), account.Id, RecurringIncomeFrequency.SemiMonthly, scheduled, endDate: null));
+
+        await service.ConfirmOccurrenceAsync(recurringIncome.Id, today);
+
+        var recorded = Assert.Single(transactions.All);
+        Assert.Equal(today, recorded.Date);
+        Assert.Equal(835.53m, account.Balance);
+        Assert.Equal(scheduled, recurringIncome.LastConfirmedDate);
+        Assert.Equal(new DateOnly(2026, 10, 15), recurringIncome.NextOccurrenceDate);
+    }
+
+    [Fact]
+    public async Task ConfirmOccurrenceAsync_BeyondEarlyWindow_Throws_AndPostsNothing()
+    {
+        var (service, recurringIncomes, accounts, transactions, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Agricola", CurrencyCode.USD, openingBalance: 0m));
+        var recurringIncome = recurringIncomes.Add(new RecurringIncome(
+            "Salario", 654.52m, Guid.NewGuid(), account.Id, RecurringIncomeFrequency.SemiMonthly,
+            new DateOnly(2026, 10, 15), endDate: null));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.ConfirmOccurrenceAsync(recurringIncome.Id, new DateOnly(2026, 9, 23)));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(0m, account.Balance);
+        Assert.Null(recurringIncome.LastConfirmedDate);
+    }
+
+    [Fact]
+    public async Task ConfirmOccurrenceAsync_Late_KeepsScheduledDate()
+    {
+        var (service, recurringIncomes, accounts, transactions, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Agricola", CurrencyCode.USD, openingBalance: 0m));
+        var scheduled = new DateOnly(2026, 9, 15);
+        var recurringIncome = recurringIncomes.Add(new RecurringIncome(
+            "Salario", 654.52m, Guid.NewGuid(), account.Id, RecurringIncomeFrequency.SemiMonthly, scheduled, endDate: null));
+
+        await service.ConfirmOccurrenceAsync(recurringIncome.Id, new DateOnly(2026, 9, 23));
+
+        Assert.Equal(scheduled, Assert.Single(transactions.All).Date);
     }
 
     private sealed class FakeUnitOfWork : IUnitOfWork

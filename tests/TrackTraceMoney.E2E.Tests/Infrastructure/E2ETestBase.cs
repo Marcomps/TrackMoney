@@ -48,8 +48,9 @@ public abstract class E2ETestBase : IAsyncLifetime
         if (!AdbClient.HasReadyDevice())
         {
             throw new InvalidOperationException(
-                "No Android device/emulator is visible to adb in 'device' state. Start the " +
-                "TrackMoneyTest AVD (see E2ETestBase's doc comment) before running this suite.");
+                $"Device '{TestConfig.DeviceSerial}' is not visible to adb in 'device' state. Start the " +
+                "TrackMoneyTest AVD (see E2ETestBase's doc comment) before running this suite, or set " +
+                "TTM_DEVICE_SERIAL to the emulator's serial.");
         }
 
         var options = new AppiumOptions
@@ -57,6 +58,7 @@ public abstract class E2ETestBase : IAsyncLifetime
             PlatformName = "Android",
             AutomationName = "UiAutomator2",
         };
+        options.AddAdditionalAppiumOption("appium:udid", TestConfig.DeviceSerial);
         options.AddAdditionalAppiumOption("appium:appPackage", TestConfig.PackageName);
         options.AddAdditionalAppiumOption("appium:appActivity", TestConfig.MainActivity);
         // noReset: this suite manages app data resets itself (see ResetApp), one `pm clear` per test
@@ -242,6 +244,9 @@ public abstract class E2ETestBase : IAsyncLifetime
             .Until(d => d.FindElements(ResourceId(automationId)).Count == 0);
     }
 
+    /// <summary>How many elements currently carry this AutomationId -- for "exactly one, no duplicate" assertions.</summary>
+    protected int CountById(string automationId) => Driver.FindElements(ResourceId(automationId)).Count;
+
     protected bool ElementExists(string automationId) =>
         Driver.FindElements(ResourceId(automationId)).Count > 0;
 
@@ -277,7 +282,28 @@ public abstract class E2ETestBase : IAsyncLifetime
     protected void SelectPickerOption(string pickerAutomationId, string optionText, TimeSpan? timeout = null)
     {
         Tap(pickerAutomationId);
+        ScrollTextIntoView(optionText);
         TapByExactText(optionText, timeout);
+    }
+
+    /// <summary>
+    /// A Picker's option dialog is a scrollable list, and categories aren't in a fixed order -- an option
+    /// can land below the fold on one run and above it on the next. Best-effort: a no-op when nothing
+    /// scrollable is on screen or the text is already visible.
+    /// </summary>
+    private void ScrollTextIntoView(string text)
+    {
+        try
+        {
+            var escaped = text.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            Driver.FindElement(MobileBy.AndroidUIAutomator(
+                "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(" +
+                $"new UiSelector().text(\"{escaped}\"))"));
+        }
+        catch
+        {
+            // Nothing to scroll, or not found here -- TapByExactText's own wait reports a real miss.
+        }
     }
 
     /// <summary>

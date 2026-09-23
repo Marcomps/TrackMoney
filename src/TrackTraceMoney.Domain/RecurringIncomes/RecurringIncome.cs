@@ -78,8 +78,9 @@ public sealed class RecurringIncome : Entity
     {
         RecurringIncomeFrequency.Weekly => d.AddDays(7),
         RecurringIncomeFrequency.Biweekly => d.AddDays(14),
-        RecurringIncomeFrequency.Monthly => d.AddMonths(1),
-        RecurringIncomeFrequency.Yearly => d.AddYears(1),
+        RecurringIncomeFrequency.SemiMonthly => RecurrenceDates.NextSemiMonthlyPayday(d),
+        RecurringIncomeFrequency.Monthly => RecurrenceDates.AddMonthsAnchored(d, 1, StartDate.Day),
+        RecurringIncomeFrequency.Yearly => RecurrenceDates.AddMonthsAnchored(d, 12, StartDate.Day),
         _ => throw new InvalidOperationException($"Unknown frequency '{Frequency}'.")
     };
 
@@ -87,6 +88,31 @@ public sealed class RecurringIncome : Entity
         IsActive
         && NextOccurrenceDate <= asOf
         && (EndDate is null || NextOccurrenceDate <= EndDate.Value);
+
+    /// <summary>
+    /// How many days ahead of its scheduled date the next occurrence may be confirmed (payroll often
+    /// lands early when the payday falls on a weekend). Also capped below the gap since the last
+    /// confirmed occurrence, so confirming one occurrence (on time or early) never makes the following
+    /// one confirmable the same day — two taps can't post two paychecks. That cap matters for short
+    /// gaps, e.g. a semi-monthly income started off-cycle on the 23rd whose next payday is the 30th.
+    /// </summary>
+    public int EarlyConfirmationWindowDays
+    {
+        get
+        {
+            var window = Frequency == RecurringIncomeFrequency.Weekly ? 3 : 7;
+            if (LastConfirmedDate is { } last)
+                window = Math.Min(window, NextOccurrenceDate.DayNumber - last.DayNumber - 1);
+
+            return window;
+        }
+    }
+
+    /// <summary>
+    /// True when the next occurrence is already due, or is scheduled within
+    /// <see cref="EarlyConfirmationWindowDays"/> of <paramref name="today"/> and can be confirmed early.
+    /// </summary>
+    public bool CanConfirm(DateOnly today) => IsDue(today.AddDays(EarlyConfirmationWindowDays));
 
     /// <summary>
     /// How many occurrences fall on or before <paramref name="horizonEnd"/>, starting from

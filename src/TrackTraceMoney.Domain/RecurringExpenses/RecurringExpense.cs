@@ -129,8 +129,8 @@ public sealed class RecurringExpense : Entity
     private DateOnly Advance(DateOnly d) => Frequency switch
     {
         RecurringExpenseFrequency.Weekly => d.AddDays(7),
-        RecurringExpenseFrequency.Monthly => d.AddMonths(1),
-        RecurringExpenseFrequency.Yearly => d.AddYears(1),
+        RecurringExpenseFrequency.Monthly => RecurrenceDates.AddMonthsAnchored(d, 1, StartDate.Day),
+        RecurringExpenseFrequency.Yearly => RecurrenceDates.AddMonthsAnchored(d, 12, StartDate.Day),
         _ => throw new InvalidOperationException($"Unknown frequency '{Frequency}'.")
     };
 

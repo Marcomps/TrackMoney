@@ -13,5 +13,12 @@ public enum RecurringIncomeFrequency
     Weekly,
     Biweekly,
     Monthly,
-    Yearly
+    Yearly,
+
+    /// <summary>
+    /// Twice a month on the 15th and the last day of the month (24 paydays a year) — the usual
+    /// "quincenal" payroll, unlike <see cref="Biweekly"/> which is every 14 days (26 a year).
+    /// Appended last: stored as its name, but keeps existing ordinal positions stable too.
+    /// </summary>
+    SemiMonthly
 }

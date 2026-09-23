@@ -30,8 +30,10 @@
             <BindableLayout.ItemTemplate>
                 <DataTemplate x:DataType="models:DueRecurringIncomeListItem">
                     <Border Padding="12" Margin="0,4" StrokeShape="RoundRectangle 8">
-                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
                             <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontAttributes="Bold" />
+                            <Label Grid.Row="2" Grid.Column="0" Text="{Binding ScheduledForText}"
+                                   IsVisible="{Binding IsEarly}" FontSize="12" Opacity="0.8" />
                             <Label Grid.Row="1" Grid.Column="0">
                                 <Label.FormattedText>
                                     <FormattedString>
@@ -43,7 +45,7 @@
                                     </FormattedString>
                                 </Label.FormattedText>
                             </Label>
-                            <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
+                            <Button Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"
                                     Text="{x:Static resources:AppResources.RecurringIncomes_ConfirmButton}"
                                     Command="{Binding Source={x:Reference Root}, Path=BindingContext.ConfirmCommand}"
                                     CommandParameter="{Binding Id}"
@@ -96,9 +98,9 @@
                             <Label Grid.Row="3" Grid.Column="0" FontSize="12" Opacity="0.8">
                                 <Label.FormattedText>
                                     <FormattedString>
-                                        <Span Text="{x:Static resources:AppResources.RecurringIncomes_BiweeklyEquivalentLabel}" />
+                                        <Span Text="{x:Static resources:AppResources.RecurringIncomes_SemiMonthlyEquivalentLabel}" />
                                         <Span Text=" " />
-                                        <Span Text="{Binding BiweeklyEquivalent, StringFormat='{0:N2}'}" />
+                                        <Span Text="{Binding SemiMonthlyEquivalent, StringFormat='{0:N2}'}" />
                                         <Span Text="  ·  " />
                                         <Span Text="{x:Static resources:AppResources.RecurringIncomes_MonthlyEquivalentLabel}" />
                                         <Span Text=" " />

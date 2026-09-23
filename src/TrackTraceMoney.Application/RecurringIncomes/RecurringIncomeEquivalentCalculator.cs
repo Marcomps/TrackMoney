@@ -17,6 +17,7 @@ public static class RecurringIncomeEquivalentCalculator
     // Standard periods-per-year used to convert between cadences.
     private const int WeeksPerYear = 52;
     private const int BiweeklyPeriodsPerYear = 26;
+    private const int SemiMonthlyPeriodsPerMonth = 2;
     private const int MonthsPerYear = 12;
 
     public static decimal ToMonthlyEquivalent(decimal amount, RecurringIncomeFrequency frequency) =>
@@ -24,18 +25,19 @@ public static class RecurringIncomeEquivalentCalculator
         {
             RecurringIncomeFrequency.Weekly => amount * WeeksPerYear / MonthsPerYear,
             RecurringIncomeFrequency.Biweekly => amount * BiweeklyPeriodsPerYear / MonthsPerYear,
+            RecurringIncomeFrequency.SemiMonthly => amount * SemiMonthlyPeriodsPerMonth,
             RecurringIncomeFrequency.Monthly => amount,
             RecurringIncomeFrequency.Yearly => amount / MonthsPerYear,
             _ => throw new InvalidOperationException($"Unknown frequency '{frequency}'.")
         };
 
-    public static decimal ToBiweeklyEquivalent(decimal amount, RecurringIncomeFrequency frequency) =>
-        frequency switch
-        {
-            RecurringIncomeFrequency.Weekly => amount * WeeksPerYear / BiweeklyPeriodsPerYear,
-            RecurringIncomeFrequency.Biweekly => amount,
-            RecurringIncomeFrequency.Monthly => amount * MonthsPerYear / BiweeklyPeriodsPerYear,
-            RecurringIncomeFrequency.Yearly => amount / BiweeklyPeriodsPerYear,
-            _ => throw new InvalidOperationException($"Unknown frequency '{frequency}'.")
-        };
+    /// <summary>
+    /// The per-"quincena" figure: half of the monthly equivalent (24 paydays a year), which is what a
+    /// semi-monthly payroll slip shows. Not the every-14-days figure — see
+    /// <see cref="RecurringIncomeFrequency.SemiMonthly"/> vs <see cref="RecurringIncomeFrequency.Biweekly"/>.
+    /// </summary>
+    public static decimal ToSemiMonthlyEquivalent(decimal amount, RecurringIncomeFrequency frequency) =>
+        frequency == RecurringIncomeFrequency.SemiMonthly
+            ? amount
+            : ToMonthlyEquivalent(amount, frequency) / SemiMonthlyPeriodsPerMonth;
 }

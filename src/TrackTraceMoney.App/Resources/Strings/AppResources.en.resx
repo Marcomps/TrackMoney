@@ -824,7 +824,7 @@
     <value>Add recurring income</value>
   </data>
   <data name="RecurringIncomes_DueSectionTitle" xml:space="preserve">
-    <value>Due for confirmation</value>
+    <value>To confirm</value>
   </data>
   <data name="RecurringIncomes_ConfirmButton" xml:space="preserve">
     <value>Confirm</value>
@@ -838,8 +838,8 @@
   <data name="RecurringIncomes_NextDueLabel" xml:space="preserve">
     <value>Next:</value>
   </data>
-  <data name="RecurringIncomes_BiweeklyEquivalentLabel" xml:space="preserve">
-    <value>Biweekly ≈</value>
+  <data name="RecurringIncomes_SemiMonthlyEquivalentLabel" xml:space="preserve">
+    <value>Per half-month ≈</value>
   </data>
   <data name="RecurringIncomes_MonthlyEquivalentLabel" xml:space="preserve">
     <value>Monthly ≈</value>
@@ -854,7 +854,7 @@
     <value>Weekly</value>
   </data>
   <data name="RecurringIncomeFrequency_Biweekly" xml:space="preserve">
-    <value>Biweekly</value>
+    <value>Every 2 weeks</value>
   </data>
   <data name="RecurringIncomeFrequency_Monthly" xml:space="preserve">
     <value>Monthly</value>
@@ -916,8 +916,8 @@
   <data name="AddRecurringIncome_MonthlyEquivalentFormat" xml:space="preserve">
     <value>≈ {0:N2} monthly</value>
   </data>
-  <data name="AddRecurringIncome_BiweeklyEquivalentFormat" xml:space="preserve">
-    <value>≈ {0:N2} biweekly</value>
+  <data name="AddRecurringIncome_SemiMonthlyEquivalentFormat" xml:space="preserve">
+    <value>≈ {0:N2} per half-month</value>
   </data>
   <data name="EditRecurringIncomeAmount_Title" xml:space="preserve">
     <value>Edit amount</value>
@@ -2370,5 +2370,23 @@
   </data>
   <data name="Budgets_RemainingLabel" xml:space="preserve">
     <value>Remaining</value>
+  </data>
+  <data name="RecurringIncomeFrequency_SemiMonthly" xml:space="preserve">
+    <value>Twice a month (15th and last day)</value>
+  </data>
+  <data name="RecurringIncomes_ScheduledForFormat" xml:space="preserve">
+    <value>Scheduled: {0:d}</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmEarlyTitle" xml:space="preserve">
+    <value>Already received?</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmEarlyMessage" xml:space="preserve">
+    <value>{0} is scheduled for {1:d}. If you have already been paid, {2:N2} will be recorded with today's date.</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmEarlyAccept" xml:space="preserve">
+    <value>Yes, I received it</value>
+  </data>
+  <data name="RecurringIncomes_ConfirmEarlyCancel" xml:space="preserve">
+    <value>Not yet</value>
   </data>
 </root>

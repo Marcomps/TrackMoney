@@ -23,7 +23,7 @@ public sealed partial class AddRecurringIncomeViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MonthlyEquivalentText))]
-    [NotifyPropertyChangedFor(nameof(BiweeklyEquivalentText))]
+    [NotifyPropertyChangedFor(nameof(SemiMonthlyEquivalentText))]
     private string amountText = string.Empty;
 
     [ObservableProperty]
@@ -34,7 +34,7 @@ public sealed partial class AddRecurringIncomeViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MonthlyEquivalentText))]
-    [NotifyPropertyChangedFor(nameof(BiweeklyEquivalentText))]
+    [NotifyPropertyChangedFor(nameof(SemiMonthlyEquivalentText))]
     private RecurringIncomeFrequency selectedFrequency = RecurringIncomeFrequency.Monthly;
 
     [ObservableProperty]
@@ -52,7 +52,15 @@ public sealed partial class AddRecurringIncomeViewModel : ObservableObject
     [ObservableProperty]
     private bool isBusy;
 
-    public IReadOnlyList<RecurringIncomeFrequency> AvailableFrequencies { get; } = Enum.GetValues<RecurringIncomeFrequency>();
+    // Explicit order (not Enum.GetValues) so SemiMonthly, appended last in the enum, sits next to Biweekly.
+    public IReadOnlyList<RecurringIncomeFrequency> AvailableFrequencies { get; } =
+    [
+        RecurringIncomeFrequency.Weekly,
+        RecurringIncomeFrequency.Biweekly,
+        RecurringIncomeFrequency.SemiMonthly,
+        RecurringIncomeFrequency.Monthly,
+        RecurringIncomeFrequency.Yearly,
+    ];
 
     public ObservableCollection<NamedOption> Categories { get; } = [];
 
@@ -73,9 +81,9 @@ public sealed partial class AddRecurringIncomeViewModel : ObservableObject
             ? string.Format(CultureInfo.CurrentCulture, AppResources.AddRecurringIncome_MonthlyEquivalentFormat, RecurringIncomeEquivalentCalculator.ToMonthlyEquivalent(amount, SelectedFrequency))
             : string.Empty;
 
-    public string BiweeklyEquivalentText =>
+    public string SemiMonthlyEquivalentText =>
         TryParseAmount(out var amount)
-            ? string.Format(CultureInfo.CurrentCulture, AppResources.AddRecurringIncome_BiweeklyEquivalentFormat, RecurringIncomeEquivalentCalculator.ToBiweeklyEquivalent(amount, SelectedFrequency))
+            ? string.Format(CultureInfo.CurrentCulture, AppResources.AddRecurringIncome_SemiMonthlyEquivalentFormat, RecurringIncomeEquivalentCalculator.ToSemiMonthlyEquivalent(amount, SelectedFrequency))
             : string.Empty;
 
     public AddRecurringIncomeViewModel(

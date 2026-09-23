@@ -273,4 +273,19 @@ public sealed class RecurringExpenseTests
         Assert.Equal(accountId, expense.AccountId);
         Assert.Null(expense.CreditAccountId);
     }
+
+    [Fact]
+    public void Monthly_OnDay30_ReturnsTo30AfterFebruary_InsteadOfDriftingTo28()
+    {
+        var expense = CreateExpense(RecurringExpenseFrequency.Monthly, new DateOnly(2027, 1, 30));
+        var dates = new List<DateOnly>();
+
+        for (var i = 0; i < 3; i++)
+        {
+            dates.Add(expense.NextOccurrenceDate);
+            expense.MarkConfirmed(expense.NextOccurrenceDate);
+        }
+
+        Assert.Equal(new[] { new DateOnly(2027, 1, 30), new DateOnly(2027, 2, 28), new DateOnly(2027, 3, 30) }, dates);
+    }
 }

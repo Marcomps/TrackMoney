@@ -13,9 +13,10 @@ namespace TrackTraceMoney.E2E.Tests.Infrastructure;
 /// </summary>
 public static class AdbClient
 {
+    /// <summary>Runs adb against <see cref="TestConfig.DeviceSerial"/> only, never "whichever device adb picks".</summary>
     public static (int ExitCode, string StdOut, string StdErr) Run(string arguments, int timeoutMs = 30_000)
     {
-        var startInfo = new ProcessStartInfo(TestConfig.AdbPath, arguments)
+        var startInfo = new ProcessStartInfo(TestConfig.AdbPath, $"-s {TestConfig.DeviceSerial} {arguments}")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -38,14 +39,11 @@ public static class AdbClient
         return (process.ExitCode, stdOutTask.GetAwaiter().GetResult(), stdErrTask.GetAwaiter().GetResult());
     }
 
-    /// <summary>True when `adb devices` lists at least one entry in "device" (fully booted, authorized) state.</summary>
+    /// <summary>True when <see cref="TestConfig.DeviceSerial"/> is attached in "device" (fully booted, authorized) state.</summary>
     public static bool HasReadyDevice()
     {
-        var (_, stdOut, _) = Run("devices");
-        return stdOut
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .Skip(1) // header line: "List of devices attached"
-            .Any(line => line.Contains('\t') && line.TrimEnd().EndsWith("device", StringComparison.Ordinal));
+        var (exitCode, stdOut, _) = Run("get-state");
+        return exitCode == 0 && stdOut.Trim() == "device";
     }
 
     /// <summary>

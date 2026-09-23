@@ -14,7 +14,7 @@ public sealed record RecurringIncomeListItem(
     DateOnly NextDueDate,
     bool IsActive,
     decimal MonthlyEquivalent,
-    decimal BiweeklyEquivalent)
+    decimal SemiMonthlyEquivalent)
 {
     public static RecurringIncomeListItem FromDomain(
         RecurringIncome recurringIncome,
@@ -30,5 +30,5 @@ public sealed record RecurringIncomeListItem(
             recurringIncome.NextOccurrenceDate,
             recurringIncome.IsActive,
             RecurringIncomeEquivalentCalculator.ToMonthlyEquivalent(recurringIncome.Amount, recurringIncome.Frequency),
-            RecurringIncomeEquivalentCalculator.ToBiweeklyEquivalent(recurringIncome.Amount, recurringIncome.Frequency));
+            RecurringIncomeEquivalentCalculator.ToSemiMonthlyEquivalent(recurringIncome.Amount, recurringIncome.Frequency));
 }

@@ -45,6 +45,7 @@
 
                 <Button Text="{x:Static resources:AppResources.Transactions_ViewHistoryButton}"
                         Command="{Binding ViewHistoryCommand}"
+                        AutomationId="Transactions_ViewHistoryButton"
                         HorizontalOptions="Fill"
                         Margin="0,8,0,0" />
 

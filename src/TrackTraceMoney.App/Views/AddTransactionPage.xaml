@@ -69,7 +69,7 @@
                      AddTransactionViewModel.IsMedicalCheckboxVisible's doc comment. -->
                 <VerticalStackLayout IsVisible="{Binding IsMedicalCheckboxVisible}" Spacing="12">
                     <HorizontalStackLayout Spacing="8">
-                        <CheckBox IsChecked="{Binding IsMedicalExpense}" />
+                        <CheckBox IsChecked="{Binding IsMedicalExpense}" AutomationId="AddTransaction_MedicalCheckbox" />
                         <Label Text="{x:Static resources:AppResources.AddTransaction_MedicalExpenseCheckbox}"
                                VerticalOptions="Center" />
                     </HorizontalStackLayout>
