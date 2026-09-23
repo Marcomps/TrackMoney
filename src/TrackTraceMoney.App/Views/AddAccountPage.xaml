@@ -20,7 +20,8 @@
             <Label Text="{x:Static resources:AppResources.AddAccount_KindLabel}" />
             <Picker ItemsSource="{Binding AvailableKinds}"
                     SelectedItem="{Binding SelectedKind}"
-                    IsEnabled="{Binding IsKindPickerEnabled}">
+                    IsEnabled="{Binding IsKindPickerEnabled}"
+                    AutomationId="AddAccount_KindPicker">
                 <Picker.ItemDisplayBinding>
                     <Binding Path="." Converter="{StaticResource AccountKindToLabelConverter}" />
                 </Picker.ItemDisplayBinding>
@@ -29,7 +30,8 @@
             <Label Text="{x:Static resources:AppResources.AddAccount_CurrencyLabel}" />
             <Picker ItemsSource="{Binding AvailableCurrencies}"
                     SelectedItem="{Binding SelectedCurrency}"
-                    IsEnabled="{Binding IsCurrencyPickerEnabled}" />
+                    IsEnabled="{Binding IsCurrencyPickerEnabled}"
+                    AutomationId="AddAccount_CurrencyPicker" />
             <Label Text="{x:Static resources:AppResources.AddAccount_CurrencyLockedMessage}"
                    IsVisible="{Binding IsCurrencyLockedMessageVisible}"
                    FontSize="12" Opacity="0.8" />
@@ -69,6 +71,7 @@
 
             <Button Text="{x:Static resources:AppResources.AddAccount_CancelButton}"
                     Command="{Binding CancelCommand}"
+                    AutomationId="AddAccount_CancelButton"
                     HorizontalOptions="Fill" />
         </VerticalStackLayout>
 

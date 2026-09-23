@@ -20,8 +20,10 @@
             <Label Text="{x:Static resources:AppResources.AddRecurringIncome_AmountLabel}" />
             <Entry Text="{Binding AmountText}" Keyboard="Numeric" AutomationId="AddRecurringIncome_AmountEntry" />
 
-            <Label Text="{Binding BiweeklyEquivalentText}" FontSize="12" Opacity="0.8" />
-            <Label Text="{Binding MonthlyEquivalentText}" FontSize="12" Opacity="0.8" />
+            <Label Text="{Binding BiweeklyEquivalentText}" FontSize="12" Opacity="0.8"
+                   AutomationId="AddRecurringIncome_BiweeklyEquivalentLabel" />
+            <Label Text="{Binding MonthlyEquivalentText}" FontSize="12" Opacity="0.8"
+                   AutomationId="AddRecurringIncome_MonthlyEquivalentLabel" />
 
             <Label Text="{x:Static resources:AppResources.AddRecurringIncome_CategoryLabel}" />
             <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
@@ -33,7 +35,8 @@
 
             <Label Text="{x:Static resources:AppResources.AddRecurringIncome_FrequencyLabel}" />
             <Picker ItemsSource="{Binding AvailableFrequencies}"
-                    SelectedItem="{Binding SelectedFrequency}">
+                    SelectedItem="{Binding SelectedFrequency}"
+                    AutomationId="AddRecurringIncome_FrequencyPicker">
                 <Picker.ItemDisplayBinding>
                     <Binding Path="." Converter="{StaticResource RecurringIncomeFrequencyToLabelConverter}" />
                 </Picker.ItemDisplayBinding>

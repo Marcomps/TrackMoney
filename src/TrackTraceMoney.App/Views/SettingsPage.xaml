@@ -55,6 +55,7 @@
 
             <Button Text="{x:Static resources:AppResources.Settings_ManageCategoriesButton}"
                     Command="{Binding GoToManageCategoriesCommand}"
+                    AutomationId="Settings_ManageCategoriesButton"
                     HorizontalOptions="Fill" />
 
             <Button Text="{x:Static resources:AppResources.Settings_ManageTransactionPresetsButton}"
@@ -64,6 +65,7 @@
 
             <Button Text="{x:Static resources:AppResources.Settings_ManageBudgetsButton}"
                     Command="{Binding GoToManageBudgetsCommand}"
+                    AutomationId="Settings_ManageBudgetsButton"
                     HorizontalOptions="Fill" />
 
             <Button Text="{x:Static resources:AppResources.Settings_ManageRecurringExpensesButton}"

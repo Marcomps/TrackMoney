@@ -70,7 +70,8 @@
                                            FontSize="12" Opacity="0.6" />
                                     <Label Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
                                            VerticalOptions="Center"
-                                           Text="{Binding Balance, StringFormat='{0:N2}'}" />
+                                           Text="{Binding Balance, StringFormat='{0:N2}'}"
+                                           AutomationId="{Binding Name, StringFormat='AccountsList_Balance_{0}'}" />
                                 </Grid>
                             </SwipeView>
                         </DataTemplate>
