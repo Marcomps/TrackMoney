@@ -46,7 +46,7 @@ public sealed partial class AddAccountViewModel : ObservableObject
     /// <summary>
     /// The actual <c>[QueryProperty]</c> target -- a non-nullable <see cref="Guid"/> can't be bound
     /// directly (MAUI Shell's internal <c>Convert.ChangeType</c> throws <see cref="InvalidCastException"/>
-    /// for it; see <c>EditRecurringIncomeAmountViewModel.RecurringIncomeIdText</c>'s doc comment, the
+    /// for it; see <c>AddRecurringIncomeViewModel.RecurringIncomeIdText</c>'s doc comment, the
     /// precedent this copies). Absent/unparseable simply means "add mode", not an error — unlike that
     /// precedent, this query parameter is genuinely optional (a bare navigation to this page with no
     /// <c>accountId</c> is the normal Add flow).

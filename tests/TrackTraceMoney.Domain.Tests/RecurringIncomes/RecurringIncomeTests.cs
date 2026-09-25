@@ -381,4 +381,50 @@ public sealed class RecurringIncomeTests
 
         Assert.False(income.CanConfirm(new DateOnly(2026, 9, 30)));
     }
+
+    [Fact]
+    public void UpdateDetails_ChangesEverything_BeforeAnyConfirmation()
+    {
+        var income = CreateIncome(RecurringIncomeFrequency.Monthly, new DateOnly(2026, 9, 30));
+        var newCategory = Guid.NewGuid();
+        var newAccount = Guid.NewGuid();
+
+        income.UpdateDetails(" Sueldo ", 700m, newCategory, newAccount, RecurringIncomeFrequency.SemiMonthly,
+            new DateOnly(2026, 10, 15), new DateOnly(2027, 12, 31));
+
+        Assert.Equal("Sueldo", income.Name);
+        Assert.Equal(700m, income.Amount);
+        Assert.Equal(newCategory, income.CategoryId);
+        Assert.Equal(newAccount, income.DestinationAccountId);
+        Assert.Equal(RecurringIncomeFrequency.SemiMonthly, income.Frequency);
+        Assert.Equal(new DateOnly(2026, 10, 15), income.NextOccurrenceDate);
+        Assert.Equal(new DateOnly(2027, 12, 31), income.EndDate);
+    }
+
+    [Fact]
+    public void UpdateDetails_AfterConfirmation_KeepsHistory_AndRejectsStartDateChange()
+    {
+        var start = new DateOnly(2026, 9, 30);
+        var income = CreateIncome(RecurringIncomeFrequency.SemiMonthly, start);
+        income.MarkConfirmed(start);
+
+        Assert.Throws<InvalidOperationException>(() => income.UpdateDetails(
+            "Salary", 800m, income.CategoryId, income.DestinationAccountId, income.Frequency, start.AddDays(1), null));
+
+        income.UpdateDetails("Salary", 800m, income.CategoryId, income.DestinationAccountId, income.Frequency, start, null);
+
+        Assert.Equal(800m, income.Amount);
+        Assert.Equal(start, income.LastConfirmedDate);
+        Assert.Equal(new DateOnly(2026, 10, 15), income.NextOccurrenceDate);
+    }
+
+    [Fact]
+    public void UpdateDetails_Validates()
+    {
+        var income = CreateIncome();
+
+        Assert.Throws<ArgumentException>(() => income.UpdateDetails(" ", 1m, Guid.NewGuid(), Guid.NewGuid(), income.Frequency, income.StartDate, null));
+        Assert.Throws<ArgumentException>(() => income.UpdateDetails("X", 0m, Guid.NewGuid(), Guid.NewGuid(), income.Frequency, income.StartDate, null));
+        Assert.Throws<ArgumentException>(() => income.UpdateDetails("X", 1m, Guid.NewGuid(), Guid.NewGuid(), income.Frequency, income.StartDate, income.StartDate.AddDays(-1)));
+    }
 }

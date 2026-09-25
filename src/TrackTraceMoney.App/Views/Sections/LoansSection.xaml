@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Loans as a section of the Credit tab (list only — its Add button lives in the host page's bottom button group; bound to LoansListViewModel by the host page), keeping the
+     standalone list's swipe actions (edit / deactivate / delete / reactivate). -->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.Sections.LoansSection"
+             x:DataType="viewModels:LoansListViewModel"
+             x:Name="Root">
+
+    <VerticalStackLayout Spacing="4">
+        <Label Text="{x:Static resources:AppResources.Loans_Title}"
+               FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+
+        <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+
+        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Loans}">
+            <BindableLayout.EmptyView>
+                <Label Text="{x:Static resources:AppResources.Loans_Empty}" FontSize="13" Opacity="0.7" Padding="0,4" />
+            </BindableLayout.EmptyView>
+            <BindableLayout.ItemTemplate>
+                <DataTemplate x:DataType="models:LoanListItem">
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItems>
+                                <SwipeItem Text="{x:Static resources:AppResources.LoansList_EditAction}"
+                                           IsVisible="{Binding IsActive}"
+                                           Command="{Binding Source={x:Reference Root}, Path=BindingContext.EditLoanCommand}"
+                                           CommandParameter="{Binding Id}" />
+                                <SwipeItem Text="{x:Static resources:AppResources.LoansList_DeactivateAction}"
+                                           IsVisible="{Binding IsActive}"
+                                           Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeactivateLoanCommand}"
+                                           CommandParameter="{Binding Id}" />
+                                <SwipeItem Text="{x:Static resources:AppResources.LoansList_DeleteAction}"
+                                           IsVisible="{Binding IsActive}"
+                                           BackgroundColor="DarkRed"
+                                           Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeleteLoanCommand}"
+                                           CommandParameter="{Binding Id}" />
+                                <SwipeItem Text="{x:Static resources:AppResources.LoansList_ReactivateAction}"
+                                           IsVisible="{Binding IsInactive}"
+                                           Command="{Binding Source={x:Reference Root}, Path=BindingContext.ReactivateLoanCommand}"
+                                           CommandParameter="{Binding Id}" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+                        <Grid Padding="0,10" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto"
+                              AutomationId="{Binding Name, StringFormat='LoansList_Item_{0}'}">
+                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="16" />
+                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding InstitutionName}" FontSize="12" Opacity="0.7" />
+                            <Label Grid.Row="2" Grid.Column="0"
+                                   Text="{Binding Kind, Converter={StaticResource LoanKindToLabelConverter}}"
+                                   FontSize="12" Opacity="0.7" />
+                            <Label Grid.Row="3" Grid.Column="0"
+                                   Text="{x:Static resources:AppResources.AccountsList_InactiveBadge}"
+                                   IsVisible="{Binding IsInactive}" FontSize="12" Opacity="0.6" />
+                            <Label Grid.Row="0" Grid.Column="1" VerticalOptions="Center"
+                                   Text="{Binding AmountOwed, StringFormat='{0:N2}'}" />
+                            <Label Grid.Row="1" Grid.Column="1" VerticalOptions="Center"
+                                   Text="{Binding RequiredPayment, StringFormat='{0:N2}'}" FontSize="12" Opacity="0.7" />
+                            <Label Grid.Row="2" Grid.Column="1" VerticalOptions="Center"
+                                   Text="{Binding NextPaymentDate}" FontSize="12" Opacity="0.7" />
+                        </Grid>
+                    </SwipeView>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </VerticalStackLayout>
+    </VerticalStackLayout>
+
+</ContentView>

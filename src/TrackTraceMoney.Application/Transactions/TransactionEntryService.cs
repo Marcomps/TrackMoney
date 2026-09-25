@@ -19,6 +19,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
     private readonly ISpendingCalculator _spendingCalculator;
     private readonly ILocalNotifier _localNotifier;
     private readonly IMedicalExpenseDetailRepository _medicalExpenseDetailRepository;
+    private readonly ICreditCardStatementRepository _statementRepository;
 
     public TransactionEntryService(
         ITransactionRepository transactionRepository,
@@ -28,7 +29,8 @@ public sealed class TransactionEntryService : ITransactionEntryService
         ICategoryRepository categoryRepository,
         ISpendingCalculator spendingCalculator,
         ILocalNotifier localNotifier,
-        IMedicalExpenseDetailRepository medicalExpenseDetailRepository)
+        IMedicalExpenseDetailRepository medicalExpenseDetailRepository,
+        ICreditCardStatementRepository statementRepository)
     {
         _transactionRepository = transactionRepository;
         _accountRepository = accountRepository;
@@ -38,6 +40,7 @@ public sealed class TransactionEntryService : ITransactionEntryService
         _spendingCalculator = spendingCalculator;
         _localNotifier = localNotifier;
         _medicalExpenseDetailRepository = medicalExpenseDetailRepository;
+        _statementRepository = statementRepository;
     }
 
     public async Task RecordExpenseAsync(
@@ -571,14 +574,92 @@ public sealed class TransactionEntryService : ITransactionEntryService
         if (transaction is not Expense expense)
             throw new InvalidOperationException($"Transaction '{transactionId}' is not an expense.");
 
+        await EnsureNotMedicalAsync(transactionId, ct);
+        await ReverseExpenseCoreAsync(expense, ct);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    private async Task ReverseExpenseCoreAsync(Expense expense, CancellationToken ct)
+    {
         var account = await _accountRepository.GetByIdAsync(expense.AccountId, ct)
             ?? throw new InvalidOperationException($"Account '{expense.AccountId}' was not found.");
 
         account.Credit(expense.Amount); // exact inverse of RecordExpenseAsync's account.Debit(amount)
 
         _transactionRepository.Remove(expense);
+    }
+
+    /// <summary>
+    /// A medical expense must go through <see cref="ReverseMedicalExpenseAsync"/>, which removes its
+    /// <see cref="MedicalExpenseDetail"/> too — reversing only the transaction would orphan that row.
+    /// </summary>
+    private async Task EnsureNotMedicalAsync(Guid transactionId, CancellationToken ct)
+    {
+        if (await _medicalExpenseDetailRepository.GetForTransactionAsync(transactionId, ct) is not null)
+            throw new InvalidOperationException("This is a medical expense; reverse it with ReverseMedicalExpenseAsync.");
+    }
+
+    public async Task ReverseMedicalExpenseAsync(Guid transactionId, CancellationToken ct = default)
+    {
+        var detail = await _medicalExpenseDetailRepository.GetForTransactionAsync(transactionId, ct)
+            ?? throw new InvalidOperationException($"Transaction '{transactionId}' has no medical detail.");
+
+        if (detail.Status is MedicalReimbursementStatus.Reimbursed or MedicalReimbursementStatus.Rejected)
+            throw new InvalidOperationException("A medical expense whose reimbursement is already resolved can't be changed.");
+
+        var transaction = await _transactionRepository.GetByIdAsync(transactionId, ct)
+            ?? throw new InvalidOperationException($"Transaction '{transactionId}' was not found.");
+
+        switch (transaction)
+        {
+            case Expense expense:
+                await ReverseExpenseCoreAsync(expense, ct);
+                break;
+            case CreditCardPurchase purchase:
+                await ReverseCreditCardPurchaseCoreAsync(purchase, ct);
+                break;
+            default:
+                throw new InvalidOperationException($"Transaction '{transactionId}' is not a medical expense.");
+        }
+
+        // One save for the reversal and the detail removal (same context), so neither survives alone.
+        _medicalExpenseDetailRepository.Remove(detail);
         await _transactionRepository.SaveChangesAsync(ct);
     }
+
+    public async Task ReverseCreditCardPurchaseAsync(Guid transactionId, CancellationToken ct = default)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(transactionId, ct)
+            ?? throw new InvalidOperationException($"Transaction '{transactionId}' was not found.");
+
+        if (transaction is not CreditCardPurchase purchase)
+            throw new InvalidOperationException($"Transaction '{transactionId}' is not a credit card purchase.");
+
+        await EnsureNotMedicalAsync(transactionId, ct);
+        await ReverseCreditCardPurchaseCoreAsync(purchase, ct);
+        await _transactionRepository.SaveChangesAsync(ct);
+    }
+
+    private async Task ReverseCreditCardPurchaseCoreAsync(CreditCardPurchase purchase, CancellationToken ct)
+    {
+        if (await IsInClosedStatementAsync(purchase, ct))
+            throw new InvalidOperationException("This purchase belongs to a statement that has already been recorded.");
+
+        var creditAccount = await _creditAccountRepository.GetByIdAsync(purchase.CreditAccountId, ct)
+            ?? throw new InvalidOperationException($"Credit account '{purchase.CreditAccountId}' was not found.");
+
+        creditAccount.ReverseCharge(purchase.Amount); // exact inverse of RecordCreditCardPurchaseAsync's RegisterCharge
+
+        _transactionRepository.Remove(purchase);
+    }
+
+    public async Task<bool> IsCreditCardPurchaseInClosedStatementAsync(Guid transactionId, CancellationToken ct = default) =>
+        await _transactionRepository.GetByIdAsync(transactionId, ct) is CreditCardPurchase purchase
+        && await IsInClosedStatementAsync(purchase, ct);
+
+    private async Task<bool> IsInClosedStatementAsync(CreditCardPurchase purchase, CancellationToken ct) =>
+        await _statementRepository.GetLatestForCardAsync(purchase.CreditAccountId, ct) is { } latest
+        && purchase.Date <= latest.CycleEndDate;
 
     public async Task ReverseIncomeAsync(Guid transactionId, CancellationToken ct = default)
     {

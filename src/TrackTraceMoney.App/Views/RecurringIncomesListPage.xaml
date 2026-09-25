@@ -109,11 +109,11 @@
                                 </Label.FormattedText>
                             </Label>
                             <VerticalStackLayout Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Spacing="4" VerticalOptions="Center">
-                                <Button Text="{x:Static resources:AppResources.RecurringIncomes_EditAmountButton}"
-                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.EditAmountCommand}"
+                                <Button Text="{x:Static resources:AppResources.RecurringItem_EditButton}"
+                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.EditCommand}"
                                         CommandParameter="{Binding Id}"
                                         IsVisible="{Binding IsActive}"
-                                        AutomationId="{Binding Name, StringFormat='RecurringIncomes_EditAmountButton_{0}'}" />
+                                        AutomationId="{Binding Name, StringFormat='RecurringIncomes_EditButton_{0}'}" />
                                 <Button Text="{x:Static resources:AppResources.RecurringIncomes_DeactivateButton}"
                                         Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeactivateCommand}"
                                         CommandParameter="{Binding Id}"

@@ -13,10 +13,10 @@
         <VerticalStackLayout Spacing="12">
 
             <Label Text="{x:Static resources:AppResources.AddLoan_NameLabel}" />
-            <Entry Text="{Binding Name}" />
+            <Entry Text="{Binding Name}" AutomationId="AddLoan_NameEntry" />
 
             <Label Text="{x:Static resources:AppResources.AddLoan_InstitutionLabel}" />
-            <Picker ItemsSource="{Binding InstitutionOptions}" SelectedItem="{Binding SelectedInstitution}" />
+            <Picker ItemsSource="{Binding InstitutionOptions}" SelectedItem="{Binding SelectedInstitution}" AutomationId="AddLoan_InstitutionPicker" />
 
             <Label Text="{x:Static resources:AppResources.AddLoan_KindLabel}" />
             <Picker ItemsSource="{Binding AvailableKinds}"
@@ -36,16 +36,16 @@
 
             <VerticalStackLayout IsVisible="{Binding IsOriginalAmountVisible}" Spacing="12">
                 <Label Text="{x:Static resources:AppResources.AddLoan_OriginalAmountLabel}" />
-                <Entry Text="{Binding OriginalAmountText}" Keyboard="Numeric" />
+                <Entry Text="{Binding OriginalAmountText}" Keyboard="Numeric" AutomationId="AddLoan_OriginalAmountEntry" />
             </VerticalStackLayout>
 
             <VerticalStackLayout IsVisible="{Binding IsCurrentBalanceVisible}" Spacing="12">
                 <Label Text="{x:Static resources:AppResources.AddLoan_CurrentBalanceLabel}" />
-                <Entry Text="{Binding CurrentBalanceText}" Keyboard="Numeric" />
+                <Entry Text="{Binding CurrentBalanceText}" Keyboard="Numeric" AutomationId="AddLoan_CurrentBalanceEntry" />
             </VerticalStackLayout>
 
             <Label Text="{x:Static resources:AppResources.AddLoan_InterestRateLabel}" />
-            <Entry Text="{Binding InterestRateText}" Keyboard="Numeric" />
+            <Entry Text="{Binding InterestRateText}" Keyboard="Numeric" AutomationId="AddLoan_InterestRateEntry" />
 
             <Label Text="{x:Static resources:AppResources.AddLoan_RateTypeLabel}" />
             <Picker ItemsSource="{Binding AvailableRateTypes}"
@@ -56,13 +56,13 @@
             </Picker>
 
             <Label Text="{x:Static resources:AppResources.AddLoan_MonthlyInstallmentLabel}" />
-            <Entry Text="{Binding MonthlyInstallmentText}" Keyboard="Numeric" />
+            <Entry Text="{Binding MonthlyInstallmentText}" Keyboard="Numeric" AutomationId="AddLoan_MonthlyInstallmentEntry" />
 
             <Label Text="{x:Static resources:AppResources.AddLoan_NextPaymentDateLabel}" />
             <DatePicker Date="{Binding NextPaymentDate}" />
 
             <Label Text="{x:Static resources:AppResources.AddLoan_RequiredPaymentLabel}" />
-            <Entry Text="{Binding RequiredPaymentText}" Keyboard="Numeric" />
+            <Entry Text="{Binding RequiredPaymentText}" Keyboard="Numeric" AutomationId="AddLoan_RequiredPaymentEntry" />
 
             <Label Text="{x:Static resources:AppResources.AddLoan_FeesLabel}" />
             <Entry Text="{Binding FeesText}" Keyboard="Numeric" />
@@ -77,6 +77,7 @@
 
         <VerticalStackLayout Grid.Row="1" Spacing="12" Margin="0,12,0,0">
             <Button Text="{x:Static resources:AppResources.AddLoan_SaveButton}"
+                    AutomationId="AddLoan_SaveButton"
                     Command="{Binding SaveCommand}"
                     HorizontalOptions="Fill" />
 

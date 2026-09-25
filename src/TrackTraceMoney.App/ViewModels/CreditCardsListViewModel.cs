@@ -127,12 +127,6 @@ public sealed partial class CreditCardsListViewModel : ObservableObject
         await Shell.Current.GoToAsync($"{nameof(CreditCardDetailPage)}?creditAccountId={creditAccountId}");
 
     [RelayCommand]
-    private static async Task ViewLoansAsync()
-    {
-        await Shell.Current.GoToAsync(nameof(LoansListPage));
-    }
-
-    [RelayCommand]
     private static async Task ViewSnowballPlanAsync()
     {
         await Shell.Current.GoToAsync(nameof(SnowballPlanPage));

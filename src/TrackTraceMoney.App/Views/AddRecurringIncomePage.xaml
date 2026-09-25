@@ -5,7 +5,7 @@
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.AddRecurringIncomePage"
              x:DataType="viewModels:AddRecurringIncomeViewModel"
-             Title="{x:Static resources:AppResources.AddRecurringIncome_Title}">
+             Title="{Binding PageTitle}">
 
     <Grid RowDefinitions="*,Auto" Padding="16">
 
@@ -43,7 +43,10 @@
             </Picker>
 
             <Label Text="{x:Static resources:AppResources.AddRecurringIncome_StartDateLabel}" />
-            <DatePicker Date="{Binding StartDate}" />
+            <DatePicker Date="{Binding StartDate}" IsEnabled="{Binding IsStartDateEnabled}"
+                        AutomationId="AddRecurringIncome_StartDatePicker" />
+            <Label Text="{x:Static resources:AppResources.RecurringItem_StartDateLocked}"
+                   IsVisible="{Binding IsStartDateLocked}" FontSize="12" Opacity="0.8" />
 
             <HorizontalStackLayout Spacing="8">
                 <Label Text="{x:Static resources:AppResources.AddRecurringIncome_HasEndDateLabel}"
@@ -65,6 +68,13 @@
             <Button Text="{x:Static resources:AppResources.AddRecurringIncome_SaveButton}"
                     Command="{Binding SaveCommand}"
                     AutomationId="AddRecurringIncome_SaveButton"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.RecurringItem_DeleteButton}"
+                    Command="{Binding DeleteCommand}"
+                    IsVisible="{Binding IsEditMode}"
+                    BackgroundColor="DarkRed"
+                    AutomationId="AddRecurringIncome_DeleteButton"
                     HorizontalOptions="Fill" />
 
             <Button Text="{x:Static resources:AppResources.AddRecurringIncome_CancelButton}"

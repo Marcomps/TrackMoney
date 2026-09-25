@@ -5,7 +5,7 @@
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.AddRecurringExpensePage"
              x:DataType="viewModels:AddRecurringExpenseViewModel"
-             Title="{x:Static resources:AppResources.AddRecurringExpense_Title}">
+             Title="{Binding PageTitle}">
 
     <Grid RowDefinitions="*,Auto" Padding="16">
 
@@ -37,7 +37,10 @@
             </Picker>
 
             <Label Text="{x:Static resources:AppResources.AddRecurringExpense_StartDateLabel}" />
-            <DatePicker Date="{Binding StartDate}" />
+            <DatePicker Date="{Binding StartDate}" IsEnabled="{Binding IsStartDateEnabled}"
+                        AutomationId="AddRecurringExpense_StartDatePicker" />
+            <Label Text="{x:Static resources:AppResources.RecurringItem_StartDateLocked}"
+                   IsVisible="{Binding IsStartDateLocked}" FontSize="12" Opacity="0.8" />
 
             <HorizontalStackLayout Spacing="8">
                 <Label Text="{x:Static resources:AppResources.AddRecurringExpense_HasEndDateLabel}"
@@ -59,6 +62,13 @@
             <Button Text="{x:Static resources:AppResources.AddRecurringExpense_SaveButton}"
                     Command="{Binding SaveCommand}"
                     AutomationId="AddRecurringExpense_SaveButton"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="{x:Static resources:AppResources.RecurringItem_DeleteButton}"
+                    Command="{Binding DeleteCommand}"
+                    IsVisible="{Binding IsEditMode}"
+                    BackgroundColor="DarkRed"
+                    AutomationId="AddRecurringExpense_DeleteButton"
                     HorizontalOptions="Fill" />
 
             <Button Text="{x:Static resources:AppResources.AddRecurringExpense_CancelButton}"

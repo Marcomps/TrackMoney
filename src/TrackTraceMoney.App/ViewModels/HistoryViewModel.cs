@@ -351,7 +351,7 @@ public sealed partial class HistoryViewModel : ObservableObject
             return;
         }
 
-        if (entry.Type is TransactionType.Expense or TransactionType.Income or TransactionType.Transfer)
+        if (entry.Type is TransactionType.Expense or TransactionType.CreditCardPurchase or TransactionType.Income or TransactionType.Transfer)
         {
             await Shell.Current.GoToAsync($"{nameof(TransactionDetailPage)}?transactionId={entry.Id}");
             return;

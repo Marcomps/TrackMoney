@@ -12,11 +12,42 @@ using TrackTraceMoney.Domain.RecurringIncomes;
 
 namespace TrackTraceMoney.App.ViewModels;
 
+[QueryProperty(nameof(RecurringIncomeIdText), "id")]
 public sealed partial class AddRecurringIncomeViewModel : ObservableObject
 {
     private readonly IRecurringIncomeRepository _recurringIncomeRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IFinancialAccountRepository _accountRepository;
+
+    /// <summary>
+    /// Set when opened from the list's Edit button (<c>?id=</c>): the form then prefills from the existing
+    /// definition and Save updates it instead of adding a new one. String-typed query target, parsed
+    /// defensively — Shell can't convert a query string to <see cref="Guid"/> (same idiom as
+    /// <c>AddBudgetViewModel.BudgetIdText</c>).
+    /// </summary>
+    [ObservableProperty]
+    private string? recurringIncomeIdText;
+
+    partial void OnRecurringIncomeIdTextChanged(string? value) =>
+        EditingId = Guid.TryParse(value, out var parsed) ? parsed : null;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditMode))]
+    [NotifyPropertyChangedFor(nameof(PageTitle))]
+    private Guid? editingId;
+
+    /// <summary>The start date anchors the schedule, so it's locked once an occurrence has been confirmed.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStartDateLocked))]
+    private bool isStartDateEnabled = true;
+
+    private Guid? _prefilledId;
+
+    public bool IsEditMode => EditingId is not null;
+
+    public bool IsStartDateLocked => !IsStartDateEnabled;
+
+    public string PageTitle => IsEditMode ? AppResources.AddRecurringIncome_EditTitle : AppResources.AddRecurringIncome_Title;
 
     [ObservableProperty]
     private string name = string.Empty;
@@ -112,6 +143,27 @@ public sealed partial class AddRecurringIncomeViewModel : ObservableObject
         Accounts.Clear();
         foreach (var account in accounts.Where(a => a is not TermDeposit and not InvestmentFund))
             Accounts.Add(new NamedOption(account.Id, account.Name, account.Currency));
+
+        if (EditingId is { } id && _prefilledId != id)
+        {
+            var r = await _recurringIncomeRepository.GetByIdAsync(id);
+            if (r is null)
+            {
+                ErrorMessage = AppResources.AddRecurringIncome_NotFound;
+                return;
+            }
+
+            Name = r.Name;
+            AmountText = r.Amount.ToString("0.##", CultureInfo.CurrentCulture);
+            SelectedCategory = Categories.FirstOrDefault(c => c.Id == r.CategoryId);
+            SelectedAccount = Accounts.FirstOrDefault(a => a.Id == r.DestinationAccountId);
+            SelectedFrequency = r.Frequency;
+            StartDate = r.StartDate.ToDateTime(TimeOnly.MinValue);
+            HasEndDate = r.EndDate is not null;
+            EndDate = (r.EndDate ?? r.StartDate).ToDateTime(TimeOnly.MinValue);
+            IsStartDateEnabled = r.LastConfirmedDate is null;
+            _prefilledId = id;
+        }
     }
 
     [RelayCommand]
@@ -159,16 +211,39 @@ public sealed partial class AddRecurringIncomeViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            var recurringIncome = new RecurringIncome(
-                Name,
-                amount,
-                SelectedCategory.Id,
-                SelectedAccount.Id,
-                SelectedFrequency,
-                startDateOnly,
-                endDateOnly);
+            if (EditingId is { } editingId)
+            {
+                // Prospective only: already-posted transactions and the confirmed-through date are untouched.
+                var existing = await _recurringIncomeRepository.GetByIdAsync(editingId);
+                if (existing is null)
+                {
+                    ErrorMessage = AppResources.AddRecurringIncome_NotFound;
+                    return;
+                }
 
-            await _recurringIncomeRepository.AddAsync(recurringIncome);
+                existing.UpdateDetails(
+                    Name,
+                    amount,
+                    SelectedCategory.Id,
+                    SelectedAccount.Id,
+                    SelectedFrequency,
+                    startDateOnly,
+                    endDateOnly);
+            }
+            else
+            {
+                var recurringIncome = new RecurringIncome(
+                    Name,
+                    amount,
+                    SelectedCategory.Id,
+                    SelectedAccount.Id,
+                    SelectedFrequency,
+                    startDateOnly,
+                    endDateOnly);
+
+                await _recurringIncomeRepository.AddAsync(recurringIncome);
+            }
+
             await _recurringIncomeRepository.SaveChangesAsync();
             await Shell.Current.GoToAsync("..");
         }
@@ -176,6 +251,34 @@ public sealed partial class AddRecurringIncomeViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    /// <summary>
+    /// Deletes the definition (edit mode only). Occurrences already confirmed stay in the history as the
+    /// ordinary transactions they are — nothing links them back to this definition.
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteAsync()
+    {
+        if (EditingId is not { } id)
+            return;
+
+        var confirmed = await Shell.Current.DisplayAlertAsync(
+            AppResources.AddRecurringIncome_DeleteConfirmTitle,
+            string.Format(CultureInfo.CurrentCulture, AppResources.AddRecurringIncome_DeleteConfirmMessage, Name),
+            AppResources.AddRecurringIncome_DeleteConfirmAccept,
+            AppResources.AddRecurringIncome_DeleteConfirmCancel);
+        if (!confirmed)
+            return;
+
+        var existing = await _recurringIncomeRepository.GetByIdAsync(id);
+        if (existing is not null)
+        {
+            _recurringIncomeRepository.Remove(existing);
+            await _recurringIncomeRepository.SaveChangesAsync();
+        }
+
+        await Shell.Current.GoToAsync("..");
     }
 
     [RelayCommand]

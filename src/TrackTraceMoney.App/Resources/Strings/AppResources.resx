@@ -832,9 +832,6 @@
   <data name="RecurringIncomes_DeactivateButton" xml:space="preserve">
     <value>Desactivar</value>
   </data>
-  <data name="RecurringIncomes_EditAmountButton" xml:space="preserve">
-    <value>Editar monto</value>
-  </data>
   <data name="RecurringIncomes_NextDueLabel" xml:space="preserve">
     <value>Próximo:</value>
   </data>
@@ -918,18 +915,6 @@
   </data>
   <data name="AddRecurringIncome_SemiMonthlyEquivalentFormat" xml:space="preserve">
     <value>≈ {0:N2} quincenal</value>
-  </data>
-  <data name="EditRecurringIncomeAmount_Title" xml:space="preserve">
-    <value>Editar monto</value>
-  </data>
-  <data name="EditRecurringIncomeAmount_SaveButton" xml:space="preserve">
-    <value>Guardar</value>
-  </data>
-  <data name="EditRecurringIncomeAmount_CancelButton" xml:space="preserve">
-    <value>Cancelar</value>
-  </data>
-  <data name="EditRecurringIncomeAmount_ValidationAmountInvalid" xml:space="preserve">
-    <value>El monto debe ser un número válido mayor que cero.</value>
   </data>
   <data name="Settings_ManageRecurringIncomeButton" xml:space="preserve">
     <value>Gestionar ingresos recurrentes</value>
@@ -1385,7 +1370,7 @@
     <value>Plan de Bola de Nieve</value>
   </data>
   <data name="SnowballPlan_ExtraLabel" xml:space="preserve">
-    <value>Extra disponible este ciclo</value>
+    <value>¿Cuánto extra puedes pagar al mes? (además de los mínimos)</value>
   </data>
   <data name="SnowballPlan_CurrentTargetLabel" xml:space="preserve">
     <value>OBJETIVO ACTUAL</value>
@@ -2323,17 +2308,11 @@
   <data name="TransactionDetail_DeleteError" xml:space="preserve">
     <value>No se pudo eliminar la transacción. Intenta de nuevo.</value>
   </data>
-  <data name="TransactionDetail_MedicalLinkedMessage" xml:space="preserve">
-    <value>Esta transacción está vinculada a un gasto médico y no se puede editar ni eliminar desde aquí.</value>
-  </data>
   <data name="AddTransaction_EditTitle" xml:space="preserve">
     <value>Editar transacción</value>
   </data>
   <data name="AddTransaction_EditNotFound" xml:space="preserve">
     <value>No se encontró la transacción a editar.</value>
-  </data>
-  <data name="AddTransaction_MedicalLinkedMessage" xml:space="preserve">
-    <value>Esta transacción está vinculada a un gasto médico y no se puede editar desde aquí.</value>
   </data>
   <data name="AddBudget_EditTitle" xml:space="preserve">
     <value>Editar presupuesto</value>
@@ -2430,5 +2409,110 @@
   </data>
   <data name="Dashboard_ConfirmIncomeErrorDismiss" xml:space="preserve">
     <value>Aceptar</value>
+  </data>
+  <data name="Accounts_SectionBankAndCash" xml:space="preserve">
+    <value>Cuentas y efectivo</value>
+  </data>
+  <data name="CreditCards_SectionTitle" xml:space="preserve">
+    <value>Tarjetas de crédito</value>
+  </data>
+  <data name="SnowballPlan_HowItWorksTitle" xml:space="preserve">
+    <value>¿Cómo funciona la bola de nieve?</value>
+  </data>
+  <data name="SnowballPlan_HowItWorksStep1" xml:space="preserve">
+    <value>1. Pagas el mínimo de todas tus deudas.</value>
+  </data>
+  <data name="SnowballPlan_HowItWorksStep2" xml:space="preserve">
+    <value>2. Todo el dinero extra va a la deuda más pequeña 🎯.</value>
+  </data>
+  <data name="SnowballPlan_HowItWorksStep3" xml:space="preserve">
+    <value>3. Al terminarla, lo que pagabas en ella pasa a la siguiente: la bola crece.</value>
+  </data>
+  <data name="SnowballPlan_PayThisMonthFormat" xml:space="preserve">
+    <value>Paga este mes: {0:N2}</value>
+  </data>
+  <data name="SnowballPlan_PayThisMonthBreakdownFormat" xml:space="preserve">
+    <value>mínimos {0:N2} + extra {1:N2}</value>
+  </data>
+  <data name="SnowballPlan_DebtFreeFormat" xml:space="preserve">
+    <value>Libre de deudas en ≈ {0} meses ({1:MMM yyyy})</value>
+  </data>
+  <data name="SnowballPlan_DebtFreeUnknown" xml:space="preserve">
+    <value>Con estos pagos no se terminan de pagar. Aumenta el extra o registra el pago mínimo de tus tarjetas.</value>
+  </data>
+  <data name="SnowballPlan_OwedFormat" xml:space="preserve">
+    <value>Debes {0:N2}</value>
+  </data>
+  <data name="SnowballPlan_LinePaymentTargetFormat" xml:space="preserve">
+    <value>Paga {0:N2} (mínimo {1:N2} + extra {2:N2})</value>
+  </data>
+  <data name="SnowballPlan_LinePaymentMinimumFormat" xml:space="preserve">
+    <value>Paga {0:N2} (solo el mínimo)</value>
+  </data>
+  <data name="SnowballPlan_LinePayoffFormat" xml:space="preserve">
+    <value>Terminas ≈ {0:MMM yyyy}</value>
+  </data>
+  <data name="SnowballPlan_LinePayoffUnknown" xml:space="preserve">
+    <value>Sin fecha estimada</value>
+  </data>
+  <data name="SnowballPlan_EstimateNote" xml:space="preserve">
+    <value>Las fechas son aproximadas: no incluyen intereses ni compras nuevas.</value>
+  </data>
+  <data name="SnowballPlan_OrderTitle" xml:space="preserve">
+    <value>Orden de pago</value>
+  </data>
+  <data name="AddRecurringIncome_EditTitle" xml:space="preserve">
+    <value>Editar ingreso recurrente</value>
+  </data>
+  <data name="AddRecurringExpense_EditTitle" xml:space="preserve">
+    <value>Editar gasto recurrente</value>
+  </data>
+  <data name="AddRecurringIncome_NotFound" xml:space="preserve">
+    <value>No se encontró este ingreso recurrente.</value>
+  </data>
+  <data name="AddRecurringExpense_NotFound" xml:space="preserve">
+    <value>No se encontró este gasto recurrente.</value>
+  </data>
+  <data name="RecurringItem_StartDateLocked" xml:space="preserve">
+    <value>La fecha de inicio ya no se puede cambiar porque confirmaste pagos.</value>
+  </data>
+  <data name="RecurringItem_EditButton" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="RecurringItem_DeleteButton" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="AddRecurringIncome_DeleteConfirmTitle" xml:space="preserve">
+    <value>Eliminar ingreso recurrente</value>
+  </data>
+  <data name="AddRecurringIncome_DeleteConfirmMessage" xml:space="preserve">
+    <value>Se eliminará «{0}». Los pagos que ya confirmaste se quedan en tu historial.</value>
+  </data>
+  <data name="AddRecurringIncome_DeleteConfirmAccept" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="AddRecurringIncome_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="AddRecurringExpense_DeleteConfirmTitle" xml:space="preserve">
+    <value>Eliminar gasto recurrente</value>
+  </data>
+  <data name="AddRecurringExpense_DeleteConfirmMessage" xml:space="preserve">
+    <value>Se eliminará «{0}». Los pagos que ya confirmaste se quedan en tu historial.</value>
+  </data>
+  <data name="AddRecurringExpense_DeleteConfirmAccept" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="AddRecurringExpense_DeleteConfirmCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="TransactionDetail_ClosedStatementMessage" xml:space="preserve">
+    <value>Esta compra ya está en un estado de cuenta registrado, por eso no se puede editar ni eliminar.</value>
+  </data>
+  <data name="TransactionDetail_MedicalResolvedMessage" xml:space="preserve">
+    <value>Este gasto médico ya tiene el reembolso resuelto, por eso no se puede editar ni eliminar.</value>
+  </data>
+  <data name="AddTransaction_MedicalResolvedMessage" xml:space="preserve">
+    <value>Este gasto médico ya tiene el reembolso resuelto, por eso no se puede editar.</value>
   </data>
 </root>

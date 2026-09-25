@@ -170,6 +170,6 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private static async Task EditAmountAsync(Guid recurringIncomeId) =>
-        await Shell.Current.GoToAsync($"{nameof(EditRecurringIncomeAmountPage)}?id={recurringIncomeId}");
+    private static async Task EditAsync(Guid recurringIncomeId) =>
+        await Shell.Current.GoToAsync($"{nameof(AddRecurringIncomePage)}?id={recurringIncomeId}");
 }

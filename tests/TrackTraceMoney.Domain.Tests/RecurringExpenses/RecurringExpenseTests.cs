@@ -288,4 +288,38 @@ public sealed class RecurringExpenseTests
 
         Assert.Equal(new[] { new DateOnly(2027, 1, 30), new DateOnly(2027, 2, 28), new DateOnly(2027, 3, 30) }, dates);
     }
+
+    [Fact]
+    public void UpdateDetails_CanSwitchFromBankAccountToCreditCard()
+    {
+        var expense = CreateExpense(RecurringExpenseFrequency.Monthly, new DateOnly(2026, 9, 17));
+        var card = Guid.NewGuid();
+
+        expense.UpdateDetails("Claude", 25m, expense.CategoryId, null, card, RecurringExpenseFrequency.Monthly, new DateOnly(2026, 9, 17), null);
+
+        Assert.True(expense.IsCreditCardBacked);
+        Assert.Null(expense.AccountId);
+        Assert.Equal(card, expense.CreditAccountId);
+        Assert.Equal(25m, expense.Amount);
+    }
+
+    [Fact]
+    public void UpdateDetails_RequiresExactlyOnePaymentSource()
+    {
+        var expense = CreateExpense();
+
+        Assert.Throws<ArgumentException>(() => expense.UpdateDetails("X", 1m, expense.CategoryId, null, null, expense.Frequency, expense.StartDate, null));
+        Assert.Throws<ArgumentException>(() => expense.UpdateDetails("X", 1m, expense.CategoryId, Guid.NewGuid(), Guid.NewGuid(), expense.Frequency, expense.StartDate, null));
+    }
+
+    [Fact]
+    public void UpdateDetails_AfterConfirmation_RejectsStartDateChange()
+    {
+        var start = new DateOnly(2026, 9, 17);
+        var expense = CreateExpense(RecurringExpenseFrequency.Monthly, start);
+        expense.MarkConfirmed(start);
+
+        Assert.Throws<InvalidOperationException>(() => expense.UpdateDetails(
+            "Netflix", 6.99m, expense.CategoryId, expense.AccountId, null, expense.Frequency, start.AddDays(3), null));
+    }
 }

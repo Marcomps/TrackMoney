@@ -6,6 +6,7 @@ using TrackTraceMoney.App.Resources.Strings;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Transactions;
+using TrackTraceMoney.Domain.MedicalExpenses;
 using TrackTraceMoney.Domain.Transactions;
 
 namespace TrackTraceMoney.App.ViewModels;
@@ -89,21 +90,31 @@ public sealed partial class TransactionDetailViewModel : ObservableObject
     private string? errorMessage;
 
     /// <summary>
-    /// True when this Expense has a linked <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/>
-    /// (found via a defensive extra query, App-layer only) -- reachable here despite
-    /// <c>HistoryViewModel.OpenTransactionDetailCommand</c>'s medical-priority routing whenever the
-    /// linked detail's status is None/PaidDirectly (no badge, see <c>HistoryEntryItem</c>'s doc comment),
-    /// which still leaves a real detail row pointing at this transaction id. Reversing/reposting or
-    /// deleting this transaction via the <c>ReverseXAsync</c>-based flows would orphan that detail
-    /// row (it has no cascade/cleanup) -- this slice does not add that cleanup (Application-layer work,
-    /// out of scope), so Edit/Delete are hidden instead, with an explanation, rather than silently
-    /// producing a dangling reference.
+    /// True when this expense / card purchase has a linked
+    /// <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/>: Delete then goes through
+    /// <c>ReverseMedicalExpenseAsync</c>, which removes the detail together with the transaction.
+    /// </summary>
+    [ObservableProperty]
+    private bool hasLinkedMedicalDetail;
+
+    /// <summary>
+    /// A medical expense whose reimbursement is already resolved (Reimbursed/Rejected): a reimbursement
+    /// was settled against it, so it's read-only.
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanEditOrDelete))]
-    private bool hasLinkedMedicalDetail;
+    private bool isMedicalLocked;
 
-    public bool CanEditOrDelete => !HasLinkedMedicalDetail;
+    /// <summary>
+    /// A card purchase already covered by a recorded statement: its minimum / pay-in-full amounts were
+    /// entered with this purchase in them, so it stays read-only (see
+    /// <c>ITransactionEntryService.IsCreditCardPurchaseInClosedStatementAsync</c>).
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanEditOrDelete))]
+    private bool isInClosedStatement;
+
+    public bool CanEditOrDelete => !IsMedicalLocked && !IsInClosedStatement;
 
     /// <summary>
     /// Explicit bool properties for XAML <c>IsVisible</c> bindings -- <c>IsVisible</c> is a
@@ -116,7 +127,8 @@ public sealed partial class TransactionDetailViewModel : ObservableObject
 
     public bool HasNotes => !string.IsNullOrEmpty(Notes);
 
-    public bool IsExpense => Type == TransactionType.Expense;
+    /// <summary>Expense-shaped details (category, payer, beneficiary) — a card purchase has them too.</summary>
+    public bool IsExpense => Type is TransactionType.Expense or TransactionType.CreditCardPurchase;
 
     public bool IsIncome => Type == TransactionType.Income;
 
@@ -155,7 +167,7 @@ public sealed partial class TransactionDetailViewModel : ObservableObject
             ErrorMessage = null;
 
             var transaction = await _transactionRepository.GetByIdAsync(TransactionId);
-            if (transaction is not (Expense or Income or Transfer))
+            if (transaction is not (Expense or CreditCardPurchase or Income or Transfer))
             {
                 ErrorMessage = AppResources.TransactionDetail_NotFound;
                 return;
@@ -180,6 +192,8 @@ public sealed partial class TransactionDetailViewModel : ObservableObject
             BeneficiaryName = null;
             PersonName = null;
             HasLinkedMedicalDetail = false;
+            IsMedicalLocked = false;
+            IsInClosedStatement = false;
 
             switch (transaction)
             {
@@ -188,9 +202,17 @@ public sealed partial class TransactionDetailViewModel : ObservableObject
                     CategoryName = NameOf(categoryNames, expense.CategoryId);
                     PayerName = expense.PayerPersonId is { } payerId ? NameOf(personNames, payerId) : null;
                     BeneficiaryName = expense.BeneficiaryPersonId is { } beneficiaryId ? NameOf(personNames, beneficiaryId) : null;
-                    HasLinkedMedicalDetail = await _medicalExpenseDetailRepository.GetForTransactionAsync(TransactionId) is not null;
-                    if (HasLinkedMedicalDetail)
-                        ErrorMessage = AppResources.TransactionDetail_MedicalLinkedMessage;
+                    await LoadMedicalStateAsync();
+                    break;
+                case CreditCardPurchase purchase:
+                    Type = TransactionType.CreditCardPurchase;
+                    CategoryName = NameOf(categoryNames, purchase.CategoryId);
+                    PayerName = purchase.PayerPersonId is { } purchasePayerId ? NameOf(personNames, purchasePayerId) : null;
+                    BeneficiaryName = purchase.BeneficiaryPersonId is { } purchaseBeneficiaryId ? NameOf(personNames, purchaseBeneficiaryId) : null;
+                    await LoadMedicalStateAsync();
+                    IsInClosedStatement = await _transactionEntryService.IsCreditCardPurchaseInClosedStatementAsync(TransactionId);
+                    if (IsInClosedStatement && !IsMedicalLocked)
+                        ErrorMessage = AppResources.TransactionDetail_ClosedStatementMessage;
                     break;
                 case Income income:
                     Type = TransactionType.Income;
@@ -211,17 +233,23 @@ public sealed partial class TransactionDetailViewModel : ObservableObject
         }
     }
 
+    private async Task LoadMedicalStateAsync()
+    {
+        var detail = await _medicalExpenseDetailRepository.GetForTransactionAsync(TransactionId);
+        HasLinkedMedicalDetail = detail is not null;
+        IsMedicalLocked = detail?.Status is MedicalReimbursementStatus.Reimbursed or MedicalReimbursementStatus.Rejected;
+        if (IsMedicalLocked)
+            ErrorMessage = AppResources.TransactionDetail_MedicalResolvedMessage;
+    }
+
     private static string? NameOf(IReadOnlyDictionary<Guid, string> names, Guid id) =>
         names.TryGetValue(id, out var name) ? name : null;
 
     [RelayCommand]
     private async Task EditAsync()
     {
-        if (HasLinkedMedicalDetail)
-        {
-            ErrorMessage = AppResources.TransactionDetail_MedicalLinkedMessage;
+        if (!CanEditOrDelete)
             return;
-        }
 
         await Shell.Current.GoToAsync($"{nameof(AddTransactionPage)}?editingTransactionId={TransactionId}");
     }
@@ -236,11 +264,8 @@ public sealed partial class TransactionDetailViewModel : ObservableObject
     {
         ErrorMessage = null;
 
-        if (HasLinkedMedicalDetail)
-        {
-            ErrorMessage = AppResources.TransactionDetail_MedicalLinkedMessage;
+        if (!CanEditOrDelete)
             return;
-        }
 
         var confirmed = await Shell.Current.DisplayAlertAsync(
             AppResources.TransactionDetail_DeleteConfirmTitle,
@@ -256,8 +281,14 @@ public sealed partial class TransactionDetailViewModel : ObservableObject
         {
             switch (Type)
             {
+                case TransactionType.Expense or TransactionType.CreditCardPurchase when HasLinkedMedicalDetail:
+                    await _transactionEntryService.ReverseMedicalExpenseAsync(TransactionId);
+                    break;
                 case TransactionType.Expense:
                     await _transactionEntryService.ReverseExpenseAsync(TransactionId);
+                    break;
+                case TransactionType.CreditCardPurchase:
+                    await _transactionEntryService.ReverseCreditCardPurchaseAsync(TransactionId);
                     break;
                 case TransactionType.Income:
                     await _transactionEntryService.ReverseIncomeAsync(TransactionId);

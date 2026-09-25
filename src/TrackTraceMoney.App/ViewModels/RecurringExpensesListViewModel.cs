@@ -136,6 +136,10 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private static async Task EditAsync(Guid recurringExpenseId) =>
+        await Shell.Current.GoToAsync($"{nameof(AddRecurringExpensePage)}?id={recurringExpenseId}");
+
+    [RelayCommand]
     private async Task DeactivateAsync(Guid recurringExpenseId)
     {
         if (IsBusy)

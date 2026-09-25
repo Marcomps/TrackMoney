@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Investment funds as a section of the Accounts tab (list only — its Add button lives in the host page's bottom button group; bound to InvestmentFundsListViewModel by the host
+     page). Tapping a fund opens its detail page, same as the standalone list. -->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
+             xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
+             xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             x:Class="TrackTraceMoney.App.Views.Sections.InvestmentFundsSection"
+             x:DataType="viewModels:InvestmentFundsListViewModel"
+             x:Name="Root">
+
+    <VerticalStackLayout Spacing="4">
+        <Label Text="{x:Static resources:AppResources.InvestmentFunds_Title}"
+               FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+
+        <VerticalStackLayout BindableLayout.ItemsSource="{Binding InvestmentFunds}">
+            <BindableLayout.EmptyView>
+                <Label Text="{x:Static resources:AppResources.InvestmentFunds_Empty}" FontSize="13" Opacity="0.7" Padding="0,4" />
+            </BindableLayout.EmptyView>
+            <BindableLayout.ItemTemplate>
+                <DataTemplate x:DataType="models:InvestmentFundListItem">
+                    <Grid Padding="0,10" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto"
+                          AutomationId="{Binding Name, StringFormat='InvestmentFundsList_Item_{0}'}">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenInvestmentFundCommand}"
+                                CommandParameter="{Binding Id}" />
+                        </Grid.GestureRecognizers>
+                        <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="16" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="{Binding InstitutionName}" FontSize="12" Opacity="0.7" />
+                        <Label Grid.Row="0" Grid.Column="1" VerticalOptions="Center"
+                               Text="{Binding Balance, StringFormat='{0:N2}'}" />
+                        <Label Grid.Row="1" Grid.Column="1" VerticalOptions="Center"
+                               Text="{Binding Gain, StringFormat='{0:N2}'}" FontSize="12" Opacity="0.7" />
+                        <Label Grid.Row="2" Grid.Column="1" VerticalOptions="Center"
+                               Text="{Binding ReturnPercentage, StringFormat='{0:P2}'}" FontSize="12" Opacity="0.7" />
+                    </Grid>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </VerticalStackLayout>
+    </VerticalStackLayout>
+
+</ContentView>

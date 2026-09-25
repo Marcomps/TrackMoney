@@ -11,8 +11,7 @@ namespace TrackTraceMoney.App.ViewModels;
 /// Rename + icon editing for a <see cref="Domain.Categories.Category"/> (Category lifecycle slice
 /// §A.4), mirroring <c>AddAccountViewModel</c>'s edit-mode precedent but as its own dedicated page
 /// rather than a shared Add/Edit page -- <c>AddCategoryPage</c>'s insert flow has no "existing entity"
-/// concept to graft an edit branch onto cleanly, and a small mutator-driven page is the same choice
-/// <c>EditRecurringIncomeAmountViewModel</c> already made for the identical shape of problem.
+/// concept to graft an edit branch onto cleanly, so a small mutator-driven page is simpler here.
 ///
 /// For a system-defined category (<c>IsSystemDefined == true</c>): only the icon is editable.
 /// <see cref="Name"/> is populated from the same localized display-name resolution
@@ -36,7 +35,7 @@ public sealed partial class EditCategoryViewModel : ObservableObject
     /// <c>string</c> to the receiving property and internally does a plain <c>Convert.ChangeType</c> --
     /// which throws <see cref="InvalidCastException"/> for a non-nullable <see cref="Guid"/> target.
     /// Bound here as a string and parsed defensively instead, same idiom as
-    /// <c>EditRecurringIncomeAmountViewModel.RecurringIncomeIdText</c>.
+    /// <c>AddRecurringIncomeViewModel.RecurringIncomeIdText</c>.
     /// </summary>
     [ObservableProperty]
     private string? categoryIdText;

@@ -67,9 +67,8 @@ public sealed partial class AccountsListViewModel : ObservableObject
             // table per README §22/§23) but are deliberately excluded here: neither is part of
             // AccountListItem's Cash/Bank/Savings switch (that would mean either folding them into
             // AccountKind, which this slice explicitly avoids, or AccountListItem.FromDomain throwing
-            // NotSupportedException for them) and each has its own separate list screen
-            // (TermDepositsListPage/InvestmentFundsListPage) reached from the ViewTermDepositsCommand/
-            // ViewInvestmentFundsCommand below.
+            // NotSupportedException for them); each is shown in its own section of the Accounts tab,
+            // backed by TermDepositsListViewModel/InvestmentFundsListViewModel (see AccountsListPage).
             Accounts.Clear();
             foreach (var account in accounts.OrderByDescending(a => a.IsActive).ThenBy(a => a.Name))
             {
@@ -215,17 +214,5 @@ public sealed partial class AccountsListViewModel : ObservableObject
         }
 
         await LoadAccountsAsync();
-    }
-
-    [RelayCommand]
-    private static async Task ViewTermDepositsAsync()
-    {
-        await Shell.Current.GoToAsync(nameof(TermDepositsListPage));
-    }
-
-    [RelayCommand]
-    private static async Task ViewInvestmentFundsAsync()
-    {
-        await Shell.Current.GoToAsync(nameof(InvestmentFundsListPage));
     }
 }

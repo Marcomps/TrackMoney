@@ -220,4 +220,30 @@ public interface ITransactionEntryService
     /// account object for either side.
     /// </summary>
     Task ReverseTransferAsync(Guid transactionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Reverses a previously-recorded <see cref="Domain.Transactions.CreditCardPurchase"/> — the exact
+    /// inverse of <see cref="RecordCreditCardPurchaseAsync"/>'s <c>RegisterCharge</c>. Refused (throws
+    /// <see cref="InvalidOperationException"/>) when the purchase falls inside a statement cycle that has
+    /// already been recorded (see <see cref="IsCreditCardPurchaseInClosedStatementAsync"/>), or when the
+    /// card's debt has since dropped below the purchase amount.
+    /// </summary>
+    Task ReverseCreditCardPurchaseAsync(Guid transactionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// True when the purchase is dated on or before the card's latest recorded statement cycle end: that
+    /// statement's user-entered minimum / pay-in-full amounts already account for it, so changing the
+    /// purchase would silently disagree with them. Only open-cycle purchases can be edited or deleted.
+    /// </summary>
+    Task<bool> IsCreditCardPurchaseInClosedStatementAsync(Guid transactionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Reverses a medical <see cref="Domain.Transactions.Expense"/> or card purchase together with its
+    /// <c>MedicalExpenseDetail</c>, in one save — used for Delete, and as the first half of Edit (followed
+    /// by <see cref="RecordMedicalExpenseAsync"/>/<see cref="RecordMedicalCreditCardPurchaseAsync"/> or a
+    /// plain record). Refused once the detail is Reimbursed or Rejected: a reimbursement has been settled
+    /// against it. The plain <c>ReverseExpenseAsync</c>/<c>ReverseCreditCardPurchaseAsync</c> refuse
+    /// medical transactions, so a detail can never be left orphaned.
+    /// </summary>
+    Task ReverseMedicalExpenseAsync(Guid transactionId, CancellationToken ct = default);
 }

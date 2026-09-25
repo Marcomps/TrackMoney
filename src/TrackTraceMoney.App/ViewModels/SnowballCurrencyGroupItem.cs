@@ -31,7 +31,12 @@ public sealed partial class SnowballCurrencyGroupItem : ObservableObject
     [NotifyPropertyChangedFor(nameof(NextTargetName))]
     [NotifyPropertyChangedFor(nameof(ShowNextTargetAdvisory))]
     [NotifyPropertyChangedFor(nameof(NextTargetAdvisoryMessage))]
+    [NotifyPropertyChangedFor(nameof(PayThisMonthText))]
+    [NotifyPropertyChangedFor(nameof(PayThisMonthBreakdownText))]
+    [NotifyPropertyChangedFor(nameof(DebtFreeText))]
     private string extraAvailableText = "0";
+
+    private int? _debtFreeInMonths;
 
     public ObservableCollection<SnowballDebtLineItem> Lines { get; } = [];
 
@@ -56,6 +61,17 @@ public sealed partial class SnowballCurrencyGroupItem : ObservableObject
         ? _debts.FirstOrDefault(d => d.CreditAccountId == nextTargetId)?.Name
         : null;
 
+    /// <summary>What to pay this month across every debt in this currency: all minimums plus the extra applied.</summary>
+    public string PayThisMonthText => string.Format(
+        CultureInfo.CurrentCulture, AppResources.SnowballPlan_PayThisMonthFormat, Lines.Sum(l => l.SuggestedTotalPayment));
+
+    public string PayThisMonthBreakdownText => string.Format(
+        CultureInfo.CurrentCulture, AppResources.SnowballPlan_PayThisMonthBreakdownFormat, TotalMinimums, ExtraAppliedToTarget);
+
+    public string DebtFreeText => _debtFreeInMonths is { } months
+        ? string.Format(CultureInfo.CurrentCulture, AppResources.SnowballPlan_DebtFreeFormat, months, MonthLabel(months))
+        : AppResources.SnowballPlan_DebtFreeUnknown;
+
     public bool ShowNextTargetAdvisory => UnallocatedExtra > 0m && NextTargetName is not null;
 
     public string NextTargetAdvisoryMessage => ShowNextTargetAdvisory
@@ -69,8 +85,7 @@ public sealed partial class SnowballCurrencyGroupItem : ObservableObject
         _debts = debts;
 
         _currentPlan = _planner.Plan(_debts, 0m);
-        foreach (var line in _currentPlan.Lines)
-            Lines.Add(SnowballDebtLineItem.FromDomain(line));
+        RebuildLines(0m);
     }
 
     partial void OnExtraAvailableTextChanged(string value) => Recompute();
@@ -82,9 +97,30 @@ public sealed partial class SnowballCurrencyGroupItem : ObservableObject
             : 0m;
 
         _currentPlan = _planner.Plan(_debts, extra);
+        RebuildLines(extra);
+    }
+
+    private void RebuildLines(decimal extra)
+    {
+        var payoffMonths = SnowballPayoffEstimator.EstimatePayoffMonths(_debts, extra);
 
         Lines.Clear();
+        var position = 1;
         foreach (var line in _currentPlan.Lines)
-            Lines.Add(SnowballDebtLineItem.FromDomain(line));
+        {
+            var month = payoffMonths.GetValueOrDefault(line.CreditAccountId);
+            Lines.Add(SnowballDebtLineItem.FromDomain(line, position++, month is { } m ? MonthLabel(m) : null));
+        }
+
+        _debtFreeInMonths = payoffMonths.Count > 0 && payoffMonths.Values.All(m => m is not null)
+            ? payoffMonths.Values.Max()
+            : null;
+    }
+
+    /// <summary>Month 1 is the current month (its payment is the one suggested now).</summary>
+    private static DateOnly MonthLabel(int payoffMonth)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        return new DateOnly(today.Year, today.Month, 1).AddMonths(payoffMonth - 1);
     }
 }

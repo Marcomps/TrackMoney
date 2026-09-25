@@ -203,8 +203,6 @@ public static class MauiProgram
 		builder.Services.AddTransient<RecurringIncomesListPage>();
 		builder.Services.AddTransient<AddRecurringIncomeViewModel>();
 		builder.Services.AddTransient<AddRecurringIncomePage>();
-		builder.Services.AddTransient<EditRecurringIncomeAmountViewModel>();
-		builder.Services.AddTransient<EditRecurringIncomeAmountPage>();
 
 		builder.Services.AddTransient<FinancialInstitutionsListViewModel>();
 		builder.Services.AddTransient<FinancialInstitutionsListPage>();

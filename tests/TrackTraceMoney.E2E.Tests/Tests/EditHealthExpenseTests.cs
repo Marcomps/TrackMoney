@@ -64,4 +64,69 @@ public sealed class EditHealthExpenseTests : E2ETestBase
             Screenshot(Scenario, "04-balance-after-edit");
         });
     }
+
+    [Fact]
+    public void EditingMedicalExpense_KeepsItMedical_WithoutDuplicating_AndCanBeDeleted()
+    {
+        const string scenario = "EditMedicalExpense";
+        const string account = "E2E Medical Wallet";
+
+        RunScenario(scenario, () =>
+        {
+            ResetApp();
+            EnterText("CreateFirstProfile_NameEntry", "E2E MedicalProfile");
+            Tap("CreateFirstProfile_SaveButton");
+            WaitForId("Dashboard_HealthLabel");
+
+            TapTab("Accounts");
+            Tap("AccountsList_AddButton");
+            EnterText("AddAccount_NameEntry", account);
+            Tap("AddAccount_SaveButton");
+            WaitForId($"AccountsList_Item_{account}");
+
+            // --- A medical expense (Health auto-ticks the medical box; no insurance) ---
+            TapTab("Transactions");
+            Tap("TransactionsList_AddButton");
+            EnterText("AddTransaction_AmountEntry", "22.80");
+            SelectPickerOption("AddTransaction_ExpenseAccountPicker", account);
+            SelectPickerOption("AddTransaction_ExpenseCategoryPicker", "Health");
+            Assert.Equal("true", WaitForId("AddTransaction_MedicalCheckbox").GetAttribute("checked"));
+            EnterText("AddTransaction_DescriptionEntry", Description);
+            Tap("AddTransaction_SaveButton");
+            WaitForId($"TransactionsList_Item_{Description}");
+
+            // --- Edit it: the medical box comes prefilled and stays ticked ---
+            Tap("Transactions_ViewHistoryButton");
+            Tap($"History_Item_{Description}");
+            Tap("TransactionDetail_EditButton");
+            Assert.Equal("true", WaitForId("AddTransaction_MedicalCheckbox").GetAttribute("checked"));
+            EnterText("AddTransaction_AmountEntry", "25");
+            Tap("AddTransaction_SaveButton");
+
+            WaitForId($"History_Item_{Description}");
+            Assert.Equal(1, CountById($"History_Item_{Description}"));
+            Screenshot(scenario, "01-history-after-edit");
+
+            // Still medical after the edit
+            Tap($"History_Item_{Description}");
+            Tap("TransactionDetail_EditButton");
+            Assert.Equal("true", WaitForId("AddTransaction_MedicalCheckbox").GetAttribute("checked"));
+            GoBack();
+
+            TapTab("Accounts");
+            Assert.Equal("-25.00", WaitForId($"AccountsList_Balance_{account}").Text);
+
+            // --- Delete it ---
+            TapTab("Transactions");
+            Tap("Transactions_ViewHistoryButton");
+            Tap($"History_Item_{Description}");
+            Tap("TransactionDetail_DeleteButton");
+            AcceptSystemDialog();
+            WaitForAbsenceOfId($"History_Item_{Description}");
+
+            TapTab("Accounts");
+            Assert.Equal("0.00", WaitForId($"AccountsList_Balance_{account}").Text);
+            Screenshot(scenario, "02-balance-after-delete");
+        });
+    }
 }

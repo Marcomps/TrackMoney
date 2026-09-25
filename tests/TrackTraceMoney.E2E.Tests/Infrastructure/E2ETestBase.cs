@@ -15,12 +15,13 @@ namespace TrackTraceMoney.E2E.Tests.Infrastructure;
 /// <list type="number">
 /// <item>Start (or confirm already running) an Android emulator/device visible to `adb devices` as
 /// state "device" (not "offline"/"unauthorized"). E.g.:
-/// <code>C:\Users\PC\android-sdk-local\emulator\emulator.exe -avd TrackMoneyTest -no-boot-anim</code></item>
+/// <code>C:\Users\PC\android-sdk-local\emulator\emulator.exe -avd TrackMoneyTest -port 5556 -gpu swiftshader_indirect -no-boot-anim</code>
+/// (port 5556 gives adb serial <c>emulator-5556</c>, which <see cref="TestConfig.DeviceSerial"/> targets by default)</item>
 /// <item>Build and install the current debug build (a real installable APK — NOT plain `dotnet build`,
 /// which uses Fast Deployment and produces no standalone package):
 /// <code>
 /// dotnet build src/TrackTraceMoney.App/TrackTraceMoney.App.csproj -f net10.0-android -p:RuntimeIdentifier=android-x64 -p:AndroidPackageFormat=apk -p:EmbedAssembliesIntoApk=true
-/// "C:\Users\PC\android-sdk-local\platform-tools\adb.exe" install -r src\TrackTraceMoney.App\bin\Debug\net10.0-android\android-x64\com.tracktracemoney.mobile-Signed.apk
+/// "C:\Users\PC\android-sdk-local\platform-tools\adb.exe" -s emulator-5556 install -r src\TrackTraceMoney.App\bin\Debug\net10.0-android\android-x64\com.tracktracemoney.mobile-Signed.apk
 /// </code></item>
 /// <item>Start an Appium server (Node/npm-based; installed once via `npm install -g appium` plus
 /// `appium driver install uiautomator2`):
@@ -242,6 +243,19 @@ public abstract class E2ETestBase : IAsyncLifetime
     {
         new WebDriverWait(Driver, timeout ?? DefaultWait)
             .Until(d => d.FindElements(ResourceId(automationId)).Count == 0);
+    }
+
+    /// <summary>
+    /// Taps the positive (accept) button of a native Android alert, e.g. a DisplayAlert confirmation.
+    /// Located by the framework's own resource-id rather than its text, which can collide with an
+    /// identically-labelled button on the page underneath.
+    /// </summary>
+    protected void AcceptSystemDialog(TimeSpan? timeout = null)
+    {
+        var button = new WebDriverWait(Driver, timeout ?? DefaultWait)
+            .Until(d => d.FindElements(MobileBy.AndroidUIAutomator("new UiSelector().resourceId(\"android:id/button1\")"))
+                .FirstOrDefault(e => e.Displayed));
+        button.Click();
     }
 
     /// <summary>How many elements currently carry this AutomationId -- for "exactly one, no duplicate" assertions.</summary>

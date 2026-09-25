@@ -1,3 +1,4 @@
+using TrackTraceMoney.Application.Tests.TestDoubles;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.Reporting;
 using TrackTraceMoney.Application.Transactions;
@@ -27,7 +28,7 @@ public sealed class TransactionEntryServiceTests
         InMemoryBudgetRepository Budgets,
         InMemoryCategoryRepository Categories,
         FakeLocalNotifier Notifier,
-        InMemoryMedicalExpenseDetailRepository MedicalExpenseDetails) CreateSut()
+        InMemoryMedicalExpenseDetailRepository MedicalExpenseDetails) CreateSut(InMemoryCreditCardStatementRepository? statements = null)
     {
         var accounts = new InMemoryAccountRepository();
         var creditAccounts = new InMemoryCreditAccountRepository();
@@ -36,7 +37,7 @@ public sealed class TransactionEntryServiceTests
         var categories = new InMemoryCategoryRepository();
         var notifier = new FakeLocalNotifier();
         var medicalExpenseDetails = new InMemoryMedicalExpenseDetailRepository();
-        var service = new TransactionEntryService(transactions, accounts, creditAccounts, budgets, categories, new SpendingCalculator(), notifier, medicalExpenseDetails);
+        var service = new TransactionEntryService(transactions, accounts, creditAccounts, budgets, categories, new SpendingCalculator(), notifier, medicalExpenseDetails, statements ?? new InMemoryCreditCardStatementRepository());
         return (service, accounts, creditAccounts, transactions, budgets, categories, notifier, medicalExpenseDetails);
     }
 
@@ -1450,6 +1451,117 @@ public sealed class TransactionEntryServiceTests
             monthlyInstallment: 100m,
             nextPaymentDate: DateOnly.FromDateTime(DateTime.Today),
             requiredPayment: 100m);
+
+    [Fact]
+    public async Task ReverseCreditCardPurchaseAsync_OpenCycle_RemovesPurchase_AndRestoresCardDebt()
+    {
+        var (service, _, creditAccounts, transactions, _, _, _, _) = CreateSut();
+        var card = creditAccounts.Add(new CreditCard("Mi Super", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        await service.RecordCreditCardPurchaseAsync(new DateOnly(2026, 9, 17), 25m, card.Id, Guid.NewGuid(), null, null, "Claude", null);
+        var purchase = Assert.Single(transactions.All);
+
+        await service.ReverseCreditCardPurchaseAsync(purchase.Id);
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(0m, card.AmountOwed);
+    }
+
+    [Fact]
+    public async Task ReverseCreditCardPurchaseAsync_PurchaseInRecordedStatement_IsRefused_AndChangesNothing()
+    {
+        var statements = new InMemoryCreditCardStatementRepository();
+        var (service, _, creditAccounts, transactions, _, _, _, _) = CreateSut(statements);
+        var card = creditAccounts.Add(new CreditCard("Mi Super", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        await service.RecordCreditCardPurchaseAsync(new DateOnly(2026, 9, 17), 25m, card.Id, Guid.NewGuid(), null, null, "Claude", null);
+        var purchase = Assert.Single(transactions.All);
+        statements.Add(new CreditCardStatement(card.Id, new DateOnly(2026, 9, 1), new DateOnly(2026, 9, 30), 10m, 25m));
+
+        Assert.True(await service.IsCreditCardPurchaseInClosedStatementAsync(purchase.Id));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseCreditCardPurchaseAsync(purchase.Id));
+
+        Assert.Single(transactions.All);
+        Assert.Equal(25m, card.AmountOwed);
+    }
+
+    [Fact]
+    public async Task ReverseCreditCardPurchaseAsync_AfterLatestStatementCycle_IsAllowed()
+    {
+        var statements = new InMemoryCreditCardStatementRepository();
+        var (service, _, creditAccounts, transactions, _, _, _, _) = CreateSut(statements);
+        var card = creditAccounts.Add(new CreditCard("Mi Super", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        statements.Add(new CreditCardStatement(card.Id, new DateOnly(2026, 8, 1), new DateOnly(2026, 8, 31), 10m, 25m));
+        await service.RecordCreditCardPurchaseAsync(new DateOnly(2026, 9, 17), 25m, card.Id, Guid.NewGuid(), null, null, "Claude", null);
+        var purchase = Assert.Single(transactions.All);
+
+        Assert.False(await service.IsCreditCardPurchaseInClosedStatementAsync(purchase.Id));
+        await service.ReverseCreditCardPurchaseAsync(purchase.Id);
+
+        Assert.Empty(transactions.All);
+    }
+
+    [Fact]
+    public async Task ReverseCreditCardPurchaseAsync_WhenAlreadyPaidOff_IsRefused()
+    {
+        var (service, _, creditAccounts, transactions, _, _, _, _) = CreateSut();
+        var card = creditAccounts.Add(new CreditCard("Mi Super", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
+        await service.RecordCreditCardPurchaseAsync(new DateOnly(2026, 9, 17), 25m, card.Id, Guid.NewGuid(), null, null, "Claude", null);
+        var purchase = Assert.Single(transactions.All);
+        card.RegisterPayment(25m);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseCreditCardPurchaseAsync(purchase.Id));
+
+        Assert.Single(transactions.All);
+        Assert.Equal(0m, card.AmountOwed);
+    }
+
+    [Fact]
+    public async Task ReverseMedicalExpenseAsync_Pending_RemovesExpenseAndDetail_AndRestoresBalance()
+    {
+        var (service, accounts, _, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var account = accounts.Add(new CashAccount("Agricola", CurrencyCode.USD, openingBalance: 100m));
+        await service.RecordMedicalExpenseAsync(new DateOnly(2026, 9, 22), 22.80m, account.Id, Guid.NewGuid(), null, null, "vitaminas", null,
+            new MedicalInsuranceInput("Seguro", 10m, InsurancePaidProviderDirectly: false));
+        var expense = Assert.Single(transactions.All);
+        Assert.Single(medicalExpenseDetails.All);
+
+        await service.ReverseMedicalExpenseAsync(expense.Id);
+
+        Assert.Empty(transactions.All);
+        Assert.Empty(medicalExpenseDetails.All);
+        Assert.Equal(100m, account.Balance);
+    }
+
+    [Fact]
+    public async Task ReverseMedicalExpenseAsync_AfterReimbursementResolved_IsRefused_AndChangesNothing()
+    {
+        var (service, accounts, _, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var account = accounts.Add(new CashAccount("Agricola", CurrencyCode.USD, openingBalance: 100m));
+        await service.RecordMedicalExpenseAsync(new DateOnly(2026, 9, 22), 50m, account.Id, Guid.NewGuid(), null, null, "Consulta", null,
+            new MedicalInsuranceInput("Seguro", 30m, InsurancePaidProviderDirectly: false));
+        var expense = Assert.Single(transactions.All);
+        Assert.Single(medicalExpenseDetails.All).MarkReimbursed(30m);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseMedicalExpenseAsync(expense.Id));
+
+        Assert.Single(transactions.All);
+        Assert.Single(medicalExpenseDetails.All);
+        Assert.Equal(50m, account.Balance);
+    }
+
+    [Fact]
+    public async Task ReverseExpenseAsync_OnMedicalExpense_IsRefused_SoTheDetailIsNeverOrphaned()
+    {
+        var (service, accounts, _, transactions, _, _, _, medicalExpenseDetails) = CreateSut();
+        var account = accounts.Add(new CashAccount("Agricola", CurrencyCode.USD, openingBalance: 100m));
+        await service.RecordMedicalExpenseAsync(new DateOnly(2026, 9, 22), 22.80m, account.Id, Guid.NewGuid(), null, null, "vitaminas", null,
+            new MedicalInsuranceInput(null, null, InsurancePaidProviderDirectly: false));
+        var expense = Assert.Single(transactions.All);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseExpenseAsync(expense.Id));
+
+        Assert.Single(transactions.All);
+        Assert.Single(medicalExpenseDetails.All);
+    }
 
     private sealed class InMemoryAccountRepository : IFinancialAccountRepository
     {

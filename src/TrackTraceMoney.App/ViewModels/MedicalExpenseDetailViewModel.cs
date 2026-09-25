@@ -147,6 +147,40 @@ public sealed partial class MedicalExpenseDetailViewModel : ObservableObject
     private async Task RecordReimbursementAsync() =>
         await Shell.Current.GoToAsync($"{nameof(AddTransactionPage)}?linkedTransactionId={TransactionId}");
 
+    /// <summary>
+    /// Opens the transaction form in edit mode (medical section prefilled). Only offered while the
+    /// reimbursement is still pending — once resolved, a reimbursement was settled against it.
+    /// </summary>
+    [RelayCommand]
+    private async Task EditAsync() =>
+        await Shell.Current.GoToAsync($"{nameof(AddTransactionPage)}?editingTransactionId={TransactionId}");
+
+    /// <summary>Deletes the medical expense together with its insurance detail (see ReverseMedicalExpenseAsync).</summary>
+    [RelayCommand]
+    private async Task DeleteAsync()
+    {
+        var confirmed = await Shell.Current.DisplayAlertAsync(
+            AppResources.TransactionDetail_DeleteConfirmTitle,
+            AppResources.TransactionDetail_DeleteConfirmMessage,
+            AppResources.TransactionDetail_DeleteConfirmAccept,
+            AppResources.TransactionDetail_DeleteConfirmCancel);
+
+        if (!confirmed)
+            return;
+
+        try
+        {
+            await _transactionEntryService.ReverseMedicalExpenseAsync(TransactionId);
+        }
+        catch (InvalidOperationException)
+        {
+            ErrorMessage = AppResources.TransactionDetail_DeleteError;
+            return;
+        }
+
+        await Shell.Current.GoToAsync("..");
+    }
+
     [RelayCommand]
     private async Task MarkRejectedAsync()
     {

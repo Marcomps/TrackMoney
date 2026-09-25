@@ -81,9 +81,9 @@ Drives the real, installed Android app through Appium's UiAutomator2 driver — 
 #   - AVD `TrackMoneyTest` (Pixel 5, API 34, google_apis, x86_64)
 #   - npm install -g appium && appium driver install uiautomator2
 
-C:\Users\PC\android-sdk-local\emulator\emulator.exe -avd TrackMoneyTest -no-boot-anim   # start the emulator
+C:\Users\PC\android-sdk-local\emulator\emulator.exe -avd TrackMoneyTest -port 5556 -gpu swiftshader_indirect -no-boot-anim   # start the emulator (serial emulator-5556, the E2E default; override with TTM_DEVICE_SERIAL)
 dotnet build src/TrackTraceMoney.App/TrackTraceMoney.App.csproj -f net10.0-android -p:RuntimeIdentifier=android-x64 -p:AndroidPackageFormat=apk -p:EmbedAssembliesIntoApk=true
-"C:\Users\PC\android-sdk-local\platform-tools\adb.exe" install -r src\TrackTraceMoney.App\bin\Debug\net10.0-android\android-x64\com.tracktracemoney.mobile-Signed.apk
+"C:\Users\PC\android-sdk-local\platform-tools\adb.exe" -s emulator-5556 install -r src\TrackTraceMoney.App\bin\Debug\net10.0-android\android-x64\com.tracktracemoney.mobile-Signed.apk
 set ANDROID_HOME=C:\Users\PC\android-sdk-local & set ANDROID_SDK_ROOT=C:\Users\PC\android-sdk-local & appium --address 127.0.0.1 --port 4723   # Appium server needs these env vars to find adb/uiautomator2, not just adb itself
 dotnet test tests/TrackTraceMoney.E2E.Tests
 ```

@@ -78,6 +78,23 @@ public abstract class CreditAccount : Entity
     }
 
     /// <summary>
+    /// Undoes a charge recorded by <see cref="RegisterCharge"/> (a card purchase deleted, or reposted by an
+    /// edit). Rejected when it would leave <see cref="AmountOwed"/> negative — i.e. the charge has since
+    /// been (partly) paid off — for the same reason <see cref="RegisterPayment"/> rejects overpayment: a
+    /// credit balance has no defined meaning yet.
+    /// </summary>
+    public void ReverseCharge(decimal amount)
+    {
+        if (amount <= 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Charge amount must be positive.");
+
+        if (amount > AmountOwed)
+            throw new InvalidOperationException("Reversing this charge would leave a negative amount owed.");
+
+        AmountOwed -= amount;
+    }
+
+    /// <summary>
     /// Records a payment against this account, decreasing <see cref="AmountOwed"/>. Overpayment is
     /// deliberately rejected in this slice — there is no defined meaning yet for a negative
     /// <see cref="AmountOwed"/> ("credit balance"), so this throws rather than clamping to zero or

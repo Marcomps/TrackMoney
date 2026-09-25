@@ -42,6 +42,17 @@
                     <Button Text="{x:Static resources:AppResources.MedicalExpenseDetail_MarkRejectedButton}"
                             Command="{Binding MarkRejectedCommand}"
                             HorizontalOptions="Fill" />
+
+                    <Button Text="{x:Static resources:AppResources.TransactionDetail_EditButton}"
+                            Command="{Binding EditCommand}"
+                            AutomationId="MedicalExpenseDetail_EditButton"
+                            HorizontalOptions="Fill" />
+
+                    <Button Text="{x:Static resources:AppResources.TransactionDetail_DeleteButton}"
+                            Command="{Binding DeleteCommand}"
+                            BackgroundColor="DarkRed"
+                            AutomationId="MedicalExpenseDetail_DeleteButton"
+                            HorizontalOptions="Fill" />
                 </VerticalStackLayout>
 
             </VerticalStackLayout>

@@ -87,13 +87,15 @@ public sealed class RecurringIncomeFlowTests : E2ETestBase
             // Settings tab to its root (AppShell.OnNavigated), so drill back into the list. ---
             TapTab("Settings");
             Tap("Settings_ManageRecurringIncomeButton");
-            WaitForId($"RecurringIncomes_EditAmountButton_{FirstIncomeName}");
-            Tap($"RecurringIncomes_EditAmountButton_{FirstIncomeName}");
+            WaitForId($"RecurringIncomes_EditButton_{FirstIncomeName}");
+            Tap($"RecurringIncomes_EditButton_{FirstIncomeName}");
 
-            Assert.Equal("960.00", WaitForId("EditRecurringIncomeAmount_AmountEntry").Text);
-            EnterText("EditRecurringIncomeAmount_AmountEntry", "1200");
-            Tap("EditRecurringIncomeAmount_SaveButton");
-            WaitForId($"RecurringIncomes_EditAmountButton_{FirstIncomeName}"); // back on the list, reloaded
+            // The full edit form, prefilled; the start date is locked because an occurrence was confirmed.
+            Assert.Equal("960", WaitForId("AddRecurringIncome_AmountEntry").Text);
+            Assert.False(WaitForId("AddRecurringIncome_StartDatePicker").Enabled);
+            EnterText("AddRecurringIncome_AmountEntry", "1200");
+            Tap("AddRecurringIncome_SaveButton");
+            WaitForId($"RecurringIncomes_EditButton_{FirstIncomeName}"); // back on the list, reloaded
             Screenshot(Scenario, "07-amount-edited");
 
             // --- Assert: prospective-only -- the already-posted occurrence's effect on the account
@@ -118,9 +120,9 @@ public sealed class RecurringIncomeFlowTests : E2ETestBase
             Tap("AddRecurringIncome_SaveButton");
 
             // --- Assert: both recurring incomes coexist independently ---
-            WaitForId($"RecurringIncomes_EditAmountButton_{SecondIncomeName}");
-            Assert.True(ElementExists($"RecurringIncomes_EditAmountButton_{FirstIncomeName}"));
-            Assert.True(ElementExists($"RecurringIncomes_EditAmountButton_{SecondIncomeName}"));
+            WaitForId($"RecurringIncomes_EditButton_{SecondIncomeName}");
+            Assert.True(ElementExists($"RecurringIncomes_EditButton_{FirstIncomeName}"));
+            Assert.True(ElementExists($"RecurringIncomes_EditButton_{SecondIncomeName}"));
             Screenshot(Scenario, "09-second-recurring-income-added");
         });
     }

@@ -1,3 +1,4 @@
+using TrackTraceMoney.Application.Tests.TestDoubles;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.RecurringIncomes;
 using TrackTraceMoney.Application.Reporting;
@@ -38,7 +39,7 @@ public sealed class RecurringIncomeServiceTests
         var categories = new InMemoryCategoryRepository();
         var notifier = new FakeLocalNotifier();
         var medicalExpenseDetails = new InMemoryMedicalExpenseDetailRepository();
-        var transactionEntryService = new TransactionEntryService(transactions, accounts, creditAccounts, budgets, categories, new SpendingCalculator(), notifier, medicalExpenseDetails);
+        var transactionEntryService = new TransactionEntryService(transactions, accounts, creditAccounts, budgets, categories, new SpendingCalculator(), notifier, medicalExpenseDetails, new InMemoryCreditCardStatementRepository());
 
         var recurringIncomes = new InMemoryRecurringIncomeRepository { ThrowOnSaveChanges = throwOnRecurringIncomeSave };
         var unitOfWork = new FakeUnitOfWork();

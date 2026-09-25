@@ -128,10 +128,10 @@
 
             <VerticalStackLayout IsVisible="{Binding IsTransfer}" Spacing="12">
                 <Label Text="{x:Static resources:AppResources.AddTransaction_SourceAccountLabel}" />
-                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedSourceAccount}" />
+                <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedSourceAccount}" AutomationId="AddTransaction_TransferSourceAccountPicker" />
 
                 <Label Text="{x:Static resources:AppResources.AddTransaction_DestinationAccountLabel}" />
-                <Picker ItemsSource="{Binding TransferDestinationAccounts}" SelectedItem="{Binding SelectedDestinationAccount}" />
+                <Picker ItemsSource="{Binding TransferDestinationAccounts}" SelectedItem="{Binding SelectedDestinationAccount}" AutomationId="AddTransaction_TransferDestinationAccountPicker" />
             </VerticalStackLayout>
 
             <VerticalStackLayout IsVisible="{Binding IsCreditCardPayment}" Spacing="12">

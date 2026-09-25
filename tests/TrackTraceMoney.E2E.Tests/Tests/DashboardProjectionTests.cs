@@ -44,7 +44,7 @@ public sealed class DashboardProjectionTests : E2ETestBase
             SelectPickerOption("AddRecurringIncome_AccountPicker", AccountName);
             SelectPickerOption("AddRecurringIncome_FrequencyPicker", "Twice a month (15th and last day)");
             Tap("AddRecurringIncome_SaveButton");
-            WaitForId($"RecurringIncomes_EditAmountButton_{SalaryName}");
+            WaitForId($"RecurringIncomes_EditButton_{SalaryName}");
             GoBack(); // back to Settings
 
             // --- Subscriptions: monthly, default frequency ---

@@ -4,6 +4,7 @@
              xmlns:viewModels="clr-namespace:TrackTraceMoney.App.ViewModels"
              xmlns:models="clr-namespace:TrackTraceMoney.App.Models"
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
+             xmlns:sections="clr-namespace:TrackTraceMoney.App.Views.Sections"
              x:Class="TrackTraceMoney.App.Views.AccountsListPage"
              x:DataType="viewModels:AccountsListViewModel"
              x:Name="Root"
@@ -16,9 +17,15 @@
          Reports pages' already-shipped, live-verified pattern (e.g. BudgetVsSpendingReportPage) — the
          CollectionView sizes to its own (short, non-virtualized-but-fine-at-this-scale) content inside
          the ScrollView, so the buttons sit immediately after the list instead of pinned to the bottom. -->
-    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadAccountsCommand}">
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadAccountsCommand}" Refreshing="OnRefreshing">
         <ScrollView>
             <VerticalStackLayout Padding="16" Spacing="8">
+
+                <!-- One scrolling view with every kind of asset account, instead of term deposits and
+                     investment funds hidden behind their own buttons (user feedback). Those two sections
+                     reuse their standalone lists' ViewModels (see this page's code-behind). -->
+                <Label Text="{x:Static resources:AppResources.Accounts_SectionBankAndCash}"
+                       FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
 
                 <HorizontalStackLayout Spacing="8">
                     <Switch IsToggled="{Binding ShowInactive}" AutomationId="AccountsList_ShowInactiveSwitch" />
@@ -27,14 +34,11 @@
 
                 <Label Text="{Binding ErrorMessage}" TextColor="Red" />
 
-                <CollectionView ItemsSource="{Binding Accounts}" SelectionMode="None">
-                    <CollectionView.EmptyView>
-                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
-                            <Label Text="{x:Static resources:AppResources.Accounts_Empty}"
-                                   HorizontalTextAlignment="Center" />
-                        </VerticalStackLayout>
-                    </CollectionView.EmptyView>
-                    <CollectionView.ItemTemplate>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Accounts}">
+                    <BindableLayout.EmptyView>
+                        <Label Text="{x:Static resources:AppResources.Accounts_Empty}" FontSize="13" Opacity="0.7" Padding="0,4" />
+                    </BindableLayout.EmptyView>
+                    <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="models:AccountListItem">
                             <SwipeView>
                                 <SwipeView.RightItems>
@@ -75,24 +79,29 @@
                                 </Grid>
                             </SwipeView>
                         </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
 
-                <Button Text="{x:Static resources:AppResources.Accounts_AddButton}"
-                        Command="{Binding AddAccountCommand}"
-                        AutomationId="AccountsList_AddButton"
-                        HorizontalOptions="Fill"
-                        Margin="0,12,0,0" />
+                <sections:TermDepositsSection x:Name="TermDepositsSection" Margin="0,16,0,0" />
 
-                <Button Text="{x:Static resources:AppResources.Accounts_ViewTermDepositsButton}"
-                        Command="{Binding ViewTermDepositsCommand}"
-                        HorizontalOptions="Fill"
-                        Margin="0,8,0,0" />
+                <sections:InvestmentFundsSection x:Name="InvestmentFundsSection" Margin="0,16,0,0" />
 
-                <Button Text="{x:Static resources:AppResources.Accounts_ViewInvestmentFundsButton}"
-                        Command="{Binding ViewInvestmentFundsCommand}"
-                        HorizontalOptions="Fill"
-                        Margin="0,8,0,0" />
+                <!-- Every list above, every action below (user feedback): one button group at the end. The
+                     term deposit / fund buttons call their own section's ViewModel. -->
+                <VerticalStackLayout Spacing="8" Margin="0,24,0,0">
+                    <Button Text="{x:Static resources:AppResources.Accounts_AddButton}"
+                            Command="{Binding AddAccountCommand}"
+                            AutomationId="AccountsList_AddButton"
+                            HorizontalOptions="Fill" />
+                    <Button Text="{x:Static resources:AppResources.TermDeposits_AddButton}"
+                            Command="{Binding Source={x:Reference TermDepositsSection}, Path=BindingContext.AddTermDepositCommand}"
+                            AutomationId="TermDepositsList_AddButton"
+                            HorizontalOptions="Fill" />
+                    <Button Text="{x:Static resources:AppResources.InvestmentFunds_AddButton}"
+                            Command="{Binding Source={x:Reference InvestmentFundsSection}, Path=BindingContext.AddInvestmentFundCommand}"
+                            AutomationId="InvestmentFundsList_AddButton"
+                            HorizontalOptions="Fill" />
+                </VerticalStackLayout>
 
             </VerticalStackLayout>
         </ScrollView>

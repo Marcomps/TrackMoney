@@ -17,12 +17,13 @@ public static class TestConfig
 
     /// <summary>
     /// adb serial of the device this suite drives — every adb call gets <c>-s</c> and the Appium session
-    /// gets <c>appium:udid</c> from this. Defaults to the TrackMoneyTest emulator so that a physical phone
+    /// gets <c>appium:udid</c> from this. Defaults to the TrackMoneyTest emulator (started with <c>-port 5556</c>,
+    /// hence serial <c>emulator-5556</c>) so that a physical phone
     /// plugged in at the same time is never picked up: every test starts with <c>pm clear</c>, which would
     /// wipe the app's real data on that phone.
     /// </summary>
     public static string DeviceSerial =>
-        Environment.GetEnvironmentVariable("TTM_DEVICE_SERIAL") ?? "emulator-5554";
+        Environment.GetEnvironmentVariable("TTM_DEVICE_SERIAL") ?? "emulator-5556";
 
     /// <summary>
     /// Appium 2+/3+ serves its REST interface at the root path by default (no "/wd/hub" segment, unlike

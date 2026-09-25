@@ -57,25 +57,22 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     public bool IsTypePickerEnabled => !IsEditMode;
 
     /// <summary>
-    /// Hides the medical-expense sub-flow entirely in edit mode -- kept simple and safe on purpose
-    /// (edit/delete slice spec §4.2/§4.3 scope Expense/Income/Transfer only, and a linked
-    /// <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/> is separately guarded against reaching
-    /// this screen at all, see <see cref="HasLinkedMedicalDetail"/>): editing never routes through
-    /// <c>RecordMedicalExpenseAsync</c>/<c>RecordMedicalCreditCardPurchaseAsync</c>, only the plain
-    /// <c>RecordExpenseAsync</c>/<c>RecordCreditCardPurchaseAsync</c> the spec calls "existing, unchanged".
+    /// Shown while adding and while editing an expense. Editing reverses the original first (medical or
+    /// not, see <c>SaveAsync</c>) and then records according to this checkbox, so a medical expense can be
+    /// edited — or a plain one turned medical — without leaving a duplicate or an orphaned detail.
     /// </summary>
-    public bool IsMedicalCheckboxVisible => IsExpense && !IsEditMode;
+    public bool IsMedicalCheckboxVisible => IsExpense;
 
     /// <summary>
-    /// Defense-in-depth mirror of <c>TransactionDetailViewModel.HasLinkedMedicalDetail</c> -- that
-    /// screen already hides its Edit button for such a transaction, so this should be unreachable via
-    /// the UI, but a deep link could still land here directly. Blocks Save with an explanation rather
-    /// than silently orphaning the linked <see cref="Domain.MedicalExpenses.MedicalExpenseDetail"/> row
-    /// (edit/delete slice spec §4.1's reverse-then-repost has no cleanup for it, and adding one is
-    /// Application-layer work out of this slice's scope).
+    /// The edited transaction is a medical expense whose reimbursement is already resolved (Reimbursed
+    /// or Rejected): a reimbursement was settled against it, so it's read-only — mirrors
+    /// <c>TransactionDetailViewModel.IsMedicalLocked</c>, as defense-in-depth against a deep link.
     /// </summary>
     [ObservableProperty]
-    private bool hasLinkedMedicalDetail;
+    private bool isMedicalLocked;
+
+    /// <summary>Whether the transaction being edited carries a medical detail — decides which reversal Save runs.</summary>
+    private bool _editingHadMedicalDetail;
 
     /// <summary>
     /// Raw <c>Loan</c> entities backing <see cref="LoanOptions"/>, kept alongside it (not folded into
@@ -97,6 +94,12 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     /// metadata on any Expense, not exclusive to the Health category).
     /// </summary>
     private Guid? _healthCategoryId;
+
+    /// <summary>
+    /// The edited transaction's original type: a card purchase is edited through the Expense form, so
+    /// <see cref="SelectedType"/> alone can't tell SaveAsync which reversal to run.
+    /// </summary>
+    private TransactionType? _editingOriginalType;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsExpense))]
@@ -484,6 +487,7 @@ public sealed partial class AddTransactionViewModel : ObservableObject
         switch (transaction)
         {
             case Expense expense:
+                _editingOriginalType = TransactionType.Expense;
                 SelectedType = TransactionType.Expense;
                 SelectedDate = expense.Date.ToDateTime(TimeOnly.MinValue);
                 AmountText = expense.Amount.ToString("N2", CultureInfo.CurrentCulture);
@@ -498,11 +502,27 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                 Description = expense.Description;
                 Notes = expense.Notes;
 
-                // Defense-in-depth -- see HasLinkedMedicalDetail's doc comment. TransactionDetailPage
-                // already hides Edit for this case, so reaching here means a deep link bypassed it.
-                HasLinkedMedicalDetail = await _medicalExpenseDetailRepository.GetForTransactionAsync(editingId) is not null;
-                if (HasLinkedMedicalDetail)
-                    ErrorMessage = AppResources.AddTransaction_MedicalLinkedMessage;
+                await LoadEditingMedicalDetailAsync(editingId);
+                break;
+
+            case CreditCardPurchase purchase:
+                // Edited through the Expense form: its account picker already offers cards (💳), so the
+                // user can keep the card or move the purchase to a bank account (or another card).
+                _editingOriginalType = TransactionType.CreditCardPurchase;
+                SelectedType = TransactionType.Expense;
+                SelectedDate = purchase.Date.ToDateTime(TimeOnly.MinValue);
+                AmountText = purchase.Amount.ToString("N2", CultureInfo.CurrentCulture);
+                SelectedAccount = PaymentAccounts.FirstOrDefault(o => o.Id == purchase.CreditAccountId);
+                SelectedCategory = Categories.FirstOrDefault(o => o.Id == purchase.CategoryId);
+                SelectedPayer = purchase.PayerPersonId is { } purchasePayerId
+                    ? People.FirstOrDefault(o => o.Id == purchasePayerId)
+                    : People.FirstOrDefault();
+                SelectedBeneficiary = purchase.BeneficiaryPersonId is { } purchaseBeneficiaryId
+                    ? People.FirstOrDefault(o => o.Id == purchaseBeneficiaryId)
+                    : People.FirstOrDefault();
+                Description = purchase.Description;
+                Notes = purchase.Notes;
+                await LoadEditingMedicalDetailAsync(editingId);
                 break;
 
             case Income income:
@@ -534,6 +554,30 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                 ErrorMessage = AppResources.AddTransaction_EditNotFound;
                 break;
         }
+    }
+
+    /// <summary>
+    /// Prefills the medical section from the edited transaction's detail, if it has one, and locks the
+    /// form when that detail's reimbursement is already resolved.
+    /// </summary>
+    private async Task LoadEditingMedicalDetailAsync(Guid editingId)
+    {
+        var detail = await _medicalExpenseDetailRepository.GetForTransactionAsync(editingId);
+        _editingHadMedicalDetail = detail is not null;
+        IsMedicalExpense = detail is not null;
+        if (detail is null)
+            return;
+
+        MedicalInsuranceProvider = detail.InsuranceProvider;
+        HasInsuranceCoverage = detail.InsuranceCoveredAmount is > 0m;
+        MedicalInsuranceCoveredAmountText = detail.InsuranceCoveredAmount is { } covered
+            ? covered.ToString("0.##", CultureInfo.CurrentCulture)
+            : string.Empty;
+        InsurancePaidProviderDirectly = detail.Status == MedicalReimbursementStatus.PaidDirectly;
+
+        IsMedicalLocked = detail.Status is MedicalReimbursementStatus.Reimbursed or MedicalReimbursementStatus.Rejected;
+        if (IsMedicalLocked)
+            ErrorMessage = AppResources.AddTransaction_MedicalResolvedMessage;
     }
 
     private static string BuildPendingExpenseLabel(Transaction transaction, IReadOnlyDictionary<Guid, string> categoryNames)
@@ -629,11 +673,11 @@ public sealed partial class AddTransactionViewModel : ObservableObject
     {
         ErrorMessage = null;
 
-        // Defense-in-depth -- see HasLinkedMedicalDetail's doc comment. Should be unreachable via the
-        // normal UI path (TransactionDetailPage already hides its Edit button for this case).
-        if (IsEditMode && HasLinkedMedicalDetail)
+        // Defense-in-depth -- see IsMedicalLocked's doc comment. Unreachable via the normal UI path
+        // (TransactionDetailPage hides Edit for such a transaction).
+        if (IsEditMode && IsMedicalLocked)
         {
-            ErrorMessage = AppResources.AddTransaction_MedicalLinkedMessage;
+            ErrorMessage = AppResources.AddTransaction_MedicalResolvedMessage;
             return;
         }
 
@@ -663,10 +707,10 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                         return;
                     }
 
-                    // The medical branch creates a new expense and never reverses the original, so it
-                    // must stay unreachable while editing (the checkbox is hidden then, see
-                    // IsMedicalCheckboxVisible) -- otherwise an edit duplicates the transaction.
-                    if (IsMedicalExpense && !IsEditMode)
+                    // Validate everything (medical fields included) BEFORE reversing anything, so an
+                    // invalid field can never leave the original deleted and nothing reposted.
+                    MedicalInsuranceInput? medicalInfo = null;
+                    if (IsMedicalExpense)
                     {
                         decimal? medicalInsuranceCoveredAmount = null;
                         if (HasInsuranceCoverage)
@@ -680,72 +724,74 @@ public sealed partial class AddTransactionViewModel : ObservableObject
                             medicalInsuranceCoveredAmount = parsedCoveredAmount;
                         }
 
-                        var medicalInfo = new MedicalInsuranceInput(
+                        medicalInfo = new MedicalInsuranceInput(
                             MedicalInsuranceProvider,
                             medicalInsuranceCoveredAmount,
                             InsurancePaidProviderDirectly);
+                    }
 
-                        if (SelectedAccount.IsCreditAccount)
-                        {
-                            await _transactionEntryService.RecordMedicalCreditCardPurchaseAsync(
-                                date,
-                                amount,
-                                SelectedAccount.Id,
-                                SelectedCategory.Id,
-                                AsNullableId(SelectedPayer),
-                                AsNullableId(SelectedBeneficiary),
-                                Description,
-                                Notes,
-                                medicalInfo);
-                        }
+                    // Edit = reverse the ORIGINAL (by what it was: medical, card purchase, or plain
+                    // expense — fetched fresh inside the service), then record the edited values below.
+                    // Every record path runs after this, so an edit never leaves a duplicate.
+                    if (IsEditMode)
+                    {
+                        if (_editingHadMedicalDetail)
+                            await _transactionEntryService.ReverseMedicalExpenseAsync(EditingTransactionId!.Value);
+                        else if (_editingOriginalType == TransactionType.CreditCardPurchase)
+                            await _transactionEntryService.ReverseCreditCardPurchaseAsync(EditingTransactionId!.Value);
                         else
-                        {
-                            await _transactionEntryService.RecordMedicalExpenseAsync(
-                                date,
-                                amount,
-                                SelectedAccount.Id,
-                                SelectedCategory.Id,
-                                AsNullableId(SelectedPayer),
-                                AsNullableId(SelectedBeneficiary),
-                                Description,
-                                Notes,
-                                medicalInfo);
-                        }
+                            await _transactionEntryService.ReverseExpenseAsync(EditingTransactionId!.Value);
+                    }
+
+                    if (medicalInfo is not null && SelectedAccount.IsCreditAccount)
+                    {
+                        await _transactionEntryService.RecordMedicalCreditCardPurchaseAsync(
+                            date,
+                            amount,
+                            SelectedAccount.Id,
+                            SelectedCategory.Id,
+                            AsNullableId(SelectedPayer),
+                            AsNullableId(SelectedBeneficiary),
+                            Description,
+                            Notes,
+                            medicalInfo);
+                    }
+                    else if (medicalInfo is not null)
+                    {
+                        await _transactionEntryService.RecordMedicalExpenseAsync(
+                            date,
+                            amount,
+                            SelectedAccount.Id,
+                            SelectedCategory.Id,
+                            AsNullableId(SelectedPayer),
+                            AsNullableId(SelectedBeneficiary),
+                            Description,
+                            Notes,
+                            medicalInfo);
+                    }
+                    else if (SelectedAccount.IsCreditAccount)
+                    {
+                        await _transactionEntryService.RecordCreditCardPurchaseAsync(
+                            date,
+                            amount,
+                            SelectedAccount.Id,
+                            SelectedCategory.Id,
+                            AsNullableId(SelectedPayer),
+                            AsNullableId(SelectedBeneficiary),
+                            Description,
+                            Notes);
                     }
                     else
                     {
-                        // Edit/delete slice spec §4.1: reverse the ORIGINAL side effect first (fetched
-                        // fresh inside the service), then repost with the edited values below via the
-                        // existing, unchanged RecordCreditCardPurchaseAsync/RecordExpenseAsync calls.
-                        // IsMedicalCheckboxVisible hides IsMedicalExpense's checkbox in edit mode, so this
-                        // branch (not the medical one above) is the only one ever reachable while editing.
-                        if (IsEditMode)
-                            await _transactionEntryService.ReverseExpenseAsync(EditingTransactionId!.Value);
-
-                        if (SelectedAccount.IsCreditAccount)
-                        {
-                            await _transactionEntryService.RecordCreditCardPurchaseAsync(
-                                date,
-                                amount,
-                                SelectedAccount.Id,
-                                SelectedCategory.Id,
-                                AsNullableId(SelectedPayer),
-                                AsNullableId(SelectedBeneficiary),
-                                Description,
-                                Notes);
-                        }
-                        else
-                        {
-                            await _transactionEntryService.RecordExpenseAsync(
-                                date,
-                                amount,
-                                SelectedAccount.Id,
-                                SelectedCategory.Id,
-                                AsNullableId(SelectedPayer),
-                                AsNullableId(SelectedBeneficiary),
-                                Description,
-                                Notes);
-                        }
+                        await _transactionEntryService.RecordExpenseAsync(
+                            date,
+                            amount,
+                            SelectedAccount.Id,
+                            SelectedCategory.Id,
+                            AsNullableId(SelectedPayer),
+                            AsNullableId(SelectedBeneficiary),
+                            Description,
+                            Notes);
                     }
                     break;
 

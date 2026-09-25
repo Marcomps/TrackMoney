@@ -144,6 +144,41 @@ public sealed class RecurringIncome : Entity
         LastConfirmedDate = occurrenceDate;
     }
 
+    /// <summary>
+    /// Edits the definition going forward — never touches already-posted <c>Income</c> transactions or
+    /// <see cref="LastConfirmedDate"/>. <see cref="StartDate"/> anchors the schedule (and the day a
+    /// monthly occurrence lands on), so it can only change before the first occurrence is confirmed.
+    /// </summary>
+    public void UpdateDetails(
+        string name,
+        decimal amount,
+        Guid categoryId,
+        Guid destinationAccountId,
+        RecurringIncomeFrequency frequency,
+        DateOnly startDate,
+        DateOnly? endDate)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Recurring income name cannot be empty.", nameof(name));
+
+        if (amount <= 0)
+            throw new ArgumentException("Recurring income amount must be positive.", nameof(amount));
+
+        if (endDate is not null && endDate.Value < startDate)
+            throw new ArgumentException("End date cannot be before start date.", nameof(endDate));
+
+        if (LastConfirmedDate is not null && startDate != StartDate)
+            throw new InvalidOperationException("The start date can't change once an occurrence has been confirmed.");
+
+        Name = name.Trim();
+        Amount = amount;
+        CategoryId = categoryId;
+        DestinationAccountId = destinationAccountId;
+        Frequency = frequency;
+        StartDate = startDate;
+        EndDate = endDate;
+    }
+
     public void Deactivate() => IsActive = false;
 
     public void Reactivate() => IsActive = true;

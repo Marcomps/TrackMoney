@@ -35,7 +35,6 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(AddRecurringExpensePage), typeof(AddRecurringExpensePage));
 		Routing.RegisterRoute(nameof(RecurringIncomesListPage), typeof(RecurringIncomesListPage));
 		Routing.RegisterRoute(nameof(AddRecurringIncomePage), typeof(AddRecurringIncomePage));
-		Routing.RegisterRoute(nameof(EditRecurringIncomeAmountPage), typeof(EditRecurringIncomeAmountPage));
 		Routing.RegisterRoute(nameof(LoansListPage), typeof(LoansListPage));
 		Routing.RegisterRoute(nameof(AddLoanPage), typeof(AddLoanPage));
 		Routing.RegisterRoute(nameof(SnowballPlanPage), typeof(SnowballPlanPage));
