@@ -6,6 +6,7 @@
              xmlns:resources="clr-namespace:TrackTraceMoney.App.Resources.Strings"
              x:Class="TrackTraceMoney.App.Views.DashboardPage"
              x:DataType="viewModels:DashboardViewModel"
+             x:Name="Root"
              Title="{x:Static resources:AppResources.Dashboard_Title}">
 
     <RefreshView IsRefreshing="{Binding IsBusy}"
@@ -112,6 +113,98 @@
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Projection tile: real surplus through the end of this quincena / this month PLUS recurring
+                     income expected by then. Kept separate from the income-free Real surplus tile below —
+                     expected income is a projection, not available balance, until it's confirmed. -->
+                <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                               Text="{x:Static resources:AppResources.Dashboard_ProjectionSectionTitle}" />
+                        <Label FontSize="13" TextColor="{StaticResource Gray200}"
+                               Text="{x:Static resources:AppResources.Dashboard_ProjectionHint}" />
+                        <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding Projections}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:ProjectionTileItem">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" RowSpacing="4"
+                                          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                                        <Label Grid.Row="0" Grid.Column="0" Text="{Binding Currency}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Gray100}" />
+                                        <Label Grid.Row="0" Grid.Column="1" HorizontalOptions="End" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Gray100}"
+                                               Text="{x:Static resources:AppResources.Dashboard_ProjectionHalfMonthHeader}" />
+                                        <Label Grid.Row="0" Grid.Column="2" HorizontalOptions="End" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Gray100}"
+                                               Text="{x:Static resources:AppResources.Dashboard_ProjectionMonthHeader}" />
+                                        <Label Grid.Row="1" Grid.Column="1" HorizontalOptions="End" FontSize="12" TextColor="{StaticResource Gray200}"
+                                               Text="{Binding Source={x:Reference Root}, Path=BindingContext.HalfMonthThroughText}" />
+                                        <Label Grid.Row="1" Grid.Column="2" HorizontalOptions="End" FontSize="12" TextColor="{StaticResource Gray200}"
+                                               Text="{Binding Source={x:Reference Root}, Path=BindingContext.MonthThroughText}" />
+
+                                        <Label Grid.Row="2" Grid.Column="0" FontSize="14" TextColor="{StaticResource Gray200}" Text="{x:Static resources:AppResources.Dashboard_ProjectionBalanceLabel}" />
+                                        <Label Grid.Row="2" Grid.Column="1" HorizontalOptions="End" FontSize="14" TextColor="{StaticResource Gray100}" Text="{Binding HalfMonth.AvailableBalance, StringFormat='{0:N2}'}" />
+                                        <Label Grid.Row="2" Grid.Column="2" HorizontalOptions="End" FontSize="14" TextColor="{StaticResource Gray100}" Text="{Binding Month.AvailableBalance, StringFormat='{0:N2}'}" />
+
+                                        <Label Grid.Row="3" Grid.Column="0" FontSize="14" TextColor="{StaticResource Gray200}" Text="{x:Static resources:AppResources.Dashboard_ProjectionExpectedIncomeLabel}" />
+                                        <Label Grid.Row="3" Grid.Column="1" HorizontalOptions="End" FontSize="14" TextColor="{StaticResource Primary}" Text="{Binding HalfMonth.ExpectedIncome, StringFormat='{0:N2}'}"
+                                               AutomationId="{Binding Currency, StringFormat='Dashboard_ProjectionHalfMonthIncome_{0}'}" />
+                                        <Label Grid.Row="3" Grid.Column="2" HorizontalOptions="End" FontSize="14" TextColor="{StaticResource Primary}" Text="{Binding Month.ExpectedIncome, StringFormat='{0:N2}'}"
+                                               AutomationId="{Binding Currency, StringFormat='Dashboard_ProjectionMonthIncome_{0}'}" />
+
+                                        <Label Grid.Row="4" Grid.Column="0" FontSize="14" TextColor="{StaticResource Gray200}" Text="{x:Static resources:AppResources.Dashboard_ProjectionUpcomingExpensesLabel}" />
+                                        <Label Grid.Row="4" Grid.Column="1" HorizontalOptions="End" FontSize="14" TextColor="{StaticResource Tertiary}" Text="{Binding HalfMonth.UpcomingExpenses, StringFormat='{0:N2}'}"
+                                               AutomationId="{Binding Currency, StringFormat='Dashboard_ProjectionHalfMonthExpenses_{0}'}" />
+                                        <Label Grid.Row="4" Grid.Column="2" HorizontalOptions="End" FontSize="14" TextColor="{StaticResource Tertiary}" Text="{Binding Month.UpcomingExpenses, StringFormat='{0:N2}'}"
+                                               AutomationId="{Binding Currency, StringFormat='Dashboard_ProjectionMonthExpenses_{0}'}" />
+
+                                        <Label Grid.Row="5" Grid.Column="0" FontSize="14" TextColor="{StaticResource Gray200}" Text="{x:Static resources:AppResources.Dashboard_ProjectionDebtPaymentsLabel}" />
+                                        <Label Grid.Row="5" Grid.Column="1" HorizontalOptions="End" FontSize="14" TextColor="{StaticResource Tertiary}" Text="{Binding HalfMonth.DebtPayments, StringFormat='{0:N2}'}" />
+                                        <Label Grid.Row="5" Grid.Column="2" HorizontalOptions="End" FontSize="14" TextColor="{StaticResource Tertiary}" Text="{Binding Month.DebtPayments, StringFormat='{0:N2}'}" />
+
+                                        <Label Grid.Row="6" Grid.Column="0" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource White}" Text="{x:Static resources:AppResources.Dashboard_ProjectionResultLabel}" />
+                                        <Label Grid.Row="6" Grid.Column="1" HorizontalOptions="End" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}" Text="{Binding HalfMonth.Projected, StringFormat='{0:N2}'}"
+                                               AutomationId="{Binding Currency, StringFormat='Dashboard_ProjectionHalfMonthResult_{0}'}" />
+                                        <Label Grid.Row="6" Grid.Column="2" HorizontalOptions="End" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}" Text="{Binding Month.Projected, StringFormat='{0:N2}'}"
+                                               AutomationId="{Binding Currency, StringFormat='Dashboard_ProjectionMonthResult_{0}'}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Upcoming income: each recurring income's next payday this month, with "I got paid" once it
+                     can be confirmed (due, or up to the early-confirmation window ahead of its date). -->
+                <Border Style="{StaticResource GlossyCardStyle}" Padding="20,18">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}"
+                               Text="{x:Static resources:AppResources.Dashboard_UpcomingIncomesSectionTitle}" />
+                        <Label Text="{x:Static resources:AppResources.Dashboard_UpcomingIncomesEmpty}"
+                               TextColor="{StaticResource Gray200}"
+                               IsVisible="{Binding ShowUpcomingIncomesEmpty}" />
+                        <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding UpcomingIncomes}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:UpcomingIncomeItem">
+                                    <Grid Padding="0,4" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8">
+                                        <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="16" TextColor="{StaticResource Gray100}" />
+                                        <Label Grid.Row="1" Grid.Column="0" FontSize="14" TextColor="{StaticResource Gray200}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding Date}" />
+                                                    <Span Text=" · " />
+                                                    <Span Text="{Binding Amount, StringFormat='{0:N2}'}" TextColor="{StaticResource Primary}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" VerticalOptions="Center"
+                                                Text="{x:Static resources:AppResources.Dashboard_ConfirmIncomeButton}"
+                                                IsVisible="{Binding CanConfirm}"
+                                                Command="{Binding Source={x:Reference Root}, Path=BindingContext.ConfirmIncomeCommand}"
+                                                CommandParameter="{Binding .}"
+                                                AutomationId="{Binding Name, StringFormat='Dashboard_ConfirmIncomeButton_{0}'}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Border>
 

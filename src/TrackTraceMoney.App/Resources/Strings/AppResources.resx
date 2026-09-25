@@ -2389,4 +2389,46 @@
   <data name="RecurringIncomes_ConfirmEarlyCancel" xml:space="preserve">
     <value>Todavía no</value>
   </data>
+  <data name="Dashboard_ProjectionSectionTitle" xml:space="preserve">
+    <value>Proyección</value>
+  </data>
+  <data name="Dashboard_ProjectionHint" xml:space="preserve">
+    <value>Lo que te quedaría si recibes tus ingresos esperados y pagas lo pendiente. Todavía no es dinero disponible.</value>
+  </data>
+  <data name="Dashboard_ProjectionHalfMonthHeader" xml:space="preserve">
+    <value>Quincena</value>
+  </data>
+  <data name="Dashboard_ProjectionMonthHeader" xml:space="preserve">
+    <value>Mes</value>
+  </data>
+  <data name="Dashboard_ProjectionThroughFormat" xml:space="preserve">
+    <value>al {0:d MMM}</value>
+  </data>
+  <data name="Dashboard_ProjectionBalanceLabel" xml:space="preserve">
+    <value>Saldo hoy</value>
+  </data>
+  <data name="Dashboard_ProjectionExpectedIncomeLabel" xml:space="preserve">
+    <value>+ Esperado</value>
+  </data>
+  <data name="Dashboard_ProjectionUpcomingExpensesLabel" xml:space="preserve">
+    <value>− Gastos</value>
+  </data>
+  <data name="Dashboard_ProjectionDebtPaymentsLabel" xml:space="preserve">
+    <value>− Deudas</value>
+  </data>
+  <data name="Dashboard_ProjectionResultLabel" xml:space="preserve">
+    <value>= Quedaría</value>
+  </data>
+  <data name="Dashboard_UpcomingIncomesSectionTitle" xml:space="preserve">
+    <value>Próximos ingresos</value>
+  </data>
+  <data name="Dashboard_UpcomingIncomesEmpty" xml:space="preserve">
+    <value>No tienes ingresos recurrentes pendientes este mes.</value>
+  </data>
+  <data name="Dashboard_ConfirmIncomeButton" xml:space="preserve">
+    <value>Ya me pagaron</value>
+  </data>
+  <data name="Dashboard_ConfirmIncomeErrorDismiss" xml:space="preserve">
+    <value>Aceptar</value>
+  </data>
 </root>

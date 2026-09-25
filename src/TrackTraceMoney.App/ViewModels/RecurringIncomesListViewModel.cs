@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
-using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
+using TrackTraceMoney.App.Services;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.RecurringIncomes;
@@ -17,6 +17,8 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
     private readonly ICategoryRepository _categoryRepository;
     private readonly IFinancialAccountRepository _accountRepository;
     private readonly IRecurringIncomeService _recurringIncomeService;
+
+    private bool _isLoading;
 
     [ObservableProperty]
     private bool isBusy;
@@ -51,9 +53,12 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadRecurringIncomesAsync()
     {
-        if (IsBusy)
+        // Not an IsBusy check: pull-to-refresh sets IsBusy (IsRefreshing's two-way binding) *before*
+        // invoking this command, so an IsBusy guard returned early and left the spinner stuck forever.
+        if (_isLoading)
             return;
 
+        _isLoading = true;
         IsBusy = true;
         try
         {
@@ -90,6 +95,7 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
         }
         finally
         {
+            _isLoading = false;
             IsBusy = false;
         }
     }
@@ -102,20 +108,9 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
 
         var today = DateOnly.FromDateTime(DateTime.Today);
 
-        // Confirming ahead of the scheduled date posts real money dated today -- ask first, so a stray
-        // tap can't record a paycheck that hasn't arrived.
         var item = DueRecurringIncomes.FirstOrDefault(d => d.Id == recurringIncomeId);
-        if (item is { IsEarly: true })
-        {
-            var confirmed = await Shell.Current.DisplayAlertAsync(
-                AppResources.RecurringIncomes_ConfirmEarlyTitle,
-                string.Format(CultureInfo.CurrentCulture, AppResources.RecurringIncomes_ConfirmEarlyMessage, item.Name, item.OccurrenceDate, item.Amount),
-                AppResources.RecurringIncomes_ConfirmEarlyAccept,
-                AppResources.RecurringIncomes_ConfirmEarlyCancel);
-
-            if (!confirmed)
-                return;
-        }
+        if (item is not null && !await RecurringIncomeConfirmPrompt.ProceedAsync(item.Name, item.OccurrenceDate, item.Amount, today))
+            return;
 
         ErrorMessage = null;
         IsBusy = true;

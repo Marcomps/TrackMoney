@@ -17,6 +17,8 @@ public sealed partial class NetWorthViewModel : ObservableObject
 {
     private readonly INetWorthSnapshotRepository _snapshotRepository;
 
+    private bool _isLoading;
+
     [ObservableProperty]
     private bool isBusy;
 
@@ -41,9 +43,12 @@ public sealed partial class NetWorthViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadAsync()
     {
-        if (IsBusy)
+        // Not an IsBusy check: pull-to-refresh sets IsBusy (IsRefreshing's two-way binding) *before*
+        // invoking this command, so an IsBusy guard returned early and left the spinner stuck forever.
+        if (_isLoading)
             return;
 
+        _isLoading = true;
         IsBusy = true;
         try
         {
@@ -79,6 +84,7 @@ public sealed partial class NetWorthViewModel : ObservableObject
         }
         finally
         {
+            _isLoading = false;
             IsBusy = false;
         }
     }

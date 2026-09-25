@@ -19,6 +19,15 @@ public static class RecurrenceDates
     }
 
     /// <summary>
+    /// The end of the "quincena" containing <paramref name="date"/>: the 15th for days 1–15, otherwise
+    /// the last day of the month.
+    /// </summary>
+    public static DateOnly HalfMonthEnd(DateOnly date) =>
+        date.Day <= 15
+            ? new DateOnly(date.Year, date.Month, 15)
+            : new DateOnly(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month));
+
+    /// <summary>
     /// The next semi-monthly payday strictly after <paramref name="after"/>: the 15th, then the last
     /// day of the month, then the 15th of the following month.
     /// </summary>

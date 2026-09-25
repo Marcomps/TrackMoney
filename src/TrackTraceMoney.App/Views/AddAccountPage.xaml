@@ -38,7 +38,7 @@
 
             <VerticalStackLayout IsVisible="{Binding IsOpeningBalanceVisible}" Spacing="12">
                 <Label Text="{x:Static resources:AppResources.AddAccount_OpeningBalanceLabel}" />
-                <Entry Text="{Binding OpeningBalanceText}" Keyboard="Numeric" />
+                <Entry Text="{Binding OpeningBalanceText}" Keyboard="Numeric" AutomationId="AddAccount_OpeningBalanceEntry" />
             </VerticalStackLayout>
 
             <VerticalStackLayout IsVisible="{Binding IsBankKind}" Spacing="12">

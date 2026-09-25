@@ -43,6 +43,8 @@ public sealed partial class HistoryViewModel : ObservableObject
 
     private IReadOnlyDictionary<Guid, CurrencyCode> _accountCurrencies = new Dictionary<Guid, CurrencyCode>();
 
+    private bool _isLoading;
+
     [ObservableProperty]
     private bool isBusy;
 
@@ -120,9 +122,12 @@ public sealed partial class HistoryViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadHistoryAsync()
     {
-        if (IsBusy)
+        // Not an IsBusy check: pull-to-refresh sets IsBusy (IsRefreshing's two-way binding) *before*
+        // invoking this command, so an IsBusy guard returned early and left the spinner stuck forever.
+        if (_isLoading)
             return;
 
+        _isLoading = true;
         IsBusy = true;
         try
         {
@@ -179,6 +184,7 @@ public sealed partial class HistoryViewModel : ObservableObject
         }
         finally
         {
+            _isLoading = false;
             IsBusy = false;
         }
     }

@@ -2389,4 +2389,46 @@
   <data name="RecurringIncomes_ConfirmEarlyCancel" xml:space="preserve">
     <value>Not yet</value>
   </data>
+  <data name="Dashboard_ProjectionSectionTitle" xml:space="preserve">
+    <value>Projection</value>
+  </data>
+  <data name="Dashboard_ProjectionHint" xml:space="preserve">
+    <value>What you'd have left if your expected income arrives and pending payments go out. It isn't available money yet.</value>
+  </data>
+  <data name="Dashboard_ProjectionHalfMonthHeader" xml:space="preserve">
+    <value>Half-month</value>
+  </data>
+  <data name="Dashboard_ProjectionMonthHeader" xml:space="preserve">
+    <value>Month</value>
+  </data>
+  <data name="Dashboard_ProjectionThroughFormat" xml:space="preserve">
+    <value>by {0:MMM d}</value>
+  </data>
+  <data name="Dashboard_ProjectionBalanceLabel" xml:space="preserve">
+    <value>Balance</value>
+  </data>
+  <data name="Dashboard_ProjectionExpectedIncomeLabel" xml:space="preserve">
+    <value>+ Expected</value>
+  </data>
+  <data name="Dashboard_ProjectionUpcomingExpensesLabel" xml:space="preserve">
+    <value>− Expenses</value>
+  </data>
+  <data name="Dashboard_ProjectionDebtPaymentsLabel" xml:space="preserve">
+    <value>− Debts</value>
+  </data>
+  <data name="Dashboard_ProjectionResultLabel" xml:space="preserve">
+    <value>= Left</value>
+  </data>
+  <data name="Dashboard_UpcomingIncomesSectionTitle" xml:space="preserve">
+    <value>Upcoming income</value>
+  </data>
+  <data name="Dashboard_UpcomingIncomesEmpty" xml:space="preserve">
+    <value>No recurring income pending this month.</value>
+  </data>
+  <data name="Dashboard_ConfirmIncomeButton" xml:space="preserve">
+    <value>I got paid</value>
+  </data>
+  <data name="Dashboard_ConfirmIncomeErrorDismiss" xml:space="preserve">
+    <value>OK</value>
+  </data>
 </root>
