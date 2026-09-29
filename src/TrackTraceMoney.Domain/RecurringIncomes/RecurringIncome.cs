@@ -103,6 +103,12 @@ public sealed class RecurringIncome : Entity
     public bool CanConfirm(DateOnly today) => IsDue(today.AddDays(EarlyConfirmationWindowDays));
 
     /// <summary>
+    /// The earliest date the next occurrence may be recorded as having happened (confirming it early):
+    /// <see cref="NextOccurrenceDate"/> minus <see cref="EarlyConfirmationWindowDays"/>.
+    /// </summary>
+    public DateOnly EarliestConfirmationDate => NextOccurrenceDate.AddDays(-EarlyConfirmationWindowDays);
+
+    /// <summary>
     /// How many occurrences fall on or before <paramref name="horizonEnd"/>, starting from
     /// <see cref="NextOccurrenceDate"/> — not just whether one is due (<see cref="IsDue"/>).
     /// Identical algorithm to <c>RecurringExpense.CountOccurrencesThrough</c>, walking this

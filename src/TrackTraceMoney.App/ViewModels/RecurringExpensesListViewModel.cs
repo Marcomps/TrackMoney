@@ -95,7 +95,7 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
                 RecurringExpenses.Add(listItem);
 
                 if (recurringExpense.CanConfirm(today))
-                    DueRecurringExpenses.Add(DueRecurringExpenseListItem.FromListItem(listItem, today));
+                    DueRecurringExpenses.Add(DueRecurringExpenseListItem.FromListItem(listItem, today, recurringExpense.EarliestConfirmationDate));
             }
 
             HasLoaded = true;
@@ -118,14 +118,18 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
         var today = DateOnly.FromDateTime(DateTime.Today);
 
         var item = DueRecurringExpenses.FirstOrDefault(d => d.Id == recurringExpenseId);
-        if (item is not null && !await RecurringConfirmPrompt.ExpenseAsync(item.Name, item.OccurrenceDate, item.Amount, today))
+        if (item is null)
+            return;
+
+        var paidOn = await RecurringConfirmPrompt.ExpenseDateAsync(item.Name, item.Amount, item.OccurrenceDate, item.EarliestConfirmationDate, today);
+        if (paidOn is null)
             return;
 
         ErrorMessage = null;
         IsBusy = true;
         try
         {
-            await _recurringExpenseService.ConfirmOccurrenceAsync(recurringExpenseId, today);
+            await _recurringExpenseService.ConfirmOccurrenceAsync(recurringExpenseId, paidOn.Value);
         }
         catch (Exception)
         {

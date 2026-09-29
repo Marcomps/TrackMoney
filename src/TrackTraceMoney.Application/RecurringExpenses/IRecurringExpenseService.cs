@@ -9,7 +9,7 @@ public interface IRecurringExpenseService
     /// <summary>
     /// Confirms the next occurrence as paid. It may be confirmed up to
     /// <c>RecurringExpense.EarlyConfirmationWindowDays</c> before its scheduled date, in which case the
-    /// transaction is dated <paramref name="today"/>; throws if it is further out than that.
+    /// transaction is dated <paramref name="confirmedOn"/> — the day it actually happened (today, or an earlier day inside the window); throws if it is further out than that.
     /// </summary>
-    Task ConfirmOccurrenceAsync(Guid recurringExpenseId, DateOnly today, CancellationToken ct = default);
+    Task ConfirmOccurrenceAsync(Guid recurringExpenseId, DateOnly confirmedOn, CancellationToken ct = default);
 }

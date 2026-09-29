@@ -19,12 +19,12 @@ public sealed class RecurringExpenseService : IRecurringExpenseService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task ConfirmOccurrenceAsync(Guid recurringExpenseId, DateOnly today, CancellationToken ct = default)
+    public async Task ConfirmOccurrenceAsync(Guid recurringExpenseId, DateOnly confirmedOn, CancellationToken ct = default)
     {
         var recurringExpense = await _recurringExpenseRepository.GetByIdAsync(recurringExpenseId, ct)
             ?? throw new InvalidOperationException($"Recurring expense '{recurringExpenseId}' was not found.");
 
-        if (!recurringExpense.CanConfirm(today))
+        if (!recurringExpense.CanConfirm(confirmedOn))
             throw new InvalidOperationException("The next occurrence is not due yet and is outside the early-confirmation window.");
 
         // Capture before RecordExpenseAsync/MarkConfirmed run: NextOccurrenceDate is computed from
@@ -33,7 +33,7 @@ public sealed class RecurringExpenseService : IRecurringExpenseService
 
         // Paid early: the money left today, so the transaction is dated today, while the schedule still
         // advances from the scheduled date.
-        var paidOn = occurrenceDate > today ? today : occurrenceDate;
+        var paidOn = occurrenceDate > confirmedOn ? confirmedOn : occurrenceDate;
 
         // Posting the Expense (which debits the account, inside RecordExpenseAsync's own
         // SaveChangesAsync) and marking this recurring expense confirmed (a second, separate

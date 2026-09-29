@@ -86,7 +86,7 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
                 RecurringIncomes.Add(listItem);
 
                 if (recurringIncome.CanConfirm(today))
-                    DueRecurringIncomes.Add(DueRecurringIncomeListItem.FromListItem(listItem, today));
+                    DueRecurringIncomes.Add(DueRecurringIncomeListItem.FromListItem(listItem, today, recurringIncome.EarliestConfirmationDate));
             }
 
             HasLoaded = true;
@@ -109,14 +109,18 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
         var today = DateOnly.FromDateTime(DateTime.Today);
 
         var item = DueRecurringIncomes.FirstOrDefault(d => d.Id == recurringIncomeId);
-        if (item is not null && !await RecurringConfirmPrompt.IncomeAsync(item.Name, item.OccurrenceDate, item.Amount, today))
+        if (item is null)
+            return;
+
+        var receivedOn = await RecurringConfirmPrompt.IncomeDateAsync(item.Name, item.Amount, item.OccurrenceDate, item.EarliestConfirmationDate, today);
+        if (receivedOn is null)
             return;
 
         ErrorMessage = null;
         IsBusy = true;
         try
         {
-            await _recurringIncomeService.ConfirmOccurrenceAsync(recurringIncomeId, today);
+            await _recurringIncomeService.ConfirmOccurrenceAsync(recurringIncomeId, receivedOn.Value);
         }
         catch (Exception)
         {

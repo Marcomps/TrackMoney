@@ -362,4 +362,14 @@ public sealed class RecurringExpenseTests
         Assert.False(expense.CanConfirm(new DateOnly(2026, 9, 28)));
         Assert.True(expense.CanConfirm(new DateOnly(2026, 10, 8)));
     }
+
+    [Fact]
+    public void EarliestConfirmationDate_IsTheFirstDayThePaymentCanBeRecordedAs()
+    {
+        var expense = CreateExpense(RecurringExpenseFrequency.SemiMonthly, new DateOnly(2026, 9, 30));
+
+        Assert.Equal(new DateOnly(2026, 9, 23), expense.EarliestConfirmationDate);
+        Assert.True(expense.CanConfirm(expense.EarliestConfirmationDate));
+        Assert.False(expense.CanConfirm(expense.EarliestConfirmationDate.AddDays(-1)));
+    }
 }

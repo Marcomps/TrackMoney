@@ -15,13 +15,14 @@ public sealed record DueRecurringIncomeListItem(
     string CategoryName,
     string AccountName,
     DateOnly OccurrenceDate,
-    bool IsEarly)
+    bool IsEarly,
+    DateOnly EarliestConfirmationDate)
 {
     /// <summary>
     /// Builds a "due now" row from an already-built <see cref="RecurringIncomeListItem"/>, reusing
     /// its already-resolved category/account display names instead of resolving them a second time.
     /// </summary>
-    public static DueRecurringIncomeListItem FromListItem(RecurringIncomeListItem listItem, DateOnly today) =>
+    public static DueRecurringIncomeListItem FromListItem(RecurringIncomeListItem listItem, DateOnly today, DateOnly earliestConfirmationDate) =>
         new(
             listItem.Id,
             listItem.Name,
@@ -29,7 +30,8 @@ public sealed record DueRecurringIncomeListItem(
             listItem.CategoryName,
             listItem.AccountName,
             listItem.NextDueDate,
-            listItem.NextDueDate > today);
+            listItem.NextDueDate > today,
+            earliestConfirmationDate);
 
     /// <summary>Shown under early rows only, so it's clear the payment isn't due yet.</summary>
     public string ScheduledForText =>

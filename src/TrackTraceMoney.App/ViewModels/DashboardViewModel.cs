@@ -362,7 +362,8 @@ public sealed partial class DashboardViewModel : ObservableObject
                     recurringIncome.Amount,
                     recurringIncome.NextOccurrenceDate,
                     recurringIncome.CanConfirm(today),
-                    recurringIncome.NextOccurrenceDate > today));
+                    recurringIncome.NextOccurrenceDate > today,
+                    recurringIncome.EarliestConfirmationDate));
             }
 
             // Net worth tile (README §24) — sum of ALL active FinancialAccount balances (regardless of
@@ -440,12 +441,13 @@ public sealed partial class DashboardViewModel : ObservableObject
             return;
 
         var today = DateOnly.FromDateTime(DateTime.Today);
-        if (!await RecurringConfirmPrompt.IncomeAsync(item.Name, item.Date, item.Amount, today))
+        var receivedOn = await RecurringConfirmPrompt.IncomeDateAsync(item.Name, item.Amount, item.Date, item.EarliestConfirmationDate, today);
+        if (receivedOn is null)
             return;
 
         try
         {
-            await _recurringIncomeService.ConfirmOccurrenceAsync(item.Id, today);
+            await _recurringIncomeService.ConfirmOccurrenceAsync(item.Id, receivedOn.Value);
         }
         catch (Exception)
         {

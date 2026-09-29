@@ -2356,18 +2356,6 @@
   <data name="RecurringIncomes_ScheduledForFormat" xml:space="preserve">
     <value>Programado: {0:d}</value>
   </data>
-  <data name="RecurringIncomes_ConfirmEarlyTitle" xml:space="preserve">
-    <value>¿Ya lo recibiste?</value>
-  </data>
-  <data name="RecurringIncomes_ConfirmEarlyMessage" xml:space="preserve">
-    <value>{0} está programado para el {1:d}. Si ya te pagaron, se registrarán {2:N2} con fecha de hoy.</value>
-  </data>
-  <data name="RecurringIncomes_ConfirmEarlyAccept" xml:space="preserve">
-    <value>Sí, ya lo recibí</value>
-  </data>
-  <data name="RecurringIncomes_ConfirmEarlyCancel" xml:space="preserve">
-    <value>Todavía no</value>
-  </data>
   <data name="Dashboard_ProjectionSectionTitle" xml:space="preserve">
     <value>Proyección</value>
   </data>
@@ -2524,19 +2512,25 @@
   <data name="Budgets_Explanation" xml:space="preserve">
     <value>Un presupuesto es un límite de gasto para una categoría durante este mes. No es dinero apartado ni cambia tus saldos. «Gastado» suma los gastos y compras con tarjeta que registraste en esa categoría este mes; las transferencias y los pagos de tarjeta o préstamo no cuentan. Se reinicia cada mes. Desliza un presupuesto a la izquierda para editarlo o eliminarlo.</value>
   </data>
-  <data name="RecurringExpenses_ConfirmEarlyTitle" xml:space="preserve">
-    <value>¿Ya lo pagaste?</value>
-  </data>
-  <data name="RecurringExpenses_ConfirmEarlyMessage" xml:space="preserve">
-    <value>{0} está programado para el {1:d}. Si ya lo pagaste, se registrarán {2:N2} con fecha de hoy.</value>
-  </data>
-  <data name="RecurringExpenses_ConfirmEarlyAccept" xml:space="preserve">
-    <value>Sí, ya lo pagué</value>
-  </data>
-  <data name="RecurringExpenses_ConfirmEarlyCancel" xml:space="preserve">
-    <value>Todavía no</value>
-  </data>
   <data name="CreditCards_CreditBalanceFormat" xml:space="preserve">
     <value>Saldo a favor: {0:N2}</value>
+  </data>
+  <data name="RecurringIncomes_WhenReceivedTitleFormat" xml:space="preserve">
+    <value>¿Cuándo recibiste {0} ({1:N2})?</value>
+  </data>
+  <data name="RecurringExpenses_WhenPaidTitleFormat" xml:space="preserve">
+    <value>¿Cuándo pagaste {0} ({1:N2})?</value>
+  </data>
+  <data name="RecurringConfirm_TodayFormat" xml:space="preserve">
+    <value>Hoy ({0:d MMM})</value>
+  </data>
+  <data name="RecurringConfirm_YesterdayFormat" xml:space="preserve">
+    <value>Ayer ({0:d MMM})</value>
+  </data>
+  <data name="RecurringConfirm_DayFormat" xml:space="preserve">
+    <value>{0:dddd d MMM}</value>
+  </data>
+  <data name="RecurringConfirm_Cancel" xml:space="preserve">
+    <value>Todavía no</value>
   </data>
 </root>

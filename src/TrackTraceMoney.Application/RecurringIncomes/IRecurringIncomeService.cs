@@ -9,7 +9,7 @@ public interface IRecurringIncomeService
     /// <summary>
     /// Confirms the next occurrence as received. It may be confirmed up to
     /// <c>RecurringIncome.EarlyConfirmationWindowDays</c> before its scheduled date, in which case the
-    /// Income is dated <paramref name="today"/>; throws if it is further out than that.
+    /// Income is dated <paramref name="confirmedOn"/> — the day it actually happened (today, or an earlier day inside the window); throws if it is further out than that.
     /// </summary>
-    Task ConfirmOccurrenceAsync(Guid recurringIncomeId, DateOnly today, CancellationToken ct = default);
+    Task ConfirmOccurrenceAsync(Guid recurringIncomeId, DateOnly confirmedOn, CancellationToken ct = default);
 }

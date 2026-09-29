@@ -14,9 +14,10 @@ public sealed record DueRecurringExpenseListItem(
     string CategoryName,
     string AccountName,
     DateOnly OccurrenceDate,
-    bool IsEarly)
+    bool IsEarly,
+    DateOnly EarliestConfirmationDate)
 {
-    public static DueRecurringExpenseListItem FromListItem(RecurringExpenseListItem listItem, DateOnly today) =>
+    public static DueRecurringExpenseListItem FromListItem(RecurringExpenseListItem listItem, DateOnly today, DateOnly earliestConfirmationDate) =>
         new(
             listItem.Id,
             listItem.Name,
@@ -24,7 +25,8 @@ public sealed record DueRecurringExpenseListItem(
             listItem.CategoryName,
             listItem.AccountName,
             listItem.NextDueDate,
-            listItem.NextDueDate > today);
+            listItem.NextDueDate > today,
+            earliestConfirmationDate);
 
     /// <summary>Shown under early rows only, so it's clear the payment isn't due yet.</summary>
     public string ScheduledForText =>
