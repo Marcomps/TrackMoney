@@ -546,19 +546,19 @@ public sealed class TransactionEntryServiceTests
     }
 
     [Fact]
-    public async Task RecordCreditCardPaymentAsync_Overpayment_ThrowsAndDoesNotMutateEitherSide()
+    public async Task RecordCreditCardPaymentAsync_Overpayment_LeavesCreditBalance_AndIsNotSpend()
     {
         var (service, accounts, creditAccounts, transactions, _, _, _, _) = CreateSut();
-        var checking = accounts.Add(new BankAccount("Checking", CurrencyCode.USD, openingBalance: 1000m));
-        var card = creditAccounts.Add(new CreditCard("Visa", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
-        card.RegisterCharge(200m);
+        var checking = accounts.Add(new BankAccount("Cuscatlan", CurrencyCode.USD, openingBalance: 256.10m));
+        var card = creditAccounts.Add(new CreditCard("EMMA", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 2000m, statementCutOffDay: 20, paymentDueDay: 16));
+        card.RegisterCharge(59.22m);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            service.RecordCreditCardPaymentAsync(DateOnly.FromDateTime(DateTime.Today), 300m, checking.Id, card.Id, null, null));
+        await service.RecordCreditCardPaymentAsync(DateOnly.FromDateTime(DateTime.Today), 70m, checking.Id, card.Id, null, null);
 
-        Assert.Empty(transactions.All);
-        Assert.Equal(1000m, checking.Balance);
-        Assert.Equal(200m, card.AmountOwed);
+        var payment = Assert.Single(transactions.All);
+        Assert.False(payment.CountsAsExpense);
+        Assert.Equal(186.10m, checking.Balance);
+        Assert.Equal(10.78m, card.CreditBalance);
     }
 
     [Fact]
@@ -1500,7 +1500,7 @@ public sealed class TransactionEntryServiceTests
     }
 
     [Fact]
-    public async Task ReverseCreditCardPurchaseAsync_WhenAlreadyPaidOff_IsRefused()
+    public async Task ReverseCreditCardPurchaseAsync_WhenAlreadyPaidOff_LeavesCreditBalance()
     {
         var (service, _, creditAccounts, transactions, _, _, _, _) = CreateSut();
         var card = creditAccounts.Add(new CreditCard("Mi Super", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15));
@@ -1508,10 +1508,11 @@ public sealed class TransactionEntryServiceTests
         var purchase = Assert.Single(transactions.All);
         card.RegisterPayment(25m);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReverseCreditCardPurchaseAsync(purchase.Id));
+        // The purchase was paid and then turns out not to exist: the issuer owes the user those 25.
+        await service.ReverseCreditCardPurchaseAsync(purchase.Id);
 
-        Assert.Single(transactions.All);
-        Assert.Equal(0m, card.AmountOwed);
+        Assert.Empty(transactions.All);
+        Assert.Equal(25m, card.CreditBalance);
     }
 
     [Fact]

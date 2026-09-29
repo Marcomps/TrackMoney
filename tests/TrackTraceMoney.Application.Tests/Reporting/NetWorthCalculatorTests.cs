@@ -95,4 +95,20 @@ public sealed class NetWorthCalculatorTests
 
         Assert.Equal(-800m, summary.ByCurrency[CurrencyCode.USD].NetWorth);
     }
+
+    [Fact]
+    public void OverpaidCard_CountsAsAnAsset_NotANegativeLiability()
+    {
+        // Agricola 200; EMMA overpaid by 10.78; another card owes 100.
+        var bank = new BankAccount("Agricola", CurrencyCode.USD, openingBalance: 200m);
+        var emma = new CreditCard("EMMA", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 2000m, statementCutOffDay: 20, paymentDueDay: 16, openingAmountOwed: 59.22m);
+        emma.RegisterPayment(70m);
+        var other = new CreditCard("Mi Super", CurrencyCode.USD, Guid.NewGuid(), creditLimit: 1000m, statementCutOffDay: 1, paymentDueDay: 15, openingAmountOwed: 100m);
+
+        var usd = new NetWorthCalculator().Calculate([bank], [emma, other]).ByCurrency[CurrencyCode.USD];
+
+        Assert.Equal(210.78m, usd.TotalAssets);
+        Assert.Equal(100m, usd.TotalLiabilities);
+        Assert.Equal(110.78m, usd.NetWorth);
+    }
 }

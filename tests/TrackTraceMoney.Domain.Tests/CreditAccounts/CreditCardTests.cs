@@ -224,11 +224,19 @@ public sealed class CreditCardTests
     }
 
     [Fact]
-    public void RegisterPayment_ExceedingAmountOwed_Throws()
+    public void RegisterPayment_ExceedingAmountOwed_LeavesCreditBalance()
     {
-        var card = CreateCard(openingAmountOwed: 200m);
+        // Paid 70 on a 59.22 balance: the card issuer credits the 10.78 to future charges.
+        var card = CreateCard(openingAmountOwed: 59.22m);
 
-        Assert.Throws<InvalidOperationException>(() => card.RegisterPayment(200.01m));
+        card.RegisterPayment(70m);
+
+        Assert.Equal(-10.78m, card.AmountOwed);
+        Assert.Equal(10.78m, card.CreditBalance);
+        Assert.Equal(card.CreditLimit + 10.78m, card.AvailableCredit);
+
+        card.RegisterCharge(5m); // the next purchase is absorbed by the credit balance
+        Assert.Equal(5.78m, card.CreditBalance);
     }
 
     [Fact]

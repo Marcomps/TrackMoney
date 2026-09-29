@@ -60,7 +60,15 @@
                                 <Label Grid.Row="0" Grid.Column="1"
                                        VerticalOptions="Center"
                                        AutomationId="{Binding Name, StringFormat='CreditCardsList_AmountOwed_{0}'}"
+                                       IsVisible="{Binding ShowsAmountOwed}"
                                        Text="{Binding AmountOwed, StringFormat='{0:N2}'}" />
+                                <!-- Overpaid card: a credit balance, not a negative debt. -->
+                                <Label Grid.Row="0" Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       IsVisible="{Binding HasCreditBalance}"
+                                       TextColor="{StaticResource Primary}"
+                                       AutomationId="{Binding Name, StringFormat='CreditCardsList_CreditBalance_{0}'}"
+                                       Text="{Binding CreditBalanceText}" />
                                 <Label Grid.Row="1" Grid.Column="1"
                                        VerticalOptions="Center"
                                        Text="{Binding CreditLimit, StringFormat='{0:N2}'}"

@@ -24,6 +24,15 @@ public sealed record CreditCardListItem(
     /// <summary>Same rationale as <c>AccountListItem.IsInactive</c> (edit/delete slice spec §2.2).</summary>
     public bool IsInactive => !IsActive;
 
+    public bool HasCreditBalance => AmountOwed < 0m;
+
+    public bool ShowsAmountOwed => !HasCreditBalance;
+
+    /// <summary>"Saldo a favor: 10.78" when the card was overpaid; empty otherwise.</summary>
+    public string CreditBalanceText => HasCreditBalance
+        ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TrackTraceMoney.App.Resources.Strings.AppResources.CreditCards_CreditBalanceFormat, -AmountOwed)
+        : string.Empty;
+
     public static CreditCardListItem FromDomain(CreditCard card, CreditCardHealthStatus healthStatus, string institutionName) => new(
         card.Id,
         card.Name,

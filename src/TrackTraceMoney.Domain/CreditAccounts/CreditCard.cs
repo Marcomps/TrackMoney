@@ -70,6 +70,9 @@ public sealed class CreditCard : CreditAccount
     /// </summary>
     public decimal AvailableCredit => CreditLimit - AmountOwed;
 
+    /// <summary>A card may carry a credit balance ("saldo a favor") after an overpayment.</summary>
+    protected override bool AllowsCreditBalance => true;
+
     private CreditCard()
     {
     }

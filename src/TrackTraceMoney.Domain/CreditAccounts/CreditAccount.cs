@@ -78,34 +78,43 @@ public abstract class CreditAccount : Entity
     }
 
     /// <summary>
+    /// Whether <see cref="AmountOwed"/> may go below zero — a credit balance ("saldo a favor") the issuer
+    /// applies to future charges. Credit cards allow it (paying more than the statement balance is common,
+    /// and card contracts credit the excess to future charges); loans don't — overpaying an installment
+    /// loan has no meaning here.
+    /// </summary>
+    protected virtual bool AllowsCreditBalance => false;
+
+    /// <summary>The credit balance in the account's favour (the negative part of <see cref="AmountOwed"/>), or 0.</summary>
+    public decimal CreditBalance => AmountOwed < 0m ? -AmountOwed : 0m;
+
+    /// <summary>
     /// Undoes a charge recorded by <see cref="RegisterCharge"/> (a card purchase deleted, or reposted by an
-    /// edit). Rejected when it would leave <see cref="AmountOwed"/> negative — i.e. the charge has since
-    /// been (partly) paid off — for the same reason <see cref="RegisterPayment"/> rejects overpayment: a
-    /// credit balance has no defined meaning yet.
+    /// edit). When the charge has since been paid off this leaves a credit balance, if the account allows
+    /// one (see <see cref="AllowsCreditBalance"/>); otherwise it's rejected.
     /// </summary>
     public void ReverseCharge(decimal amount)
     {
         if (amount <= 0)
             throw new ArgumentOutOfRangeException(nameof(amount), "Charge amount must be positive.");
 
-        if (amount > AmountOwed)
+        if (!AllowsCreditBalance && amount > AmountOwed)
             throw new InvalidOperationException("Reversing this charge would leave a negative amount owed.");
 
         AmountOwed -= amount;
     }
 
     /// <summary>
-    /// Records a payment against this account, decreasing <see cref="AmountOwed"/>. Overpayment is
-    /// deliberately rejected in this slice — there is no defined meaning yet for a negative
-    /// <see cref="AmountOwed"/> ("credit balance"), so this throws rather than clamping to zero or
-    /// going negative.
+    /// Records a payment against this account, decreasing <see cref="AmountOwed"/>. Paying more than is
+    /// owed leaves a credit balance on accounts that allow one (credit cards, see
+    /// <see cref="AllowsCreditBalance"/>) and is rejected otherwise (loans).
     /// </summary>
     public void RegisterPayment(decimal amount)
     {
         if (amount <= 0)
             throw new ArgumentOutOfRangeException(nameof(amount), "Payment amount must be positive.");
 
-        if (amount > AmountOwed)
+        if (!AllowsCreditBalance && amount > AmountOwed)
             throw new InvalidOperationException("Payment amount cannot exceed the amount owed.");
 
         AmountOwed -= amount;

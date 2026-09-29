@@ -15,13 +15,19 @@ public sealed class NetWorthCalculator : INetWorthCalculator
 {
     public NetWorthSummary Calculate(IEnumerable<FinancialAccount> financialAccounts, IEnumerable<CreditAccount> creditAccounts)
     {
-        var assetsByCurrency = financialAccounts
-            .GroupBy(a => a.Currency)
-            .ToDictionary(g => g.Key, g => g.Sum(a => a.Balance));
+        var credit = creditAccounts.ToList();
 
-        var liabilitiesByCurrency = creditAccounts
+        // A card's credit balance (overpayment) is money owed TO the user: counted as an asset, never as a
+        // negative liability — liabilities stay >= 0 (NetWorthSnapshot rejects negative ones).
+        var assetsByCurrency = financialAccounts
+            .Select(a => (a.Currency, Amount: a.Balance))
+            .Concat(credit.Where(a => a.CreditBalance > 0m).Select(a => (a.Currency, Amount: a.CreditBalance)))
+            .GroupBy(x => x.Currency)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+
+        var liabilitiesByCurrency = credit
             .GroupBy(a => a.Currency)
-            .ToDictionary(g => g.Key, g => g.Sum(a => a.AmountOwed));
+            .ToDictionary(g => g.Key, g => g.Sum(a => Math.Max(0m, a.AmountOwed)));
 
         var currencies = assetsByCurrency.Keys.Union(liabilitiesByCurrency.Keys);
 

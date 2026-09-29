@@ -2536,4 +2536,7 @@
   <data name="RecurringExpenses_ConfirmEarlyCancel" xml:space="preserve">
     <value>Not yet</value>
   </data>
+  <data name="CreditCards_CreditBalanceFormat" xml:space="preserve">
+    <value>Credit balance: {0:N2}</value>
+  </data>
 </root>

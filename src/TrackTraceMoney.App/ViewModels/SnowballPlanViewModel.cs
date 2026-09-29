@@ -84,6 +84,9 @@ public sealed partial class SnowballPlanViewModel : ObservableObject
                         break;
 
                     case CreditCard card:
+                        if (card.AmountOwed <= 0m)
+                            break; // nothing owed (or a credit balance): not a debt to plan
+
                         if (!latestStatementsByCard.TryGetValue(card.Id, out var latestStatement))
                         {
                             excludedCards.Add(new ExcludedCardListItem(card.Id, card.Name, card.AmountOwed));
