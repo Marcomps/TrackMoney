@@ -2515,4 +2515,13 @@
   <data name="AddTransaction_MedicalResolvedMessage" xml:space="preserve">
     <value>This medical expense's reimbursement is already resolved, so it can't be edited.</value>
   </data>
+  <data name="RecurringExpenseFrequency_SemiMonthly" xml:space="preserve">
+    <value>Twice a month (15th and last day)</value>
+  </data>
+  <data name="Budgets_MonthFormat" xml:space="preserve">
+    <value>Budgets for {0:MMMM yyyy}</value>
+  </data>
+  <data name="Budgets_Explanation" xml:space="preserve">
+    <value>A budget is a spending limit for one category this month. It isn't money set aside and doesn't change your balances. "Spent" adds up the expenses and card purchases you recorded in that category this month; transfers and card or loan payments don't count. It resets every month. Swipe a budget left to edit or delete it.</value>
+  </data>
 </root>

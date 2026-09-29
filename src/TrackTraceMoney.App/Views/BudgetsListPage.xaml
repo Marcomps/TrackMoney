@@ -16,6 +16,13 @@
                      Command="{Binding LoadBudgetsCommand}">
             <CollectionView ItemsSource="{Binding Budgets}"
                              SelectionMode="None">
+                <!-- What a budget is, up front: users read "Gastado 0.00 de 156.50" as money set aside. -->
+                <CollectionView.Header>
+                    <VerticalStackLayout Spacing="6" Padding="0,0,0,12">
+                        <Label Text="{Binding MonthTitle}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                        <Label Text="{x:Static resources:AppResources.Budgets_Explanation}" FontSize="13" Opacity="0.85" />
+                    </VerticalStackLayout>
+                </CollectionView.Header>
                 <CollectionView.EmptyView>
                     <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
                         <Label Text="{x:Static resources:AppResources.Budgets_Empty}"

@@ -8,6 +8,7 @@ public sealed class RecurringExpenseFrequencyToLabelConverter : EnumToLabelConve
     protected override string GetLabel(RecurringExpenseFrequency value) => value switch
     {
         RecurringExpenseFrequency.Weekly => AppResources.RecurringExpenseFrequency_Weekly,
+        RecurringExpenseFrequency.SemiMonthly => AppResources.RecurringExpenseFrequency_SemiMonthly,
         RecurringExpenseFrequency.Monthly => AppResources.RecurringExpenseFrequency_Monthly,
         RecurringExpenseFrequency.Yearly => AppResources.RecurringExpenseFrequency_Yearly,
         _ => string.Empty

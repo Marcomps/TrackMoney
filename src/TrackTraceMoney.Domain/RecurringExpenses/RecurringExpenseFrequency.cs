@@ -8,5 +8,11 @@ public enum RecurringExpenseFrequency
 {
     Weekly,
     Monthly,
-    Yearly
+    Yearly,
+
+    /// <summary>
+    /// Twice a month on the 15th and the last day of the month — e.g. sharing each "quincena" of a
+    /// semi-monthly salary. Appended last: stored as its name, but keeps existing ordinal positions too.
+    /// </summary>
+    SemiMonthly
 }

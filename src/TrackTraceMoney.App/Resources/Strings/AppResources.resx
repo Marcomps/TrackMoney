@@ -2515,4 +2515,13 @@
   <data name="AddTransaction_MedicalResolvedMessage" xml:space="preserve">
     <value>Este gasto médico ya tiene el reembolso resuelto, por eso no se puede editar.</value>
   </data>
+  <data name="RecurringExpenseFrequency_SemiMonthly" xml:space="preserve">
+    <value>Quincenal (15 y fin de mes)</value>
+  </data>
+  <data name="Budgets_MonthFormat" xml:space="preserve">
+    <value>Presupuestos de {0:MMMM yyyy}</value>
+  </data>
+  <data name="Budgets_Explanation" xml:space="preserve">
+    <value>Un presupuesto es un límite de gasto para una categoría durante este mes. No es dinero apartado ni cambia tus saldos. «Gastado» suma los gastos y compras con tarjeta que registraste en esa categoría este mes; las transferencias y los pagos de tarjeta o préstamo no cuentan. Se reinicia cada mes. Desliza un presupuesto a la izquierda para editarlo o eliminarlo.</value>
+  </data>
 </root>

@@ -80,7 +80,14 @@ public sealed partial class AddRecurringExpenseViewModel : ObservableObject
     [ObservableProperty]
     private bool isBusy;
 
-    public IReadOnlyList<RecurringExpenseFrequency> AvailableFrequencies { get; } = Enum.GetValues<RecurringExpenseFrequency>();
+    // Explicit order (not Enum.GetValues) so SemiMonthly, appended last in the enum, sits before Monthly.
+    public IReadOnlyList<RecurringExpenseFrequency> AvailableFrequencies { get; } =
+    [
+        RecurringExpenseFrequency.Weekly,
+        RecurringExpenseFrequency.SemiMonthly,
+        RecurringExpenseFrequency.Monthly,
+        RecurringExpenseFrequency.Yearly,
+    ];
 
     public ObservableCollection<NamedOption> Categories { get; } = [];
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -33,6 +34,9 @@ public sealed partial class BudgetsListViewModel : ObservableObject
     public ObservableCollection<BudgetListItem> Budgets { get; } = [];
 
     public bool IsEmpty => HasLoaded && Budgets.Count == 0;
+
+    /// <summary>Budgets are per calendar month; the list always shows the current one.</summary>
+    public string MonthTitle => string.Format(CultureInfo.CurrentCulture, AppResources.Budgets_MonthFormat, DateTime.Today);
 
     public BudgetsListViewModel(
         IBudgetRepository budgetRepository,

@@ -322,4 +322,22 @@ public sealed class RecurringExpenseTests
         Assert.Throws<InvalidOperationException>(() => expense.UpdateDetails(
             "Netflix", 6.99m, expense.CategoryId, expense.AccountId, null, expense.Frequency, start.AddDays(3), null));
     }
+
+    [Fact]
+    public void SemiMonthly_FallsOnThe15thAndLastDayOfEachMonth()
+    {
+        var expense = CreateExpense(RecurringExpenseFrequency.SemiMonthly, new DateOnly(2026, 9, 30));
+        var dates = new List<DateOnly>();
+
+        for (var i = 0; i < 4; i++)
+        {
+            dates.Add(expense.NextOccurrenceDate);
+            expense.MarkConfirmed(expense.NextOccurrenceDate);
+        }
+
+        Assert.Equal(
+            new[] { new DateOnly(2026, 9, 30), new DateOnly(2026, 10, 15), new DateOnly(2026, 10, 31), new DateOnly(2026, 11, 15) },
+            dates);
+        Assert.Equal(2, CreateExpense(RecurringExpenseFrequency.SemiMonthly, new DateOnly(2026, 10, 15)).CountOccurrencesThrough(new DateOnly(2026, 10, 31)));
+    }
 }
