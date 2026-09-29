@@ -141,6 +141,19 @@ public sealed class RecurringExpense : Entity
         && (EndDate is null || NextOccurrenceDate <= EndDate.Value);
 
     /// <summary>
+    /// How many days ahead of its scheduled date the next occurrence may be confirmed (a payment made a
+    /// few days early) — see <see cref="RecurrenceDates.EarlyConfirmationWindowDays"/>.
+    /// </summary>
+    public int EarlyConfirmationWindowDays =>
+        RecurrenceDates.EarlyConfirmationWindowDays(Frequency == RecurringExpenseFrequency.Weekly, LastConfirmedDate, NextOccurrenceDate);
+
+    /// <summary>
+    /// True when the next occurrence is already due, or is scheduled within
+    /// <see cref="EarlyConfirmationWindowDays"/> of <paramref name="today"/> and can be confirmed early.
+    /// </summary>
+    public bool CanConfirm(DateOnly today) => IsDue(today.AddDays(EarlyConfirmationWindowDays));
+
+    /// <summary>
     /// How many occurrences fall on or before <paramref name="horizonEnd"/>, starting from
     /// <see cref="NextOccurrenceDate"/> — not just whether one is due (<see cref="IsDue"/>). A
     /// <see cref="RecurringExpenseFrequency.Weekly"/> expense can have several occurrences within a

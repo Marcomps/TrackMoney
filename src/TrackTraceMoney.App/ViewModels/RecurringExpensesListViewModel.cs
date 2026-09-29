@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using TrackTraceMoney.App.Converters;
 using TrackTraceMoney.App.Models;
 using TrackTraceMoney.App.Resources.Strings;
+using TrackTraceMoney.App.Services;
 using TrackTraceMoney.App.Views;
 using TrackTraceMoney.Application.Abstractions;
 using TrackTraceMoney.Application.RecurringExpenses;
@@ -93,8 +94,8 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
                 var listItem = RecurringExpenseListItem.FromDomain(recurringExpense, categoryName, accountName);
                 RecurringExpenses.Add(listItem);
 
-                if (recurringExpense.IsDue(today))
-                    DueRecurringExpenses.Add(DueRecurringExpenseListItem.FromListItem(listItem));
+                if (recurringExpense.CanConfirm(today))
+                    DueRecurringExpenses.Add(DueRecurringExpenseListItem.FromListItem(listItem, today));
             }
 
             HasLoaded = true;
@@ -114,11 +115,17 @@ public sealed partial class RecurringExpensesListViewModel : ObservableObject
         if (IsBusy)
             return;
 
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var item = DueRecurringExpenses.FirstOrDefault(d => d.Id == recurringExpenseId);
+        if (item is not null && !await RecurringConfirmPrompt.ExpenseAsync(item.Name, item.OccurrenceDate, item.Amount, today))
+            return;
+
         ErrorMessage = null;
         IsBusy = true;
         try
         {
-            await _recurringExpenseService.ConfirmOccurrenceAsync(recurringExpenseId);
+            await _recurringExpenseService.ConfirmOccurrenceAsync(recurringExpenseId, today);
         }
         catch (Exception)
         {

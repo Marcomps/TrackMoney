@@ -340,4 +340,26 @@ public sealed class RecurringExpenseTests
             dates);
         Assert.Equal(2, CreateExpense(RecurringExpenseFrequency.SemiMonthly, new DateOnly(2026, 10, 15)).CountOccurrencesThrough(new DateOnly(2026, 10, 31)));
     }
+
+    [Theory]
+    [InlineData(2026, 9, 30, true)]  // due today
+    [InlineData(2026, 9, 23, true)]  // 7 days early
+    [InlineData(2026, 9, 22, false)] // 8 days early
+    public void CanConfirm_AllowsUpTo7DaysEarly(int year, int month, int day, bool expected)
+    {
+        var expense = CreateExpense(RecurringExpenseFrequency.Monthly, new DateOnly(2026, 9, 30));
+
+        Assert.Equal(expected, expense.CanConfirm(new DateOnly(year, month, day)));
+    }
+
+    [Fact]
+    public void CanConfirm_SemiMonthly_AfterEarlyConfirmation_NextPaymentIsOutOfReach()
+    {
+        // Girlfriend's share: paid the 30th's on the 28th; the 15th must not be confirmable that same day.
+        var expense = CreateExpense(RecurringExpenseFrequency.SemiMonthly, new DateOnly(2026, 9, 30));
+        expense.MarkConfirmed(expense.NextOccurrenceDate);
+
+        Assert.False(expense.CanConfirm(new DateOnly(2026, 9, 28)));
+        Assert.True(expense.CanConfirm(new DateOnly(2026, 10, 8)));
+    }
 }

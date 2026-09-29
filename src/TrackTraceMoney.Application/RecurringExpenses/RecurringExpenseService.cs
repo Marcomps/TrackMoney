@@ -19,14 +19,21 @@ public sealed class RecurringExpenseService : IRecurringExpenseService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task ConfirmOccurrenceAsync(Guid recurringExpenseId, CancellationToken ct = default)
+    public async Task ConfirmOccurrenceAsync(Guid recurringExpenseId, DateOnly today, CancellationToken ct = default)
     {
         var recurringExpense = await _recurringExpenseRepository.GetByIdAsync(recurringExpenseId, ct)
             ?? throw new InvalidOperationException($"Recurring expense '{recurringExpenseId}' was not found.");
 
+        if (!recurringExpense.CanConfirm(today))
+            throw new InvalidOperationException("The next occurrence is not due yet and is outside the early-confirmation window.");
+
         // Capture before RecordExpenseAsync/MarkConfirmed run: NextOccurrenceDate is computed from
         // LastConfirmedDate, so it would change out from under a second read after MarkConfirmed.
         var occurrenceDate = recurringExpense.NextOccurrenceDate;
+
+        // Paid early: the money left today, so the transaction is dated today, while the schedule still
+        // advances from the scheduled date.
+        var paidOn = occurrenceDate > today ? today : occurrenceDate;
 
         // Posting the Expense (which debits the account, inside RecordExpenseAsync's own
         // SaveChangesAsync) and marking this recurring expense confirmed (a second, separate
@@ -52,7 +59,7 @@ public sealed class RecurringExpenseService : IRecurringExpenseService
             if (recurringExpense.IsCreditCardBacked)
             {
                 await _transactionEntryService.RecordCreditCardPurchaseAsync(
-                    date: occurrenceDate,
+                    date: paidOn,
                     amount: recurringExpense.Amount,
                     creditAccountId: recurringExpense.CreditAccountId!.Value,
                     categoryId: recurringExpense.CategoryId,
@@ -65,7 +72,7 @@ public sealed class RecurringExpenseService : IRecurringExpenseService
             else
             {
                 await _transactionEntryService.RecordExpenseAsync(
-                    date: occurrenceDate,
+                    date: paidOn,
                     amount: recurringExpense.Amount,
                     accountId: recurringExpense.AccountId!.Value,
                     categoryId: recurringExpense.CategoryId,

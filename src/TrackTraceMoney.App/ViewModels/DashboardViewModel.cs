@@ -431,7 +431,7 @@ public sealed partial class DashboardViewModel : ObservableObject
 
     /// <summary>
     /// "I got paid": confirms a recurring income's next occurrence from the Dashboard (posting the real
-    /// Income), asking first when it's ahead of its scheduled date -- see RecurringIncomeConfirmPrompt.
+    /// Income), asking first when it's ahead of its scheduled date -- see RecurringConfirmPrompt.
     /// </summary>
     [RelayCommand]
     private async Task ConfirmIncomeAsync(UpcomingIncomeItem? item)
@@ -440,7 +440,7 @@ public sealed partial class DashboardViewModel : ObservableObject
             return;
 
         var today = DateOnly.FromDateTime(DateTime.Today);
-        if (!await RecurringIncomeConfirmPrompt.ProceedAsync(item.Name, item.Date, item.Amount, today))
+        if (!await RecurringConfirmPrompt.IncomeAsync(item.Name, item.Date, item.Amount, today))
             return;
 
         try

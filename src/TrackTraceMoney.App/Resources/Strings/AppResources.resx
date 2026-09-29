@@ -737,7 +737,7 @@
     <value>Agregar gasto recurrente</value>
   </data>
   <data name="RecurringExpenses_DueSectionTitle" xml:space="preserve">
-    <value>Pendientes de confirmar</value>
+    <value>Por confirmar</value>
   </data>
   <data name="RecurringExpenses_ConfirmButton" xml:space="preserve">
     <value>Confirmar</value>
@@ -2523,5 +2523,17 @@
   </data>
   <data name="Budgets_Explanation" xml:space="preserve">
     <value>Un presupuesto es un límite de gasto para una categoría durante este mes. No es dinero apartado ni cambia tus saldos. «Gastado» suma los gastos y compras con tarjeta que registraste en esa categoría este mes; las transferencias y los pagos de tarjeta o préstamo no cuentan. Se reinicia cada mes. Desliza un presupuesto a la izquierda para editarlo o eliminarlo.</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmEarlyTitle" xml:space="preserve">
+    <value>¿Ya lo pagaste?</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmEarlyMessage" xml:space="preserve">
+    <value>{0} está programado para el {1:d}. Si ya lo pagaste, se registrarán {2:N2} con fecha de hoy.</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmEarlyAccept" xml:space="preserve">
+    <value>Sí, ya lo pagué</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmEarlyCancel" xml:space="preserve">
+    <value>Todavía no</value>
   </data>
 </root>

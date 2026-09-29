@@ -60,7 +60,7 @@ public sealed class RecurringExpenseServiceTests
         var recurringExpense = recurringExpenses.Add(new RecurringExpense(
             "Netflix", 15m, categoryId, account.Id, RecurringExpenseFrequency.Monthly, startDate, endDate: null));
 
-        await service.ConfirmOccurrenceAsync(recurringExpense.Id);
+        await service.ConfirmOccurrenceAsync(recurringExpense.Id, startDate);
 
         var recorded = Assert.Single(transactions.All);
         Assert.True(recorded.CountsAsExpense);
@@ -92,7 +92,7 @@ public sealed class RecurringExpenseServiceTests
         var recurringExpense = recurringExpenses.Add(new RecurringExpense(
             "Netflix", 15m, categoryId, account.Id, RecurringExpenseFrequency.Monthly, startDate, endDate: null));
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ConfirmOccurrenceAsync(recurringExpense.Id));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ConfirmOccurrenceAsync(recurringExpense.Id, startDate));
 
         Assert.False(unitOfWork.LastTransaction!.Committed);
         Assert.True(unitOfWork.LastTransaction!.RolledBack);
@@ -121,7 +121,7 @@ public sealed class RecurringExpenseServiceTests
         var recurringExpense = recurringExpenses.Add(RecurringExpense.ForCreditCard(
             "ChatGPT Personal", 20m, categoryId, card.Id, RecurringExpenseFrequency.Monthly, startDate, endDate: null));
 
-        await service.ConfirmOccurrenceAsync(recurringExpense.Id);
+        await service.ConfirmOccurrenceAsync(recurringExpense.Id, startDate);
 
         var recorded = Assert.Single(transactions.All);
         Assert.IsType<CreditCardPurchase>(recorded);
@@ -133,6 +133,40 @@ public sealed class RecurringExpenseServiceTests
 
         Assert.True(unitOfWork.LastTransaction!.Committed);
         Assert.False(unitOfWork.LastTransaction!.RolledBack);
+    }
+
+    [Fact]
+    public async Task ConfirmOccurrenceAsync_EarlyWithinWindow_PostsExpenseDatedToday_AndAdvancesFromScheduledDate()
+    {
+        // Dad's car money is due on the 30th; paid on the 28th.
+        var (service, recurringExpenses, accounts, transactions, _, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Agricola", CurrencyCode.USD, openingBalance: 500m));
+        var scheduled = new DateOnly(2026, 10, 30);
+        var today = new DateOnly(2026, 10, 28);
+        var recurringExpense = recurringExpenses.Add(new RecurringExpense(
+            "Carro - Papa", 100m, Guid.NewGuid(), account.Id, RecurringExpenseFrequency.Monthly, scheduled, endDate: null));
+
+        await service.ConfirmOccurrenceAsync(recurringExpense.Id, today);
+
+        Assert.Equal(today, Assert.Single(transactions.All).Date);
+        Assert.Equal(400m, account.Balance);
+        Assert.Equal(scheduled, recurringExpense.LastConfirmedDate);
+        Assert.Equal(new DateOnly(2026, 11, 30), recurringExpense.NextOccurrenceDate);
+    }
+
+    [Fact]
+    public async Task ConfirmOccurrenceAsync_BeyondEarlyWindow_Throws_AndPostsNothing()
+    {
+        var (service, recurringExpenses, accounts, transactions, _, _) = CreateSut();
+        var account = accounts.Add(new CashAccount("Agricola", CurrencyCode.USD, openingBalance: 500m));
+        var recurringExpense = recurringExpenses.Add(new RecurringExpense(
+            "Novia", 220m, Guid.NewGuid(), account.Id, RecurringExpenseFrequency.SemiMonthly, new DateOnly(2026, 10, 15), endDate: null));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.ConfirmOccurrenceAsync(recurringExpense.Id, new DateOnly(2026, 10, 1)));
+
+        Assert.Empty(transactions.All);
+        Assert.Equal(500m, account.Balance);
     }
 
     private sealed class FakeUnitOfWork : IUnitOfWork

@@ -109,7 +109,7 @@ public sealed partial class RecurringIncomesListViewModel : ObservableObject
         var today = DateOnly.FromDateTime(DateTime.Today);
 
         var item = DueRecurringIncomes.FirstOrDefault(d => d.Id == recurringIncomeId);
-        if (item is not null && !await RecurringIncomeConfirmPrompt.ProceedAsync(item.Name, item.OccurrenceDate, item.Amount, today))
+        if (item is not null && !await RecurringConfirmPrompt.IncomeAsync(item.Name, item.OccurrenceDate, item.Amount, today))
             return;
 
         ErrorMessage = null;

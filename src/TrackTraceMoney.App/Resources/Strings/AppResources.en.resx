@@ -737,7 +737,7 @@
     <value>Add recurring expense</value>
   </data>
   <data name="RecurringExpenses_DueSectionTitle" xml:space="preserve">
-    <value>Due for confirmation</value>
+    <value>To confirm</value>
   </data>
   <data name="RecurringExpenses_ConfirmButton" xml:space="preserve">
     <value>Confirm</value>
@@ -2523,5 +2523,17 @@
   </data>
   <data name="Budgets_Explanation" xml:space="preserve">
     <value>A budget is a spending limit for one category this month. It isn't money set aside and doesn't change your balances. "Spent" adds up the expenses and card purchases you recorded in that category this month; transfers and card or loan payments don't count. It resets every month. Swipe a budget left to edit or delete it.</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmEarlyTitle" xml:space="preserve">
+    <value>Already paid?</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmEarlyMessage" xml:space="preserve">
+    <value>{0} is scheduled for {1:d}. If you have already paid it, {2:N2} will be recorded with today's date.</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmEarlyAccept" xml:space="preserve">
+    <value>Yes, I paid it</value>
+  </data>
+  <data name="RecurringExpenses_ConfirmEarlyCancel" xml:space="preserve">
+    <value>Not yet</value>
   </data>
 </root>

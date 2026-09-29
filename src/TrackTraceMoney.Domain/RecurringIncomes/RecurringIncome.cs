@@ -90,23 +90,11 @@ public sealed class RecurringIncome : Entity
         && (EndDate is null || NextOccurrenceDate <= EndDate.Value);
 
     /// <summary>
-    /// How many days ahead of its scheduled date the next occurrence may be confirmed (payroll often
-    /// lands early when the payday falls on a weekend). Also capped below the gap since the last
-    /// confirmed occurrence, so confirming one occurrence (on time or early) never makes the following
-    /// one confirmable the same day — two taps can't post two paychecks. That cap matters for short
-    /// gaps, e.g. a semi-monthly income started off-cycle on the 23rd whose next payday is the 30th.
+    /// How many days ahead of its scheduled date the next occurrence may be confirmed (payroll often lands
+    /// early when the payday falls on a weekend) — see <see cref="RecurrenceDates.EarlyConfirmationWindowDays"/>.
     /// </summary>
-    public int EarlyConfirmationWindowDays
-    {
-        get
-        {
-            var window = Frequency == RecurringIncomeFrequency.Weekly ? 3 : 7;
-            if (LastConfirmedDate is { } last)
-                window = Math.Min(window, NextOccurrenceDate.DayNumber - last.DayNumber - 1);
-
-            return window;
-        }
-    }
+    public int EarlyConfirmationWindowDays =>
+        RecurrenceDates.EarlyConfirmationWindowDays(Frequency == RecurringIncomeFrequency.Weekly, LastConfirmedDate, NextOccurrenceDate);
 
     /// <summary>
     /// True when the next occurrence is already due, or is scheduled within

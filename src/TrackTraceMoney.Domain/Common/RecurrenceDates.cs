@@ -19,6 +19,21 @@ public static class RecurrenceDates
     }
 
     /// <summary>
+    /// How many days ahead of its scheduled date a recurring occurrence may be confirmed (a paycheck or a
+    /// payment that happened a few days early): 3 for weekly schedules, 7 otherwise — and always below
+    /// the gap since the last confirmed occurrence, so confirming one (on time or early) never makes the
+    /// following one confirmable the same day. Two taps can't record two occurrences.
+    /// </summary>
+    public static int EarlyConfirmationWindowDays(bool isWeekly, DateOnly? lastConfirmed, DateOnly nextOccurrence)
+    {
+        var window = isWeekly ? 3 : 7;
+        if (lastConfirmed is { } last)
+            window = Math.Min(window, nextOccurrence.DayNumber - last.DayNumber - 1);
+
+        return window;
+    }
+
+    /// <summary>
     /// The end of the "quincena" containing <paramref name="date"/>: the 15th for days 1–15, otherwise
     /// the last day of the month.
     /// </summary>
